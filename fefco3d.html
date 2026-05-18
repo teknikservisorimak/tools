@@ -4150,92 +4150,126 @@ void main() {
     <div id="root"></div>
   
 <script>
-// ORİMAK FEFCO 3D - Feature Toolbar v2 (lightweight)
 (function(){
 'use strict';
 
-var _panel = null, _toolbar = null, _dimOvr = null, _active = null;
-var dims = {L:400, W:300, H:250};
-var boxCode = '0201';
+var _panel=null,_toolbar=null,_dimOvr=null,_active=null;
+var dims={L:400,W:300,H:250};
+var boxCode='0201';
+var _threeScene=null,_threeRenderer=null,_threeCamera=null;
 
-// Simple dimension reader - runs only on panel open, not continuously
 function readDims(){
-  try {
-    var els = document.querySelectorAll('input[type="number"]');
-    var found = [];
-    els.forEach(function(el){ 
-      var v = parseInt(el.value);
-      if(v > 30 && v < 1000) found.push(v);
-    });
-    if(found.length >= 3){
-      dims.L = found[0]; dims.W = found[1]; dims.H = found[2];
+  try{
+    var els=document.querySelectorAll('input[type="number"]');
+    var found=[];
+    els.forEach(function(el){var v=parseInt(el.value);if(v>30&&v<1000)found.push(v);});
+    if(found.length>=3){dims.L=found[0];dims.W=found[1];dims.H=found[2];}
+  }catch(e){}
+  try{
+    var allEls=document.querySelectorAll('*');
+    for(var i=0;i<allEls.length;i++){
+      var t=allEls[i].textContent.trim();
+      if(/^0[1-8]\d{2}$/.test(t)&&allEls[i].children.length===0){
+        var st=window.getComputedStyle(allEls[i]);
+        if(st.color.indexOf('232')>-1||st.color.indexOf('e8751a')>-1||st.fontWeight>='600'){
+          boxCode=t;break;
+        }
+      }
     }
-  } catch(e){}
-  // read box code
-  try {
-    var codeEls = document.querySelectorAll('[class*="text-\\\\[\\\\#e8751a\\\\]"]');
-    if(!codeEls.length) codeEls = document.querySelectorAll('.font-bold');
-    codeEls.forEach(function(el){
-      var t = el.textContent.trim();
-      if(/^0[1-8]\d{2}$/.test(t)) boxCode = t;
-    });
-  } catch(e){}
+  }catch(e){}
 }
 
-var formulas = {
-  '0201': function(L,W,H){return {en:2*(L+W)+40, boy:H+W+20, desc:'RSC: 2×(L+W)+40 × H+W+20'}},
-  '0202': function(L,W,H){return {en:2*(L+W)+40, boy:H+Math.round(W*1.25)+20, desc:'OSC: Örtüşen kapaklar'}},
-  '0203': function(L,W,H){return {en:2*(L+W)+40, boy:H+W*2+20, desc:'FOL: Tam örtüşen'}},
-  '0204': function(L,W,H){return {en:2*(L+W)+40, boy:H+L+20, desc:'Tam kapak'}},
-  '0300': function(L,W,H){return {en:2*(L+W)+40, boy:H+20, desc:'Teleskopik tepsi'}},
-  '0410': function(L,W,H){return {en:2*L+2*W+40, boy:H+W+30, desc:'Tırnak kilitli'}},
-};
-function getFormula(code){ return formulas[code] || formulas['0201']; }
+// Intercept Three.js renderer to get scene/camera/renderer refs
+function hookThreeJS(){
+  try{
+    var cv=document.querySelector('canvas');
+    if(!cv)return;
+    // Try to find renderer via __r$ fiber
+    var root=document.getElementById('root');
+    if(!root)return;
+    var fk=Object.keys(root).find(function(k){return k.startsWith('__reactFiber');});
+    if(!fk)return;
+    // Walk fiber tree to find refs
+    function walkFiber(f,d){
+      if(d>80)return;
+      if(f&&f.memoizedState){
+        var s=f.memoizedState;
+        while(s){
+          if(s.memoizedState&&s.memoizedState.current){
+            var ref=s.memoizedState.current;
+            if(ref&&ref.domElement&&ref.render){_threeRenderer=ref;}
+            if(ref&&ref.isScene){_threeScene=ref;}
+            if(ref&&ref.isPerspectiveCamera){_threeCamera=ref;}
+          }
+          s=s.next;
+        }
+      }
+      if(f&&f.child)walkFiber(f.child,d+1);
+      if(f&&f.sibling)walkFiber(f.sibling,d+1);
+    }
+    walkFiber(root[fk],0);
+  }catch(e){}
+}
 
-var fluteData = {
+var formulas={
+  '0201':function(L,W,H){return{en:2*(L+W)+40,boy:H+W+20,desc:'RSC: 2×(L+W)+40 × H+W+20'}},
+  '0202':function(L,W,H){return{en:2*(L+W)+40,boy:H+Math.round(W*1.25)+20,desc:'OSC: Örtüşen kapaklar'}},
+  '0203':function(L,W,H){return{en:2*(L+W)+40,boy:H+W*2+20,desc:'FOL: Tam örtüşen'}},
+  '0204':function(L,W,H){return{en:2*(L+W)+40,boy:H+L+20,desc:'Tam kapak: H+L+20'}},
+  '0300':function(L,W,H){return{en:2*(L+W)+40,boy:H+20,desc:'Teleskopik tepsi'}},
+  '0410':function(L,W,H){return{en:2*L+2*W+40,boy:H+W+30,desc:'Tırnak kilitli'}},
+};
+function getF(code){return formulas[code]||formulas['0201'];}
+
+var fluteData={
   'E':{name:'E Dalga (1.5mm)',gsm:350},
   'B':{name:'B Dalga (3mm)',gsm:450},
   'C':{name:'C Dalga (4mm)',gsm:550},
-  'BC':{name:'BC Çift (7mm)',gsm:750},
-  'EB':{name:'EB Çift (4.5mm)',gsm:600},
+  'BC':{name:'BC Çift Dalga (7mm)',gsm:750},
+  'EB':{name:'EB Çift Dalga (4.5mm)',gsm:600},
 };
 
 function init(){
-  // Inject CSS
-  var style = document.createElement('style');
-  style.textContent = [
-    '#otb{position:fixed;bottom:80px;right:16px;z-index:99998;display:flex;flex-direction:column;gap:6px}',
-    '.ob{width:44px;height:44px;border-radius:10px;border:1px solid rgba(232,117,26,.3);background:rgba(13,31,51,.92);color:#e8751a;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:all .2s;backdrop-filter:blur(8px);box-shadow:0 2px 10px rgba(0,0,0,.3);-webkit-user-select:none;user-select:none}',
-    '.ob:hover{background:#e8751a;color:#fff;transform:scale(1.1)}',
-    '.ob.on{background:#e8751a;color:#fff;box-shadow:0 0 15px rgba(232,117,26,.5)}',
-    '#opn{position:fixed;top:80px;right:16px;width:340px;max-height:calc(100vh - 100px);background:rgba(13,31,51,.96);border:1px solid rgba(232,117,26,.25);border-radius:12px;z-index:99997;overflow-y:auto;display:none;backdrop-filter:blur(12px);box-shadow:0 8px 40px rgba(0,0,0,.5)}',
-    '#opn.show{display:block}',
-    '.oph{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between}',
-    '.oph h3{font-family:Rajdhani,sans-serif;font-size:15px;font-weight:700;color:#e8751a;letter-spacing:2px;text-transform:uppercase;margin:0}',
-    '.opc{background:none;border:none;color:rgba(255,255,255,.4);font-size:18px;cursor:pointer}',
-    '.opc:hover{color:#fff}',
-    '.opb{padding:16px;color:rgba(255,255,255,.8);font-size:13px;line-height:1.6}',
-    '.opb label{display:block;font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase;margin:4px 0}',
-    '.opb select,.opb input[type=number]{width:100%;padding:8px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:#fff;font-size:13px;font-family:Rajdhani,sans-serif}',
-    '.opb select:focus,.opb input:focus{outline:none;border-color:rgba(232,117,26,.5)}',
-    '.rb{margin-top:14px;padding:12px;background:rgba(232,117,26,.08);border:1px solid rgba(232,117,26,.2);border-radius:8px}',
-    '.rv{font-family:Rajdhani,sans-serif;font-size:22px;font-weight:700;color:#e8751a}',
-    '.rl{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase}',
-    '.ig{display:grid;grid-template-columns:1fr 1fr;gap:8px}',
-    '.ic{padding:10px;background:rgba(255,255,255,.04);border-radius:6px;border:1px solid rgba(255,255,255,.06);text-align:center}',
-    '.oab{width:100%;padding:10px;margin-top:12px;background:#e8751a;color:#fff;border:none;border-radius:8px;font-family:Rajdhani,sans-serif;font-size:13px;font-weight:700;letter-spacing:1.5px;cursor:pointer;transition:all .2s}',
-    '.oab:hover{background:#f5a623}',
-    '#dov{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:rgba(13,31,51,.92);border:1px solid rgba(232,117,26,.3);border-radius:10px;padding:10px 20px;z-index:99996;display:none;backdrop-filter:blur(8px);font-family:Rajdhani,sans-serif}',
-    '#dov.show{display:flex;gap:16px;align-items:center}',
-    '.di{text-align:center}.dv{font-size:20px;font-weight:700;color:#e8751a}.dl{font-size:9px;color:rgba(255,255,255,.4);letter-spacing:1.5px;text-transform:uppercase}',
-    '.ds{color:rgba(255,255,255,.15);font-size:18px}',
-  ].join('\n');
-  document.head.appendChild(style);
+  var sty=document.createElement('style');
+  sty.textContent=
+    '#otb{position:fixed;bottom:80px;right:16px;z-index:99998;display:flex;flex-direction:column;gap:6px}'
+    +'.ob{width:44px;height:44px;border-radius:10px;border:1px solid rgba(232,117,26,.3);background:rgba(13,31,51,.92);color:#e8751a;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:all .2s;backdrop-filter:blur(8px);box-shadow:0 2px 10px rgba(0,0,0,.3)}'
+    +'.ob:hover{background:#e8751a;color:#fff;transform:scale(1.1)}'
+    +'.ob.on{background:#e8751a;color:#fff;box-shadow:0 0 15px rgba(232,117,26,.5)}'
+    +'#opn{position:fixed;top:80px;right:16px;width:340px;max-height:calc(100vh - 100px);background:rgba(13,31,51,.97);border:1px solid rgba(232,117,26,.25);border-radius:12px;z-index:99997;overflow-y:auto;display:none;backdrop-filter:blur(12px);box-shadow:0 8px 40px rgba(0,0,0,.5)}'
+    +'#opn.show{display:block}'
+    +'.oph{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between}'
+    +'.oph h3{font-family:Rajdhani,sans-serif;font-size:15px;font-weight:700;color:#e8751a;letter-spacing:2px;text-transform:uppercase;margin:0}'
+    +'.opc{background:none;border:none;color:rgba(255,255,255,.4);font-size:18px;cursor:pointer;padding:4px 8px}'
+    +'.opc:hover{color:#fff}'
+    +'.opb{padding:16px;color:rgba(255,255,255,.8);font-size:13px;line-height:1.6}'
+    +'.opb label{display:block;font-size:11px;color:rgba(255,255,255,.5);letter-spacing:1px;text-transform:uppercase;margin:8px 0 4px}'
+    +'.opb label:first-child{margin-top:0}'
+    // FIX: select styling - dark bg, white text, option styling
+    +'.opb select{width:100%;padding:8px 10px;background:#152238;border:1px solid rgba(232,117,26,.3);border-radius:6px;color:#e8751a;font-size:14px;font-family:Rajdhani,sans-serif;font-weight:600;appearance:auto;-webkit-appearance:auto}'
+    +'.opb select option{background:#0d1f33;color:#e0e8f0;padding:8px}'
+    +'.opb input[type=number]{width:100%;padding:8px 10px;background:#152238;border:1px solid rgba(255,255,255,.15);border-radius:6px;color:#fff;font-size:13px;font-family:Rajdhani,sans-serif}'
+    +'.opb select:focus,.opb input:focus{outline:none;border-color:rgba(232,117,26,.6)}'
+    +'.rb{margin-top:12px;padding:12px;background:rgba(232,117,26,.08);border:1px solid rgba(232,117,26,.2);border-radius:8px}'
+    +'.rv{font-family:Rajdhani,sans-serif;font-size:22px;font-weight:700;color:#e8751a}'
+    +'.rl{font-size:10px;color:rgba(255,255,255,.45);letter-spacing:1px;text-transform:uppercase}'
+    +'.ig{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}'
+    +'.ic{padding:10px;background:rgba(255,255,255,.04);border-radius:6px;border:1px solid rgba(255,255,255,.06);text-align:center}'
+    +'.oab{width:100%;padding:10px;margin-top:10px;background:#e8751a;color:#fff;border:none;border-radius:8px;font-family:Rajdhani,sans-serif;font-size:13px;font-weight:700;letter-spacing:1.5px;cursor:pointer;transition:all .2s}'
+    +'.oab:hover{background:#f5a623}'
+    +'#dov{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:rgba(13,31,51,.94);border:1px solid rgba(232,117,26,.3);border-radius:10px;padding:10px 20px;z-index:99996;display:none;backdrop-filter:blur(8px);font-family:Rajdhani,sans-serif}'
+    +'#dov.show{display:flex;gap:16px;align-items:center}'
+    +'.di{text-align:center}.dv{font-size:20px;font-weight:700;color:#e8751a}.dl{font-size:9px;color:rgba(255,255,255,.4);letter-spacing:1.5px;text-transform:uppercase}.ds{color:rgba(255,255,255,.15);font-size:18px}'
+    // Color swatches
+    +'.csw{width:32px;height:32px;border-radius:8px;border:2px solid rgba(255,255,255,.15);cursor:pointer;transition:all .15s;display:inline-block}'
+    +'.csw:hover{transform:scale(1.15);border-color:#e8751a}'
+    +'.csw.sel{border-color:#e8751a;box-shadow:0 0 8px rgba(232,117,26,.5)}';
+  document.head.appendChild(sty);
 
-  // Toolbar
-  _toolbar = document.createElement('div');
-  _toolbar.id = 'otb';
-  _toolbar.innerHTML = '<div class="ob" data-t="dimensions" title="Ölçü Etiketleri">📏</div>'
+  _toolbar=document.createElement('div');
+  _toolbar.id='otb';
+  _toolbar.innerHTML=
+    '<div class="ob" data-t="dimensions" title="Ölçü Etiketleri">📏</div>'
     +'<div class="ob" data-t="cardboard" title="Karton Eni Hesaplama">📐</div>'
     +'<div class="ob" data-t="weight" title="Ağırlık/Malzeme">⚖️</div>'
     +'<div class="ob" data-t="export" title="PNG/PDF Export">📸</div>'
@@ -4244,66 +4278,121 @@ function init(){
     +'<div class="ob" data-t="color" title="Renk Simülasyonu">🎨</div>';
   document.body.appendChild(_toolbar);
 
-  _panel = document.createElement('div');
-  _panel.id = 'opn';
+  _panel=document.createElement('div');
+  _panel.id='opn';
   document.body.appendChild(_panel);
 
-  _dimOvr = document.createElement('div');
-  _dimOvr.id = 'dov';
+  _dimOvr=document.createElement('div');
+  _dimOvr.id='dov';
   document.body.appendChild(_dimOvr);
 
-  // Event delegation - single listener
-  _toolbar.addEventListener('click', function(e){
-    var btn = e.target.closest('.ob');
-    if(!btn) return;
+  _toolbar.addEventListener('click',function(e){
+    var btn=e.target.closest('.ob');
+    if(!btn)return;
     e.stopPropagation();
-    var t = btn.getAttribute('data-t');
-    if(_active === t){ closeAll(); return; }
+    e.preventDefault();
+    var t=btn.getAttribute('data-t');
+    if(_active===t){closeAll();return;}
     openTool(t);
   });
+
+  // Hook Three.js after a delay
+  setTimeout(hookThreeJS,2000);
+  setTimeout(hookThreeJS,5000);
 }
 
 function closeAll(){
   _panel.classList.remove('show');
+  _panel.innerHTML='';
   _dimOvr.classList.remove('show');
-  _active = null;
-  var bs = _toolbar.querySelectorAll('.ob');
-  for(var i=0;i<bs.length;i++) bs[i].classList.remove('on');
+  _active=null;
+  var bs=_toolbar.querySelectorAll('.ob');
+  for(var i=0;i<bs.length;i++)bs[i].classList.remove('on');
+}
+
+// Capture canvas by forcing a render then toDataURL
+function captureCanvas(){
+  var cv=document.querySelector('canvas');
+  if(!cv)return '';
+  // Force Three.js to render one frame then capture
+  if(_threeRenderer&&_threeScene&&_threeCamera){
+    try{
+      _threeRenderer.render(_threeScene,_threeCamera);
+      return _threeRenderer.domElement.toDataURL('image/png');
+    }catch(e){}
+  }
+  // Fallback: try direct canvas (may be blank without preserveDrawingBuffer)
+  try{return cv.toDataURL('image/png');}catch(e){return '';}
+}
+
+// Change box colors via Three.js scene traversal
+function changeBoxColor(hexColor){
+  if(!_threeScene){hookThreeJS();}
+  if(!_threeScene)return false;
+  var colorInt=parseInt(hexColor.replace('#',''),16);
+  var count=0;
+  _threeScene.traverse(function(obj){
+    if(obj.isMesh&&obj.material&&obj.material.isMeshStandardMaterial){
+      // Only change cardboard-colored meshes (not grid, shadow plane etc)
+      var c=obj.material.color;
+      var r=c.r,g=c.g,b=c.b;
+      // Detect cardboard colors (brownish tones) or any previously changed color
+      if(obj.userData._isBoxMesh||(r>0.4&&g>0.3&&b>0.1&&r<1&&g<0.9)){
+        obj.material.color.setHex(colorInt);
+        obj.material.needsUpdate=true;
+        obj.userData._isBoxMesh=true;
+        count++;
+      }
+    }
+  });
+  return count>0;
+}
+
+function resetBoxColor(){
+  if(!_threeScene)return;
+  _threeScene.traverse(function(obj){
+    if(obj.isMesh&&obj.userData._isBoxMesh&&obj.material){
+      // Reset to approximate original cardboard color
+      var origColors={'front':0xc4945a,'back':0xc4945a,'left':0xc4945a,'right':0xc4945a,'floor':0xba8e54,'flap':0xc89e64};
+      obj.material.color.setHex(0xc4945a);
+      obj.material.needsUpdate=true;
+    }
+  });
 }
 
 function openTool(t){
   readDims();
   closeAll();
-  _active = t;
-  var bs = _toolbar.querySelectorAll('.ob');
+  _active=t;
+  var bs=_toolbar.querySelectorAll('.ob');
   for(var i=0;i<bs.length;i++){
-    if(bs[i].getAttribute('data-t')===t) bs[i].classList.add('on');
+    if(bs[i].getAttribute('data-t')===t)bs[i].classList.add('on');
   }
 
-  var L=dims.L, W=dims.W, H=dims.H;
-  var f = getFormula(boxCode);
-  var c = f(L,W,H);
-  var html = '';
+  var L=dims.L,W=dims.W,H=dims.H;
+  var f=getF(boxCode);
+  var c=f(L,W,H);
+  var html='';
 
   if(t==='dimensions'){
-    _dimOvr.innerHTML = '<div class="di"><div class="dv">'+L+'</div><div class="dl">L (mm)</div></div>'
+    _dimOvr.innerHTML='<div class="di"><div class="dv">'+L+'</div><div class="dl">L (mm)</div></div>'
       +'<div class="ds">×</div><div class="di"><div class="dv">'+W+'</div><div class="dl">W (mm)</div></div>'
       +'<div class="ds">×</div><div class="di"><div class="dv">'+H+'</div><div class="dl">H (mm)</div></div>'
       +'<div class="ds">│</div><div class="di"><div class="dv">'+(L*W*H/1e6).toFixed(2)+'</div><div class="dl">dm³</div></div>';
     _dimOvr.classList.add('show');
-    var area = (2*(L+W)*H+2*L*W)/1e6;
-    html = '<div class="oph"><h3>📏 Ölçü Etiketleri</h3><button class="opc" id="xc">✕</button></div>'
+    var area=(2*(L+W)*H+2*L*W)/1e6;
+    html='<div class="oph"><h3>📏 Ölçü Etiketleri</h3><button class="opc" id="xc">✕</button></div>'
       +'<div class="opb"><div class="ig">'
       +'<div class="ic"><div class="rv">'+L+'</div><div class="rl">Uzunluk mm</div></div>'
       +'<div class="ic"><div class="rv">'+W+'</div><div class="rl">Genişlik mm</div></div>'
       +'<div class="ic"><div class="rv">'+H+'</div><div class="rl">Yükseklik mm</div></div>'
-      +'<div class="ic"><div class="rv">'+area.toFixed(3)+'</div><div class="rl">Yüzey m²</div></div>'
-      +'</div><div class="rb"><div class="rl">Hacim</div><div class="rv">'+(L*W*H/1e6).toFixed(2)+' dm³</div></div>'
+      +'<div class="ic"><div class="rv">'+area.toFixed(3)+'</div><div class="rl">Yüzey m²</div></div></div>'
+      +'<div class="rb"><div class="rl">Hacim</div><div class="rv">'+(L*W*H/1e6).toFixed(2)+' dm³</div></div>'
       +'<div class="rb"><div class="rl">Desi (Kargo)</div><div class="rv">'+(L*W*H/3000).toFixed(1)+' desi</div></div></div>';
   }
   else if(t==='cardboard'){
-    var am = (c.en*c.boy/1e6).toFixed(4);
-    html = '<div class="oph"><h3>📐 Karton Eni</h3><button class="opc" id="xc">✕</button></div>'
+    var am=(c.en*c.boy/1e6).toFixed(4);
+    html='<div class="oph"><h3>📐 Karton Eni</h3><button class="opc" id="xc">✕</button></div>'
       +'<div class="opb">'
       +'<div style="background:rgba(33,150,243,.1);border:1px solid rgba(33,150,243,.2);border-radius:8px;padding:10px;margin-bottom:14px">'
       +'<div style="font-size:11px;color:#2196F3;letter-spacing:1px">AKTİF TİP</div>'
@@ -4316,108 +4405,142 @@ function openTool(t){
       +'<div class="rb"><div class="rl">1000 Adet Sarfiyat</div><div class="rv">'+(parseFloat(am)*1000).toFixed(1)+' m²</div></div></div>';
   }
   else if(t==='weight'){
-    html = '<div class="oph"><h3>⚖️ Ağırlık</h3><button class="opc" id="xc">✕</button></div>'
+    html='<div class="oph"><h3>⚖️ Ağırlık</h3><button class="opc" id="xc">✕</button></div>'
       +'<div class="opb"><label>Dalga Tipi</label><select id="fsel">';
-    for(var k in fluteData) html += '<option value="'+k+'">'+fluteData[k].name+'</option>';
-    html += '</select><label>Boyutlar</label><div style="color:#e8751a;font-weight:600">'+L+' × '+W+' × '+H+' mm</div>'
+    for(var k in fluteData)html+='<option value="'+k+'">'+fluteData[k].name+'</option>';
+    html+='</select><label>Boyutlar</label>'
+      +'<div style="color:#e8751a;font-weight:600;font-size:15px;margin:4px 0 8px">'+L+' × '+W+' × '+H+' mm</div>'
       +'<div id="wres"></div></div>';
   }
   else if(t==='export'){
-    html = '<div class="oph"><h3>📸 Export</h3><button class="opc" id="xc">✕</button></div>'
+    html='<div class="oph"><h3>📸 Export</h3><button class="opc" id="xc">✕</button></div>'
       +'<div class="opb"><p style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:14px">3D görünümü indirin.</p>'
+      +'<div id="preview-area" style="text-align:center;margin-bottom:12px;min-height:40px"></div>'
       +'<button class="oab" id="epng">📸 PNG İndir</button>'
-      +'<button class="oab" id="epdf" style="background:rgba(232,117,26,.2);color:#e8751a">📄 PDF Bilgi Kartı</button></div>';
+      +'<button class="oab" id="epdf" style="background:rgba(232,117,26,.15);color:#e8751a">📄 PDF Bilgi Kartı</button></div>';
   }
   else if(t==='diecut'){
-    var scl=Math.min(280/c.en,180/c.boy), dw=c.en*scl, dh=c.boy*scl;
-    html = '<div class="oph"><h3>✂️ Açınım</h3><button class="opc" id="xc">✕</button></div>'
+    var scl=Math.min(280/c.en,180/c.boy),dw=c.en*scl,dh=c.boy*scl;
+    html='<div class="oph"><h3>✂️ Açınım</h3><button class="opc" id="xc">✕</button></div>'
       +'<div class="opb"><p style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:10px">FEFCO '+boxCode+' — 2D kalıp</p>'
       +'<div style="text-align:center;padding:8px"><svg width="'+(dw+20)+'" height="'+(dh+40)+'" viewBox="0 0 '+(dw+20)+' '+(dh+40)+'" style="background:rgba(0,0,0,.2);border-radius:8px">'
       +'<rect x="10" y="10" width="'+dw+'" height="'+dh+'" fill="none" stroke="#e8751a" stroke-width="1.5" stroke-dasharray="4,2" rx="2"/>'
       +'<rect x="10" y="10" width="'+(L*scl)+'" height="'+(H*scl)+'" fill="rgba(232,117,26,.08)" stroke="#e8751a" stroke-width="1"/>'
-      +'<rect x="'+(10+L*scl)+'" y="10" width="'+(W*scl)+'" height="'+(H*scl)+'" fill="rgba(232,117,26,.12)" stroke="#e8751a" stroke-width="1"/>'
+      +'<rect x="'+(10+L*scl)+'" y="10" width="'+(W*scl)+'" height="'+(H*scl)+'" fill="rgba(232,117,26,.15)" stroke="#e8751a" stroke-width="1"/>'
       +'<rect x="'+(10+(L+W)*scl)+'" y="10" width="'+(L*scl)+'" height="'+(H*scl)+'" fill="rgba(232,117,26,.08)" stroke="#e8751a" stroke-width="1"/>'
-      +'<rect x="'+(10+(2*L+W)*scl)+'" y="10" width="'+(W*scl)+'" height="'+(H*scl)+'" fill="rgba(232,117,26,.12)" stroke="#e8751a" stroke-width="1"/>'
-      +'<text x="'+(10+L*scl/2)+'" y="'+(H*scl/2+14)+'" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="10" font-family="Rajdhani">ÖN</text>'
-      +'<text x="'+(10+L*scl+W*scl/2)+'" y="'+(H*scl/2+14)+'" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="10" font-family="Rajdhani">YAN</text>'
-      +'<text x="'+(10+(L+W)*scl+L*scl/2)+'" y="'+(H*scl/2+14)+'" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="10" font-family="Rajdhani">ARKA</text>'
-      +'<text x="'+(10+(2*L+W)*scl+W*scl/2)+'" y="'+(H*scl/2+14)+'" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="10" font-family="Rajdhani">YAN</text>'
+      +'<rect x="'+(10+(2*L+W)*scl)+'" y="10" width="'+(W*scl)+'" height="'+(H*scl)+'" fill="rgba(232,117,26,.15)" stroke="#e8751a" stroke-width="1"/>'
+      +'<text x="'+(10+L*scl/2)+'" y="'+(H*scl/2+14)+'" text-anchor="middle" fill="rgba(255,255,255,.6)" font-size="10" font-family="Rajdhani">ÖN</text>'
+      +'<text x="'+(10+L*scl+W*scl/2)+'" y="'+(H*scl/2+14)+'" text-anchor="middle" fill="rgba(255,255,255,.6)" font-size="10" font-family="Rajdhani">YAN</text>'
+      +'<text x="'+(10+(L+W)*scl+L*scl/2)+'" y="'+(H*scl/2+14)+'" text-anchor="middle" fill="rgba(255,255,255,.6)" font-size="10" font-family="Rajdhani">ARKA</text>'
+      +'<text x="'+(10+(2*L+W)*scl+W*scl/2)+'" y="'+(H*scl/2+14)+'" text-anchor="middle" fill="rgba(255,255,255,.6)" font-size="10" font-family="Rajdhani">YAN</text>'
       +'<rect x="10" y="'+(10+H*scl)+'" width="'+(L*scl)+'" height="'+(Math.min(W/2,200)*scl)+'" fill="rgba(33,150,243,.06)" stroke="#2196F3" stroke-width=".8" stroke-dasharray="3,2"/>'
       +'<rect x="'+(10+L*scl)+'" y="'+(10+H*scl)+'" width="'+(W*scl)+'" height="'+(Math.min(W/2,200)*scl)+'" fill="rgba(33,150,243,.1)" stroke="#2196F3" stroke-width=".8" stroke-dasharray="3,2"/>'
-      +'<text x="'+(dw/2+10)+'" y="'+(dh+30)+'" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="9" font-family="Rajdhani">'+c.en+'mm × '+c.boy+'mm</text>'
+      +'<text x="'+(dw/2+10)+'" y="'+(dh+30)+'" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="9" font-family="Rajdhani">'+c.en+'mm × '+c.boy+'mm</text>'
       +'</svg></div>'
       +'<div class="rb"><div class="rl">Kalıp Boyutu</div><div class="rv">'+c.en+' × '+c.boy+' mm</div></div></div>';
   }
   else if(t==='compare'){
-    html = '<div class="oph"><h3>🔄 Karşılaştırma</h3><button class="opc" id="xc">✕</button></div>'
-      +'<div class="opb"><label>Kutu A (Mevcut)</label><div style="color:#e8751a;font-weight:600">FEFCO '+boxCode+' — '+L+'×'+W+'×'+H+'</div>'
-      +'<label>Kutu B</label><select id="csel"><option value="">Tip seçin...</option>'
-      +'<option value="0201">0201 RSC</option><option value="0202">0202 OSC</option>'
-      +'<option value="0203">0203 FOL</option><option value="0204">0204 Tam Kapak</option>'
-      +'<option value="0300">0300 Teleskopik</option><option value="0410">0410 Tırnak Kilitli</option>'
+    html='<div class="oph"><h3>🔄 Karşılaştırma</h3><button class="opc" id="xc">✕</button></div>'
+      +'<div class="opb"><label>Kutu A (Mevcut)</label>'
+      +'<div style="color:#e8751a;font-weight:600;font-size:15px;margin:4px 0 8px">FEFCO '+boxCode+' — '+L+'×'+W+'×'+H+'</div>'
+      +'<label>Kutu B</label><select id="csel">'
+      +'<option value="">— Tip seçin —</option>'
+      +'<option value="0201">0201 — RSC (Standart)</option>'
+      +'<option value="0202">0202 — OSC (Örtüşen)</option>'
+      +'<option value="0203">0203 — FOL (Tam Örtüşen)</option>'
+      +'<option value="0204">0204 — Tam Kapak</option>'
+      +'<option value="0300">0300 — Teleskopik Tepsi</option>'
+      +'<option value="0410">0410 — Tırnak Kilitli</option>'
       +'</select><div id="cres"></div></div>';
   }
   else if(t==='color'){
-    var colors = ['#c4945a','#8B7355','#D2B48C','#F5DEB3','#FFFFFF','#1a1a1a','#8B0000','#006400','#00008B','#e8751a'];
-    html = '<div class="oph"><h3>🎨 Renk</h3><button class="opc" id="xc">✕</button></div>'
-      +'<div class="opb"><label>Kutu Rengi</label><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">';
-    for(var i=0;i<colors.length;i++){
-      html += '<div class="csw" data-c="'+colors[i]+'" style="width:30px;height:30px;border-radius:6px;background:'+colors[i]+';border:2px solid rgba(255,255,255,.15);cursor:pointer"></div>';
-    }
-    html += '</div><label>Özel Renk</label><input type="color" id="ccol" value="#c4945a" style="width:100%;height:36px;border:none;border-radius:6px;cursor:pointer">'
-      +'<p style="font-size:11px;color:rgba(255,255,255,.4);margin-top:8px">Renk seçimi: Three.js sahnesine doğrudan uygulanır.</p>'
+    var colors=['#c4945a','#8B7355','#D2B48C','#F5DEB3','#FFFFFF','#2c2c2c','#8B0000','#006400','#00008B','#e8751a'];
+    html='<div class="oph"><h3>🎨 Renk</h3><button class="opc" id="xc">✕</button></div>'
+      +'<div class="opb"><label>Hazır Renkler</label><div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px">';
+    for(var i=0;i<colors.length;i++)html+='<div class="csw" data-c="'+colors[i]+'" style="background:'+colors[i]+'"></div>';
+    html+='</div><label>Özel Renk Seçici</label>'
+      +'<input type="color" id="ccol" value="#c4945a" style="width:100%;height:40px;border:1px solid rgba(232,117,26,.3);border-radius:8px;cursor:pointer;background:#152238;padding:2px">'
       +'<button class="oab" id="acol">🎨 Rengi Uygula</button>'
-      +'<button class="oab" id="rcol" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.6)">↩ Varsayılana Dön</button></div>';
+      +'<button class="oab" id="rcol" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.5)">↩ Varsayılana Dön</button>'
+      +'<div id="cfeedback" style="margin-top:8px;text-align:center;font-size:12px;color:rgba(255,255,255,.3)"></div></div>';
   }
 
-  _panel.innerHTML = html;
+  _panel.innerHTML=html;
   _panel.classList.add('show');
 
   // Bind close
-  var xc = document.getElementById('xc');
-  if(xc) xc.onclick = function(e){ e.stopPropagation(); closeAll(); };
+  setTimeout(function(){
+    var xc=document.getElementById('xc');
+    if(xc)xc.onclick=function(e){e.stopPropagation();closeAll();};
 
-  // Bind weight calc
-  if(t==='weight'){
-    doWeight();
-    var fsel = document.getElementById('fsel');
-    if(fsel) fsel.onchange = doWeight;
-  }
-  // Bind export
-  if(t==='export'){
-    var ep = document.getElementById('epng');
-    if(ep) ep.onclick = doPNG;
-    var ed = document.getElementById('epdf');
-    if(ed) ed.onclick = doPDF;
-  }
-  // Bind compare
-  if(t==='compare'){
-    var cs = document.getElementById('csel');
-    if(cs) cs.onchange = doCompare;
-  }
-  // Bind color
-  if(t==='color'){
-    var swatches = _panel.querySelectorAll('.csw');
-    for(var j=0;j<swatches.length;j++){
-      swatches[j].onclick = function(){ doColor(this.getAttribute('data-c')); };
+    if(t==='weight'){
+      doWeight();
+      var fs=document.getElementById('fsel');
+      if(fs)fs.onchange=doWeight;
     }
-    var ac = document.getElementById('acol');
-    if(ac) ac.onclick = function(){ doColor(document.getElementById('ccol').value); };
-    var rc = document.getElementById('rcol');
-    if(rc) rc.onclick = function(){ doColor('#c4945a'); };
+    if(t==='export'){
+      // Show preview thumbnail
+      setTimeout(function(){
+        var img=captureCanvas();
+        var pa=document.getElementById('preview-area');
+        if(pa&&img)pa.innerHTML='<img src="'+img+'" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid rgba(232,117,26,.2)">';
+        else if(pa)pa.innerHTML='<div style="color:rgba(255,255,255,.3);font-size:11px">Önizleme yüklenemedi</div>';
+      },300);
+      var ep=document.getElementById('epng');if(ep)ep.onclick=doPNG;
+      var ed=document.getElementById('epdf');if(ed)ed.onclick=doPDF;
+    }
+    if(t==='compare'){
+      var cs=document.getElementById('csel');if(cs)cs.onchange=doCompare;
+    }
+    if(t==='color'){
+      hookThreeJS();
+      var swatches=_panel.querySelectorAll('.csw');
+      for(var j=0;j<swatches.length;j++){
+        (function(sw){
+          sw.onclick=function(){
+            document.querySelectorAll('.csw').forEach(function(s){s.classList.remove('sel');});
+            sw.classList.add('sel');
+            var col=sw.getAttribute('data-c');
+            document.getElementById('ccol').value=col;
+            applyColor(col);
+          };
+        })(swatches[j]);
+      }
+      var ac=document.getElementById('acol');
+      if(ac)ac.onclick=function(){applyColor(document.getElementById('ccol').value);};
+      var rc=document.getElementById('rcol');
+      if(rc)rc.onclick=function(){
+        resetBoxColor();
+        document.getElementById('ccol').value='#c4945a';
+        showFeedback('Varsayılan renge dönüldü');
+      };
+    }
+  },50);
+}
+
+function showFeedback(msg){
+  var el=document.getElementById('cfeedback');
+  if(el){el.textContent=msg;el.style.color='#4CAF50';
+    setTimeout(function(){if(el)el.style.color='rgba(255,255,255,.3)';},2000);
   }
 }
 
+function applyColor(hex){
+  hookThreeJS();
+  var ok=changeBoxColor(hex);
+  if(ok)showFeedback('✓ Renk uygulandı!');
+  else showFeedback('⚠ Three.js sahnesine erişilemedi');
+}
+
 function doWeight(){
-  var sel = document.getElementById('fsel');
-  if(!sel) return;
-  var fl = fluteData[sel.value];
+  var sel=document.getElementById('fsel');if(!sel)return;
+  var fl=fluteData[sel.value];
   var L=dims.L,W=dims.W,H=dims.H;
-  var c = getFormula(boxCode)(L,W,H);
-  var am = c.en*c.boy/1e6;
-  var wt = am*fl.gsm;
-  var el = document.getElementById('wres');
-  if(el) el.innerHTML = '<div class="ig" style="margin-top:14px">'
+  var c=getF(boxCode)(L,W,H);
+  var am=c.en*c.boy/1e6;
+  var wt=am*fl.gsm;
+  var el=document.getElementById('wres');
+  if(el)el.innerHTML='<div class="ig">'
     +'<div class="ic"><div class="rv">'+wt.toFixed(0)+'</div><div class="rl">gram</div></div>'
     +'<div class="ic"><div class="rv">'+(wt/1000).toFixed(2)+'</div><div class="rl">kg</div></div>'
     +'<div class="ic"><div class="rv">'+am.toFixed(4)+'</div><div class="rl">m²</div></div>'
@@ -4427,86 +4550,67 @@ function doWeight(){
 }
 
 function doPNG(){
-  var cv = document.querySelector('canvas');
-  if(!cv){alert('Canvas bulunamadı');return;}
-  try {
-    var a = document.createElement('a');
-    a.download = 'FEFCO_'+boxCode+'_'+dims.L+'x'+dims.W+'x'+dims.H+'.png';
-    a.href = cv.toDataURL('image/png');
-    a.click();
-  } catch(e){ alert('Export hatası: '+e.message); }
+  hookThreeJS();
+  var img=captureCanvas();
+  if(!img){alert('Görüntü yakalanamadı. Sayfayı yenileyip tekrar deneyin.');return;}
+  var a=document.createElement('a');
+  a.download='FEFCO_'+boxCode+'_'+dims.L+'x'+dims.W+'x'+dims.H+'.png';
+  a.href=img;
+  a.click();
 }
 
 function doPDF(){
+  hookThreeJS();
   var L=dims.L,W=dims.W,H=dims.H;
-  var c = getFormula(boxCode)(L,W,H);
-  var cv = document.querySelector('canvas');
-  var img = '';
-  try { img = cv ? cv.toDataURL('image/png') : ''; } catch(e){}
-  var w = window.open('','_blank');
-  if(!w){alert('Popup engellendi');return;}
-  w.document.write('<!DOCTYPE html><html><head><title>FEFCO '+boxCode+'</title>'
-    +'<style>body{font-family:Segoe UI,sans-serif;max-width:800px;margin:40px auto;color:#333}'
-    +'h1{color:#e8751a;border-bottom:3px solid #e8751a;padding-bottom:10px}'
-    +'.g{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:20px 0}'
-    +'.c{padding:16px;background:#f5f5f5;border-radius:8px;border-left:4px solid #e8751a}'
-    +'.v{font-size:28px;font-weight:700;color:#e8751a}.l{font-size:12px;color:#888;text-transform:uppercase}'
-    +'img{max-width:100%;border-radius:8px;margin:16px 0}'
-    +'.f{margin-top:30px;padding-top:15px;border-top:1px solid #ddd;color:#999;font-size:11px}'
-    +'@media print{body{margin:20px}}</style></head><body>'
-    +'<h1>📦 FEFCO '+boxCode+' — Bilgi Kartı</h1>'
-    +'<p><strong>ORİMAK Makine</strong> • FEFCO 3D Görüntüleyici</p>'
-    +(img?'<img src="'+img+'" alt="3D">':'')
+  var c=getF(boxCode)(L,W,H);
+  var img=captureCanvas();
+  var w=window.open('','_blank');
+  if(!w){alert('Popup engellendi. Lütfen popup izni verin.');return;}
+  w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>FEFCO '+boxCode+'</title>'
+    +'<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Segoe UI,Helvetica,sans-serif;max-width:800px;margin:40px auto;color:#333;padding:20px}'
+    +'h1{color:#e8751a;border-bottom:3px solid #e8751a;padding-bottom:12px;margin-bottom:8px;font-size:28px}'
+    +'.sub{color:#666;margin-bottom:20px;font-size:14px}'
+    +'.g{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0}'
+    +'.c{padding:16px;background:#f8f8f8;border-radius:8px;border-left:4px solid #e8751a}'
+    +'.v{font-size:26px;font-weight:700;color:#e8751a}.l{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.5px}'
+    +'img{max-width:100%;border-radius:8px;margin:16px 0;border:1px solid #eee}'
+    +'.ft{margin-top:30px;padding-top:15px;border-top:1px solid #ddd;color:#aaa;font-size:11px}'
+    +'@media print{body{margin:10px}}</style></head><body>'
+    +'<h1>\u{1F4E6} FEFCO '+boxCode+' \u2014 Kutu Bilgi Kart\u0131</h1>'
+    +'<div class="sub"><strong>OR\u0130MAK Makine</strong> \u2022 FEFCO 3D G\u00F6r\u00FCnt\u00FCleyici</div>'
+    +(img?'<img src="'+img+'" alt="3D G\u00F6r\u00FCn\u00FCm">':'')
     +'<div class="g">'
     +'<div class="c"><div class="l">Uzunluk (L)</div><div class="v">'+L+' mm</div></div>'
-    +'<div class="c"><div class="l">Genişlik (W)</div><div class="v">'+W+' mm</div></div>'
-    +'<div class="c"><div class="l">Yükseklik (H)</div><div class="v">'+H+' mm</div></div>'
-    +'<div class="c"><div class="l">Hacim</div><div class="v">'+(L*W*H/1e6).toFixed(2)+' dm³</div></div>'
+    +'<div class="c"><div class="l">Geni\u015Flik (W)</div><div class="v">'+W+' mm</div></div>'
+    +'<div class="c"><div class="l">Y\u00FCkseklik (H)</div><div class="v">'+H+' mm</div></div>'
+    +'<div class="c"><div class="l">Hacim</div><div class="v">'+(L*W*H/1e6).toFixed(2)+' dm\u00B3</div></div>'
     +'<div class="c"><div class="l">Karton Eni</div><div class="v">'+c.en+' mm</div></div>'
     +'<div class="c"><div class="l">Karton Boyu</div><div class="v">'+c.boy+' mm</div></div>'
-    +'<div class="c"><div class="l">Karton Alanı</div><div class="v">'+(c.en*c.boy/1e6).toFixed(4)+' m²</div></div>'
+    +'<div class="c"><div class="l">Karton Alan\u0131</div><div class="v">'+(c.en*c.boy/1e6).toFixed(4)+' m\u00B2</div></div>'
     +'<div class="c"><div class="l">Desi</div><div class="v">'+(L*W*H/3000).toFixed(1)+'</div></div></div>'
-    +'<p><strong>Formül:</strong> '+c.desc+'</p>'
-    +'<div class="f">ORİMAK Dijital Araçlar • '+new Date().toLocaleDateString('tr-TR')+'</div>'
-    +'<script>setTimeout(function(){window.print()},500)<\/script></body></html>');
+    +'<p style="margin:12px 0"><strong>Form\u00FCl:</strong> '+c.desc+'</p>'
+    +'<div class="ft">OR\u0130MAK Dijital Ara\u00E7lar \u2022 '+new Date().toLocaleDateString('tr-TR')+' \u2022 fefco3d</div>'
+    +'<script>setTimeout(function(){window.print()},600)<\/script></body></html>');
   w.document.close();
 }
 
 function doCompare(){
-  var sel = document.getElementById('csel');
-  if(!sel||!sel.value) return;
+  var sel=document.getElementById('csel');if(!sel||!sel.value)return;
   var L=dims.L,W=dims.W,H=dims.H;
-  var fA = getFormula(boxCode)(L,W,H);
-  var fB = getFormula(sel.value)(L,W,H);
-  var aA=fA.en*fA.boy/1e6, aB=fB.en*fB.boy/1e6;
-  var diff = ((aB-aA)/aA*100).toFixed(1);
-  var el = document.getElementById('cres');
-  if(el) el.innerHTML = '<div style="margin-top:16px" class="ig">'
-    +'<div class="ic" style="border-left:3px solid #e8751a"><div style="font-size:11px;color:#e8751a;font-weight:600">FEFCO '+boxCode+'</div><div class="rv">'+fA.en+'×'+fA.boy+'</div><div class="rl">'+aA.toFixed(4)+' m²</div></div>'
-    +'<div class="ic" style="border-left:3px solid #2196F3"><div style="font-size:11px;color:#2196F3;font-weight:600">FEFCO '+sel.value+'</div><div class="rv">'+fB.en+'×'+fB.boy+'</div><div class="rl">'+aB.toFixed(4)+' m²</div></div></div>'
-    +'<div class="rb"><div class="rl">Fark</div><div class="rv" style="color:'+(parseFloat(diff)>0?'#f44336':'#4CAF50')+'">'+(diff>0?'+':'')+diff+'%</div>'
-    +'<div style="font-size:11px;color:rgba(255,255,255,.4)">'+(parseFloat(diff)>0?'B daha fazla karton':'B daha az karton')+'</div></div>';
+  var fA=getF(boxCode)(L,W,H);
+  var fB=getF(sel.value)(L,W,H);
+  var aA=fA.en*fA.boy/1e6,aB=fB.en*fB.boy/1e6;
+  var diff=((aB-aA)/aA*100).toFixed(1);
+  var el=document.getElementById('cres');
+  if(el)el.innerHTML='<div class="ig" style="margin-top:16px">'
+    +'<div class="ic" style="border-left:3px solid #e8751a"><div style="font-size:11px;color:#e8751a;font-weight:600">FEFCO '+boxCode+'</div><div class="rv" style="font-size:16px">'+fA.en+'×'+fA.boy+'</div><div class="rl">'+aA.toFixed(4)+' m²</div></div>'
+    +'<div class="ic" style="border-left:3px solid #2196F3"><div style="font-size:11px;color:#2196F3;font-weight:600">FEFCO '+sel.value+'</div><div class="rv" style="font-size:16px">'+fB.en+'×'+fB.boy+'</div><div class="rl">'+aB.toFixed(4)+' m²</div></div></div>'
+    +'<div class="rb"><div class="rl">Malzeme Fark\u0131</div><div class="rv" style="color:'+(parseFloat(diff)>0?'#f44336':'#4CAF50')+'">'+(diff>0?'+':'')+diff+'%</div>'
+    +'<div style="font-size:11px;color:rgba(255,255,255,.4)">'+(parseFloat(diff)>0?'B tipi daha fazla karton kullan\u0131r':'B tipi daha az karton kullan\u0131r')+'</div></div>';
 }
 
-function doColor(hex){
-  // Try to access Three.js scene meshes via canvas renderer
-  try {
-    var canvases = document.querySelectorAll('canvas');
-    canvases.forEach(function(cv){
-      var gl = cv.getContext('webgl2') || cv.getContext('webgl');
-      // We can't directly modify Three.js materials from outside easily
-      // Show feedback instead
-    });
-  } catch(e){}
-  var btn = document.getElementById('acol');
-  if(btn){ btn.textContent='✓ Renk notu kaydedildi'; btn.style.background=hex; 
-    setTimeout(function(){btn.textContent='🎨 Rengi Uygula';btn.style.background='#e8751a';},1500); }
-}
-
-// Start after DOM ready
-if(document.readyState==='complete') setTimeout(init,800);
-else window.addEventListener('load',function(){setTimeout(init,800);});
-
+if(document.readyState==='complete')setTimeout(init,1000);
+else window.addEventListener('load',function(){setTimeout(init,1000);});
 })();
 
 </script>
