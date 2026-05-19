@@ -79,10 +79,34 @@
     display: flex; flex-direction: column; overflow: hidden;
   }
 
-  .panel-section { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .panel-section { padding: 0; border-bottom: 1px solid var(--border); }
   .panel-section-title {
     font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
-    color: var(--text-muted); margin-bottom: 12px; font-weight: 700;
+    color: var(--text-muted); margin-bottom: 0; font-weight: 700;
+    padding: 14px 20px; cursor: pointer; display: flex;
+    align-items: center; justify-content: space-between;
+    user-select: none; transition: color 0.2s;
+  }
+  .panel-section-title:hover { color: var(--text-primary); }
+  .panel-section-title .section-arrow {
+    font-size: 10px; transition: transform 0.25s ease; display: inline-block;
+  }
+  .panel-section.collapsed .section-arrow { transform: rotate(-90deg); }
+  .panel-section-title .section-summary {
+    font-size: 10px; font-family: 'JetBrains Mono', monospace;
+    color: var(--accent); font-weight: 600; letter-spacing: 0; text-transform: none;
+    margin-left: 10px; flex: 1; text-align: right; margin-right: 10px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: none;
+  }
+  .panel-section.collapsed .section-summary { display: inline; }
+  .panel-section-body {
+    padding: 0 20px 16px 20px; overflow: hidden;
+    max-height: 600px; transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.2s ease;
+    opacity: 1;
+  }
+  .panel-section.collapsed .panel-section-body {
+    max-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0;
   }
 
   .cargo-space-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -183,6 +207,17 @@
   .btn-danger:hover { background: rgba(239,68,68,0.25); }
   .btn-sm { padding: 6px 12px; font-size: 11px; }
 
+  .box-list-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 20px; border-bottom: 1px solid var(--border);
+    font-size: 12px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0;
+  }
+  .box-list-count {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: rgba(249,115,22,0.15); color: var(--accent);
+    padding: 2px 10px; border-radius: 10px; font-weight: 700;
+  }
   .box-list-container { flex: 1; overflow-y: auto; padding: 12px 20px; }
   .box-list-container::-webkit-scrollbar { width: 4px; }
   .box-list-container::-webkit-scrollbar-track { background: transparent; }
@@ -382,124 +417,140 @@
 
 <div class="main-container">
   <div class="panel-left">
-    <div class="panel-section">
-      <div class="panel-section-title">⬡ Kargo Alanı</div>
-      <div class="cargo-space-grid">
-        <button class="cargo-space-btn active" data-space="20ft" onclick="selectCargoSpace('20ft')">
-          <div class="cs-name">20ft Konteyner</div>
-          <div class="cs-dim">5.9 × 2.35 × 2.39m</div>
-        </button>
-        <button class="cargo-space-btn" data-space="40ft" onclick="selectCargoSpace('40ft')">
-          <div class="cs-name">40ft Konteyner</div>
-          <div class="cs-dim">12.03 × 2.35 × 2.39m</div>
-        </button>
-        <button class="cargo-space-btn" data-space="40hc" onclick="selectCargoSpace('40hc')">
-          <div class="cs-name">40ft HC</div>
-          <div class="cs-dim">12.03 × 2.35 × 2.69m</div>
-        </button>
-        <button class="cargo-space-btn" data-space="truck" onclick="selectCargoSpace('truck')">
-          <div class="cs-name">Kamyon/TIR</div>
-          <div class="cs-dim">13.6 × 2.48 × 2.70m</div>
-        </button>
-        <button class="cargo-space-btn" data-space="van" onclick="selectCargoSpace('van')">
-          <div class="cs-name">Panelvan</div>
-          <div class="cs-dim">3.2 × 1.70 × 1.80m</div>
-        </button>
-        <button class="cargo-space-btn" data-space="custom" onclick="selectCargoSpace('custom')">
-          <div class="cs-name">Özel Boyut</div>
-          <div class="cs-dim">Kendin tanımla</div>
-        </button>
+    <div class="panel-section collapsed" id="sectionCargo">
+      <div class="panel-section-title" onclick="toggleSection('sectionCargo')">
+        ⬡ Kargo Alanı
+        <span class="section-summary" id="cargoSummary">20ft Konteyner — 5.9×2.35×2.39m</span>
+        <span class="section-arrow">▼</span>
       </div>
-      <div class="custom-dims hidden" id="customDims">
-        <div class="dim-input-group">
-          <label>En (cm)</label>
-          <input type="number" class="dim-input" id="customW" value="590" onchange="applyCustomDims()">
+      <div class="panel-section-body">
+        <div class="cargo-space-grid">
+          <button class="cargo-space-btn active" data-space="20ft" onclick="selectCargoSpace('20ft')">
+            <div class="cs-name">20ft Konteyner</div>
+            <div class="cs-dim">5.9 × 2.35 × 2.39m</div>
+          </button>
+          <button class="cargo-space-btn" data-space="40ft" onclick="selectCargoSpace('40ft')">
+            <div class="cs-name">40ft Konteyner</div>
+            <div class="cs-dim">12.03 × 2.35 × 2.39m</div>
+          </button>
+          <button class="cargo-space-btn" data-space="40hc" onclick="selectCargoSpace('40hc')">
+            <div class="cs-name">40ft HC</div>
+            <div class="cs-dim">12.03 × 2.35 × 2.69m</div>
+          </button>
+          <button class="cargo-space-btn" data-space="truck" onclick="selectCargoSpace('truck')">
+            <div class="cs-name">Kamyon/TIR</div>
+            <div class="cs-dim">13.6 × 2.48 × 2.70m</div>
+          </button>
+          <button class="cargo-space-btn" data-space="van" onclick="selectCargoSpace('van')">
+            <div class="cs-name">Panelvan</div>
+            <div class="cs-dim">3.2 × 1.70 × 1.80m</div>
+          </button>
+          <button class="cargo-space-btn" data-space="custom" onclick="selectCargoSpace('custom')">
+            <div class="cs-name">Özel Boyut</div>
+            <div class="cs-dim">Kendin tanımla</div>
+          </button>
         </div>
-        <div class="dim-input-group">
-          <label>Boy (cm)</label>
-          <input type="number" class="dim-input" id="customD" value="235" onchange="applyCustomDims()">
-        </div>
-        <div class="dim-input-group">
-          <label>Yükseklik (cm)</label>
-          <input type="number" class="dim-input" id="customH" value="239" onchange="applyCustomDims()">
+        <div class="custom-dims hidden" id="customDims">
+          <div class="dim-input-group">
+            <label>En (cm)</label>
+            <input type="number" class="dim-input" id="customW" value="590" onchange="applyCustomDims()">
+          </div>
+          <div class="dim-input-group">
+            <label>Boy (cm)</label>
+            <input type="number" class="dim-input" id="customD" value="235" onchange="applyCustomDims()">
+          </div>
+          <div class="dim-input-group">
+            <label>Yükseklik (cm)</label>
+            <input type="number" class="dim-input" id="customH" value="239" onchange="applyCustomDims()">
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="panel-section">
-      <div class="panel-section-title">＋ Kutu Ekle</div>
-      <div class="add-box-form">
-        <div class="input-group">
-          <label>Açıklama</label>
-          <input type="text" id="boxName" placeholder="Ürün adı..." value="Kutu A">
-        </div>
-        <div class="form-row-3col">
-          <div class="input-group"><label>En (cm)</label><input type="number" id="boxW" value="60" min="1"></div>
-          <div class="input-group"><label>Boy (cm)</label><input type="number" id="boxD" value="40" min="1"></div>
-          <div class="input-group"><label>Yükseklik</label><input type="number" id="boxH" value="40" min="1"></div>
-        </div>
-        <div class="form-row-2">
-          <div class="input-group"><label>Ağırlık (kg)</label><input type="number" id="boxWeight" value="25" min="0.1" step="0.1"></div>
-          <div class="input-group"><label>Adet</label><input type="number" id="boxQty" value="1" min="1"></div>
-        </div>
-        <div class="form-row-2">
+    <div class="panel-section" id="sectionAddBox">
+      <div class="panel-section-title" onclick="toggleSection('sectionAddBox')">
+        ＋ Kutu Ekle
+        <span class="section-summary"></span>
+        <span class="section-arrow">▼</span>
+      </div>
+      <div class="panel-section-body">
+        <div class="add-box-form">
           <div class="input-group">
-            <label>Yön / Duruş</label>
-            <div class="orient-row">
-              <button type="button" class="orient-btn active" data-orient="dikey" onclick="setOrientation('dikey', this)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="7" y="2" width="10" height="20" rx="1.5"/><path d="M12 6v4M10 8h4" opacity="0.4"/></svg>
-                Dikey
+            <label>Açıklama</label>
+            <input type="text" id="boxName" placeholder="Ürün adı..." value="Kutu A">
+          </div>
+          <div class="form-row-3col">
+            <div class="input-group"><label>En (cm)</label><input type="number" id="boxW" value="60" min="1"></div>
+            <div class="input-group"><label>Boy (cm)</label><input type="number" id="boxD" value="40" min="1"></div>
+            <div class="input-group"><label>Yükseklik</label><input type="number" id="boxH" value="40" min="1"></div>
+          </div>
+          <div class="form-row-2">
+            <div class="input-group"><label>Ağırlık (kg)</label><input type="number" id="boxWeight" value="25" min="0.1" step="0.1"></div>
+            <div class="input-group"><label>Adet</label><input type="number" id="boxQty" value="1" min="1"></div>
+          </div>
+          <div class="form-row-2">
+            <div class="input-group">
+              <label>Yön / Duruş</label>
+              <div class="orient-row">
+                <button type="button" class="orient-btn active" data-orient="dikey" onclick="setOrientation('dikey', this)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="7" y="2" width="10" height="20" rx="1.5"/><path d="M12 6v4M10 8h4" opacity="0.4"/></svg>
+                  Dikey
+                </button>
+                <button type="button" class="orient-btn" data-orient="yatay" onclick="setOrientation('yatay', this)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="10" rx="1.5"/><path d="M6 12h4M8 10v4" opacity="0.4"/></svg>
+                  Yatay
+                </button>
+              </div>
+            </div>
+            <div class="input-group"><label>Maks Yığın (kg)</label><input type="number" id="boxMaxStack" value="0" min="0" step="1" title="0 = sınırsız"></div>
+          </div>
+          <div class="input-group">
+            <label>Renk</label>
+            <div class="color-row">
+              <div class="color-swatch active" style="background:#f97316" data-color="#f97316"></div>
+              <div class="color-swatch" style="background:#3b82f6" data-color="#3b82f6"></div>
+              <div class="color-swatch" style="background:#10b981" data-color="#10b981"></div>
+              <div class="color-swatch" style="background:#f59e0b" data-color="#f59e0b"></div>
+              <div class="color-swatch" style="background:#ef4444" data-color="#ef4444"></div>
+              <div class="color-swatch" style="background:#8b5cf6" data-color="#8b5cf6"></div>
+              <div class="color-swatch" style="background:#06b6d4" data-color="#06b6d4"></div>
+              <div class="color-swatch" style="background:#ec4899" data-color="#ec4899"></div>
+            </div>
+          </div>
+          <div class="input-group symbols-section">
+            <label>Kargo Sembolleri</label>
+            <div class="symbols-row" id="symbolsRow">
+              <button type="button" class="symbol-btn" data-sym="fragile" title="Kırılır">
+                <span class="sym-tip">Kırılır</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L8 8h8l-4-6zM8 8l-2 6h4l-1 8 7-10h-4l2-4H8z"/></svg>
               </button>
-              <button type="button" class="orient-btn" data-orient="yatay" onclick="setOrientation('yatay', this)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="10" rx="1.5"/><path d="M6 12h4M8 10v4" opacity="0.4"/></svg>
-                Yatay
+              <button type="button" class="symbol-btn" data-sym="up" title="Bu Taraf Yukarı">
+                <span class="sym-tip">Bu Taraf Yukarı</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v16M5 11l7-7 7 7"/></svg>
+              </button>
+              <button type="button" class="symbol-btn" data-sym="nostack" title="Üstüne Koymayın">
+                <span class="sym-tip">Üstüne Koymayın</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="14" width="16" height="6" rx="1"/><rect x="4" y="4" width="16" height="6" rx="1"/><line x1="2" y1="2" x2="22" y2="22" stroke-width="2.5"/></svg>
+              </button>
+              <button type="button" class="symbol-btn" data-sym="keepdry" title="Kuru Tutun">
+                <span class="sym-tip">Kuru Tutun</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 6c-1.5 3-3 4.5-3 6.5a3 3 0 006 0c0-2-1.5-3.5-3-6.5z"/></svg>
+              </button>
+              <button type="button" class="symbol-btn" data-sym="heavy" title="Ağır Yük">
+                <span class="sym-tip">Ağır Yük</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><text x="5" y="18" font-size="16" font-weight="bold" fill="currentColor" stroke="none">KG</text></svg>
               </button>
             </div>
           </div>
-          <div class="input-group"><label>Maks Yığın (kg)</label><input type="number" id="boxMaxStack" value="0" min="0" step="1" title="0 = sınırsız"></div>
+          <button class="btn btn-primary" onclick="addBox()">＋ Kutu Ekle</button>
         </div>
-        <div class="input-group">
-          <label>Renk</label>
-          <div class="color-row">
-            <div class="color-swatch active" style="background:#f97316" data-color="#f97316"></div>
-            <div class="color-swatch" style="background:#3b82f6" data-color="#3b82f6"></div>
-            <div class="color-swatch" style="background:#10b981" data-color="#10b981"></div>
-            <div class="color-swatch" style="background:#f59e0b" data-color="#f59e0b"></div>
-            <div class="color-swatch" style="background:#ef4444" data-color="#ef4444"></div>
-            <div class="color-swatch" style="background:#8b5cf6" data-color="#8b5cf6"></div>
-            <div class="color-swatch" style="background:#06b6d4" data-color="#06b6d4"></div>
-            <div class="color-swatch" style="background:#ec4899" data-color="#ec4899"></div>
-          </div>
-        </div>
-        <div class="input-group symbols-section">
-          <label>Kargo Sembolleri</label>
-          <div class="symbols-row" id="symbolsRow">
-            <button type="button" class="symbol-btn" data-sym="fragile" title="Kırılır">
-              <span class="sym-tip">Kırılır</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L8 8h8l-4-6zM8 8l-2 6h4l-1 8 7-10h-4l2-4H8z"/></svg>
-            </button>
-            <button type="button" class="symbol-btn" data-sym="up" title="Bu Taraf Yukarı">
-              <span class="sym-tip">Bu Taraf Yukarı</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v16M5 11l7-7 7 7"/></svg>
-            </button>
-            <button type="button" class="symbol-btn" data-sym="nostack" title="Üstüne Koymayın">
-              <span class="sym-tip">Üstüne Koymayın</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="14" width="16" height="6" rx="1"/><rect x="4" y="4" width="16" height="6" rx="1"/><line x1="2" y1="2" x2="22" y2="22" stroke-width="2.5"/></svg>
-            </button>
-            <button type="button" class="symbol-btn" data-sym="keepdry" title="Kuru Tutun">
-              <span class="sym-tip">Kuru Tutun</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 6c-1.5 3-3 4.5-3 6.5a3 3 0 006 0c0-2-1.5-3.5-3-6.5z"/></svg>
-            </button>
-            <button type="button" class="symbol-btn" data-sym="heavy" title="Ağır Yük">
-              <span class="sym-tip">Ağır Yük</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><text x="5" y="18" font-size="16" font-weight="bold" fill="currentColor" stroke="none">KG</text></svg>
-            </button>
-          </div>
-        </div>
-        <button class="btn btn-primary" onclick="addBox()">＋ Kutu Ekle</button>
       </div>
     </div>
 
+    <div class="box-list-header">
+      <span>📦 Eklenen Kutular</span>
+      <span class="box-list-count" id="boxListCount">0</span>
+    </div>
     <div class="box-list-container" id="boxList">
       <div class="empty-state">
         <div class="empty-state-icon">📦</div>
@@ -908,6 +959,19 @@ window.addEventListener('resize', onResize);
 setTimeout(onResize, 50);
 
 // ═══════════════════════════════════════════
+// COLLAPSIBLE SECTIONS
+// ═══════════════════════════════════════════
+function toggleSection(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+function updateCargoSummary() {
+  const label = CARGO_SPACES[currentSpace]?.label || 'Özel';
+  const dims = `${(cargoW/100).toFixed(2)}×${(cargoD/100).toFixed(2)}×${(cargoH/100).toFixed(2)}m`;
+  document.getElementById('cargoSummary').textContent = `${label} — ${dims}`;
+}
+
+// ═══════════════════════════════════════════
 // CARGO SPACE
 // ═══════════════════════════════════════════
 function selectCargoSpace(type) {
@@ -923,6 +987,9 @@ function selectCargoSpace(type) {
     const s = CARGO_SPACES[type];
     cargoW = s.w; cargoD = s.d; cargoH = s.h;
   }
+  updateCargoSummary();
+  // Auto-collapse cargo section after selection
+  document.getElementById('sectionCargo').classList.add('collapsed');
   drawContainer();
   if (placedBoxes.length > 0) loadCargo();
 }
@@ -1134,6 +1201,8 @@ function addBox() {
   const orientation = selectedOrientation; // 'dikey' or 'yatay'
   boxTypes.push({ id: ++boxIdCounter, name, w, d, h, weight, qty, color: selectedColor, maxStack, symbols, orientation });
   renderBoxList();
+  // Auto-collapse add form after adding
+  document.getElementById('sectionAddBox').classList.add('collapsed');
   showToast(`"${name}" eklendi (${qty} adet, ${orientation})`);
 }
 
@@ -1144,6 +1213,8 @@ function removeBox(id) {
 
 function renderBoxList() {
   const container = document.getElementById('boxList');
+  const totalBoxes = boxTypes.reduce((s, b) => s + b.qty, 0);
+  document.getElementById('boxListCount').textContent = totalBoxes;
   if (boxTypes.length === 0) {
     container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📦</div><div class="empty-state-text">Henüz kutu eklenmedi.<br>Yukarıdan kutu ekleyerek başlayın.</div></div>`;
     return;
