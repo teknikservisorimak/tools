@@ -619,6 +619,38 @@ tr:hover td { background: var(--surface2); }
     </div>
   </div>
 
+  <!-- Step 2b: DAT dosyası -->
+  <div class="card">
+    <div class="card-header">
+      <h3>② <span style="color:var(--green);">ALTERNATİF</span> — DAT Dosyası (Not Defteri)</h3>
+      <div class="btn-group">
+        <button class="btn btn-sm btn-danger" onclick="clearDatData()" id="btnClearDat" style="display:none;">🗑️ DAT Temizle</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="info-banner" style="margin-bottom:14px;">
+        <strong>.dat dosyası</strong> makinenin not defterinden gelen kutu ölçülerini içerir.<br>
+        Şablonu yükledikten sonra .dat dosyasını seçin — her satır ayrı bir <code>.cudbox</code> dosyası olarak üretilir.<br>
+        Sütun sırası: <strong>Genişlik (B)</strong>, <strong>Kalınlık (T)</strong>, <strong>Ürün Adı</strong>, <strong>Uzunluk (L)</strong>, <strong>Yükseklik (H)</strong>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+        <div style="flex:1;min-width:200px;">
+          <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">Şablon Seçin (DAT üretimi için)</label>
+          <select id="datTemplateSelect" style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;">
+            <option value="">— Önce şablon yükleyin —</option>
+          </select>
+        </div>
+      </div>
+      <div class="drop-zone" id="datDropZone">
+        <input type="file" id="datFileInput" accept=".dat,.txt" onchange="handleDatUpload(this.files[0])">
+        <div class="icon">📝</div>
+        <div class="label">.dat dosyasını sürükleyin veya tıklayın</div>
+        <div class="hint">.dat (UTF-16 not defteri) formatı desteklenir</div>
+      </div>
+      <div id="datPreview" style="margin-top:16px; display:none;"></div>
+    </div>
+  </div>
+
   <!-- Step 3: Generate -->
   <div class="card">
     <div class="card-header">
@@ -1179,7 +1211,8 @@ function updateGenerateButton() {
   const btn = document.getElementById('btnGenerate');
   const hasTemplates = Object.keys(templates).length > 0;
   const hasOrders = excelOrders.length > 0;
-  btn.disabled = !(hasTemplates && hasOrders);
+  const hasDatOrders = datOrders.length > 0;
+  btn.disabled = !(hasTemplates && (hasOrders || hasDatOrders));
 }
 
 // =============================================
@@ -2039,7 +2072,23 @@ function rebuildAbsPos(root, containerName, unitName, crossContainerName, crossU
 // GENERATION
 // =============================================
 async function startGeneration() {
-  if (excelOrders.length === 0) return;
+  // Combine Excel orders + DAT orders
+  let allOrders = [...excelOrders];
+
+  // DAT orders: şablon seçimini uygula
+  if (datOrders.length > 0) {
+    const datTpl = document.getElementById('datTemplateSelect')?.value;
+    if (!datTpl) {
+      alert('DAT üretimi için bir şablon seçmelisiniz!');
+      return;
+    }
+    datOrders.forEach(o => {
+      o.template = datTpl;
+      allOrders.push(o);
+    });
+  }
+
+  if (allOrders.length === 0) return;
 
   const btn = document.getElementById('btnGenerate');
   btn.disabled = true;
@@ -2056,10 +2105,13 @@ async function startGeneration() {
   let okCount = 0, errCount = 0;
 
   // Reset statuses
-  excelOrders.forEach(o => { o.status = 'wait'; o.error = null; });
+  allOrders.forEach(o => { o.status = 'wait'; o.error = null; });
 
-  for (let i = 0; i < excelOrders.length; i++) {
-    const order = excelOrders[i];
+  // Track filenames to avoid duplicates
+  const usedNames = {};
+
+  for (let i = 0; i < allOrders.length; i++) {
+    const order = allOrders[i];
 
     // Find template (case insensitive)
     let tplName = order.template.replace(/\.cudbox$/i, '');
@@ -2078,7 +2130,15 @@ async function startGeneration() {
     } else {
       try {
         const outputXml = generateCudbox(tplXml, order.args);
-        zip.file(order.fileName, outputXml.replace(/\n/g, '\r\n'));
+        // Ensure unique filenames in ZIP
+        let fn = order.fileName;
+        if (usedNames[fn]) {
+          usedNames[fn]++;
+          fn = fn.replace(/\.cudbox$/i, '_' + usedNames[fn] + '.cudbox');
+        } else {
+          usedNames[fn] = 1;
+        }
+        zip.file(fn, outputXml.replace(/\n/g, '\r\n'));
         order.status = 'ok';
         okCount++;
       } catch(e) {
@@ -2089,9 +2149,9 @@ async function startGeneration() {
     }
 
     // Update progress
-    const pct = Math.round(((i + 1) / excelOrders.length) * 100);
+    const pct = Math.round(((i + 1) / allOrders.length) * 100);
     progressFill.style.width = pct + '%';
-    document.getElementById('statTotal').textContent = excelOrders.length;
+    document.getElementById('statTotal').textContent = allOrders.length;
     document.getElementById('statOk').textContent = okCount;
     document.getElementById('statErr').textContent = errCount;
 
@@ -2099,13 +2159,17 @@ async function startGeneration() {
     await new Promise(r => setTimeout(r, 10));
   }
 
-  // Render results table
+  // Render results table (use allOrders temporarily)
+  const origExcelOrders = excelOrders;
+  excelOrders = allOrders;
   renderResults();
+  excelOrders = origExcelOrders;
 
   // Download ZIP
   if (okCount > 0) {
     const blob = await zip.generateAsync({ type: 'blob' });
-    saveAs(blob, 'cudbox_output.zip');
+    const zipName = datOrders.length > 0 ? 'cudbox_dat_output.zip' : 'cudbox_output.zip';
+    saveAs(blob, zipName);
   }
 
   btn.disabled = false;
@@ -2931,6 +2995,163 @@ document.addEventListener('DOMContentLoaded', () => {
   const t = document.getElementById('tabLangMgr');
   if (t) t.style.display = '';
 });
+
+// =============================================
+// DAT DOSYASI DESTEĞİ
+// =============================================
+let datOrders = []; // parsed rows from .dat
+
+// DAT drop zone
+document.addEventListener('DOMContentLoaded', () => {
+  const dz = document.getElementById('datDropZone');
+  if (dz) {
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+    dz.addEventListener('drop', e => {
+      e.preventDefault();
+      dz.classList.remove('dragover');
+      if (e.dataTransfer.files.length) handleDatUpload(e.dataTransfer.files[0]);
+    });
+  }
+});
+
+// Şablon listesi güncellendiğinde DAT şablon dropdown'ını da güncelle
+const _origRefreshTemplateUI = refreshTemplateUI;
+refreshTemplateUI = function() {
+  _origRefreshTemplateUI();
+  updateDatTemplateSelect();
+};
+
+function updateDatTemplateSelect() {
+  const sel = document.getElementById('datTemplateSelect');
+  if (!sel) return;
+  const names = Object.keys(templates).sort();
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Şablon seçin —</option>';
+  names.forEach(n => {
+    const opt = document.createElement('option');
+    opt.value = n;
+    opt.textContent = n;
+    sel.appendChild(opt);
+  });
+  if (prev && templates[prev]) sel.value = prev;
+}
+
+function handleDatUpload(file) {
+  if (!file) return;
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    let text = '';
+    const arr = new Uint8Array(e.target.result);
+
+    // UTF-16 LE BOM detection: FF FE
+    if (arr.length >= 2 && arr[0] === 0xFF && arr[1] === 0xFE) {
+      // Decode as UTF-16LE
+      const decoder = new TextDecoder('utf-16le');
+      text = decoder.decode(arr);
+    } else if (arr.length >= 2 && arr[0] === 0xFE && arr[1] === 0xFF) {
+      const decoder = new TextDecoder('utf-16be');
+      text = decoder.decode(arr);
+    } else {
+      // Try UTF-8
+      const decoder = new TextDecoder('utf-8');
+      text = decoder.decode(arr);
+    }
+
+    parseDatData(text, file.name);
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
+function parseDatData(text, fileName) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+  datOrders = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const cols = lines[i].split('\t');
+    if (cols.length < 9) continue;
+
+    // Sütunlar (0-indexed):
+    // 0: tarih, 1: ms, 2: tarih tekrar, 3: boş
+    // 4: Genişlik (B), 5: Kalınlık (T), 6: Ürün Adı
+    // 7: Uzunluk (L), 8: Yükseklik (H)
+
+    const B = parseFloat(cols[4]) || 0;
+    const T = parseFloat(cols[5]) || 0;
+    const productName = (cols[6] || '').trim();
+    const L = parseFloat(cols[7]) || 0;
+    const H = parseFloat(cols[8]) || 0;
+
+    if (!productName && B === 0 && L === 0 && H === 0) continue;
+
+    // Dosya adını ürün adından türet — özel karakterleri temizle
+    const safeName = productName
+      .replace(/[\/\\:*?"<>|]/g, '_')
+      .replace(/\s+/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '') || ('Kutu_' + (i + 1));
+
+    const order = {
+      row: i + 1,
+      template: '', // şablon dropdown'dan gelecek
+      fileName: safeName + '.cudbox',
+      productName: productName,
+      args: { B, L, H, T },
+      status: 'wait',
+      error: null
+    };
+
+    // Eğer 9'dan fazla sütun varsa K1 olabilir
+    if (cols.length > 9) {
+      const k1 = parseFloat(cols[9]);
+      if (!isNaN(k1) && k1 > 0) order.args.K1 = k1;
+    }
+
+    datOrders.push(order);
+  }
+
+  renderDatPreview(fileName);
+  updateGenerateButton();
+}
+
+function renderDatPreview(fileName) {
+  const div = document.getElementById('datPreview');
+  div.style.display = 'block';
+  document.getElementById('btnClearDat').style.display = 'inline-flex';
+
+  let html = `<p style="font-size:13px; color:var(--text2); margin-bottom:10px;">📝 <strong>${fileName}</strong> — ${datOrders.length} kutu okundu</p>`;
+  html += '<div class="table-wrap" style="max-height:400px;overflow-y:auto;"><table><thead><tr>';
+  html += '<th>#</th><th>Ürün Adı</th><th>B</th><th>L</th><th>H</th><th>T</th><th>K1</th><th>Dosya Adı</th>';
+  html += '</tr></thead><tbody>';
+
+  datOrders.forEach((o, idx) => {
+    const k1 = o.args.K1 !== undefined ? o.args.K1 : '—';
+    html += `<tr>
+      <td>${idx + 1}</td>
+      <td style="font-family:var(--sans);color:var(--text);">${o.productName}</td>
+      <td>${o.args.B}</td>
+      <td>${o.args.L}</td>
+      <td>${o.args.H}</td>
+      <td>${o.args.T}</td>
+      <td>${k1}</td>
+      <td style="font-size:11px;">${o.fileName}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table></div>';
+  div.innerHTML = html;
+}
+
+function clearDatData() {
+  datOrders = [];
+  document.getElementById('datPreview').style.display = 'none';
+  document.getElementById('datPreview').innerHTML = '';
+  document.getElementById('datFileInput').value = '';
+  document.getElementById('btnClearDat').style.display = 'none';
+  updateGenerateButton();
+}
 </script>
 
 
