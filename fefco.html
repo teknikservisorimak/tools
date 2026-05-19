@@ -1424,7 +1424,9 @@ function aramaYap(){
   updateAll();
 }
 
+let activeTabId='ozet';
 function switchTab(id,btn){
+  activeTabId=id;
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('sec-'+id).classList.add('active');
@@ -2079,62 +2081,98 @@ function exportExcel(){
 
 function importExcel(){
   loadSheetJS(()=>{
+    // Aktif sekme bir FEFCO tipi mi?
+    const ft=FEFCO_TYPES.find(f=>f.id===activeTabId);
+    if(!ft){
+      alert('Lütfen önce bir FEFCO sekmesi açın (Özet, Piyasa gibi sekmelerde içe aktarma yapılamaz).');
+      return;
+    }
     const inp=document.createElement('input');
-    inp.type='file';inp.accept='.xlsx,.xls,.csv';
+    inp.type='file'; inp.accept='.xlsx,.xls,.csv';
     inp.onchange=e=>{
       const file=e.target.files[0];
-      if(!file)return;
+      if(!file) return;
       const reader=new FileReader();
       reader.onload=ev=>{
         try{
           const wb=XLSX.read(ev.target.result,{type:'array'});
-          let imported=0;
-          wb.SheetNames.forEach(sheetName=>{
-            if(sheetName==='ÖZET')return;
-            // Hangi FEFCO tipine ait? Sayfa adından kod eşleştir
-            const ft=FEFCO_TYPES.find(f=>{
-              const sn=(f.kod+' '+f.ad).replace(/[\\\/\*\[\]\:\?]/g,'').substring(0,31);
-              return sn===sheetName||sheetName.startsWith(f.kod);
-            });
-            if(!ft)return;
-            const ws=wb.Sheets[sheetName];
-            const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-            if(rows.length<2)return;
-            const header=rows[0].map(h=>String(h));
-            const vars=ft._vars||extractAllVars(ft);
-            const newData=[];
-            rows.slice(1).forEach(row=>{
-              if(row.every(c=>c===''||c===null||c===undefined))return;
-              const r=emptyRow(ft);
-              header.forEach((h,ci)=>{
-                const val=row[ci];
-                if(h==='Kutu Adı'){r.ad=String(val||'');}
-                else if(h==='Yön'){r.yon=String(val||'DİKEY').toUpperCase().includes('YATAY')?'YATAY':'DİKEY';}
-                else if(h==='Adet'){r.adet=parseFloat(val)||0;}
-                else if(h.startsWith('Birim TL')){r.fiyat=parseFloat(val)||gF(ft.id);r._fiyatManuel=!!(parseFloat(val));}
-                else if(h==='Notlar'){r.notlar=String(val||'');}
-                else{
-                  // Değişken sütunları eşleştir
-                  vars.forEach(v=>{
-                    const lbl=v==='K'?'K Kulak (mm)':v==='K1'?'K1 Kulak (mm)':v==='K2'?'K2 Kulak (mm)':v==='T'?'T Kalınlık (mm)':v==='P'?'P Pay (mm)':v+' (mm)';
-                    if(h===lbl||h===v){r[v]=parseFloat(val)||0;}
-                  });
-                }
-              });
-              newData.push(r);
-            });
-            if(newData.length){
-              DATA[ft.id]=newData;
-              imported+=newData.length;
+          // İlk sayfayı oku (hangi isimde olursa olsun)
+          const ws=wb.Sheets[wb.SheetNames[0]];
+          const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+          if(rows.length<2){showSaveMsg('⚠️ Dosya boş','#facc15');return;}
+
+          const rawHeader=rows[0].map(h=>String(h||'').trim());
+          const vars=ft._vars||extractAllVars(ft);
+
+          // Başlık → sütun index eşlemesi (esnek: büyük/küçük harf, mm eki fark etmez)
+          function colIdx(names){
+            const candidates=Array.isArray(names)?names:[names];
+            for(const name of candidates){
+              const n=name.toLowerCase().replace(/\s*\(mm\)/,'').trim();
+              const i=rawHeader.findIndex(h=>h.toLowerCase().replace(/\s*\(mm\)/,'').trim()===n);
+              if(i>=0) return i;
             }
-          });
-          if(imported>0){
-            recalcAll();
-            saveToLocal();
-            showSaveMsg(`✅ ${imported} satır yüklendi!`);
-          }else{
-            showSaveMsg('⚠️ Eşleşen sekme bulunamadı','#facc15');
+            return -1;
           }
+
+          // Bilinen sütunları bul
+          const ciAd   =colIdx(['Kutu Adı','ad','isim','name']);
+          const ciYon  =colIdx(['Yön','yon','yön','direction']);
+          const ciAdet =colIdx(['Adet','adet','qty','miktar']);
+          const ciFiyat=colIdx(['Birim TL','fiyat','birim fiyat','price','tl/m2','tl/m²']);
+          const ciNot  =colIdx(['Notlar','not','notlar','notes']);
+
+          // Değişken sütunlarını bul (L, B, H, T, K, K1, K2, P ...)
+          const varIdx={};
+          vars.forEach(v=>{
+            const aliases=[v, v+' (mm)'];
+            if(v==='K')  aliases.push('K Kulak','kulak');
+            if(v==='K1') aliases.push('K1 Kulak');
+            if(v==='K2') aliases.push('K2 Kulak');
+            if(v==='T')  aliases.push('T Kalınlık','kalinlik','kalınlık','et');
+            if(v==='P')  aliases.push('P Pay','pay');
+            varIdx[v]=colIdx(aliases);
+          });
+
+          // Zorunlu ölçü var mı kontrol et (L, B veya H'den en az biri bulunmalı)
+          const hasAnyDim=['L','B','H'].some(v=>varIdx[v]>=0);
+          if(!hasAnyDim){
+            alert(`Excel'de ölçü sütunu bulunamadı.\n\nEn az "L", "B" veya "H" başlıklı bir sütun olmalı.\nMevcut başlıklar: ${rawHeader.filter(h=>h).join(', ')}`);
+            return;
+          }
+
+          const newData=[];
+          rows.slice(1).forEach(row=>{
+            // Tamamen boş satırı atla
+            if(row.every(c=>c===''||c===null||c===undefined)) return;
+            const r=emptyRow(ft);
+
+            if(ciAd>=0)   r.ad=String(row[ciAd]||'');
+            if(ciYon>=0)  r.yon=String(row[ciYon]||'DİKEY').toUpperCase().includes('YATAY')?'YATAY':'DİKEY';
+            if(ciAdet>=0) r.adet=parseFloat(row[ciAdet])||0;
+            if(ciFiyat>=0 && row[ciFiyat]!==''){
+              r.fiyat=parseFloat(row[ciFiyat])||gF(ft.id);
+              r._fiyatManuel=!!(parseFloat(row[ciFiyat]));
+            }
+            if(ciNot>=0)  r.notlar=String(row[ciNot]||'');
+
+            vars.forEach(v=>{
+              const ci=varIdx[v];
+              if(ci>=0 && row[ci]!==''){
+                const val=parseFloat(row[ci]);
+                if(!isNaN(val)) r[v]=val;
+              }
+            });
+
+            newData.push(r);
+          });
+
+          if(!newData.length){showSaveMsg('⚠️ Okunacak satır bulunamadı','#facc15');return;}
+
+          DATA[ft.id]=[...DATA[ft.id].filter(r=>r.ad||vars.some(v=>r[v]&&r[v]>0&&!['T','P','K','K1','K2'].includes(v))),...newData];
+          recalcAll();
+          saveToLocal();
+          showSaveMsg(`✅ ${newData.length} satır "${ft.kod}" sekemsine eklendi!`);
         }catch(err){
           console.error(err);
           showSaveMsg('❌ Excel okunamadı','red');
