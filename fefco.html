@@ -557,6 +557,31 @@ footer{
 .save-btn:hover{border-color:var(--orange);color:var(--orange);background:var(--orange-dim);}
 .save-btn.del{color:#f87171;border-color:rgba(192,0,0,.25);}
 .save-btn.del:hover{background:rgba(192,0,0,.12);border-color:#f87171;}
+/* Yedek pill renk durumları */
+#yedekPill.fresh  {border-color:rgba(146,208,80,.4);}
+#yedekPill.fresh  .sv{color:#92D050;}
+#yedekPill.warn   {border-color:rgba(250,204,21,.4);}
+#yedekPill.warn   .sv{color:#facc15;}
+#yedekPill.old    {border-color:rgba(248,113,113,.4);}
+#yedekPill.old    .sv{color:#f87171;}
+/* Değişiklik uyarı toast */
+#yedekUyari{
+  position:fixed;bottom:24px;right:24px;z-index:500;
+  background:var(--dark);border:1px solid var(--orange-border);border-left:3px solid var(--orange);
+  border-radius:8px;padding:12px 16px;
+  font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--text);
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 4px 20px rgba(0,0,0,.5);
+  transform:translateY(80px);opacity:0;
+  transition:transform .3s,opacity .3s;pointer-events:none;
+  max-width:320px;
+}
+#yedekUyari.show{transform:translateY(0);opacity:1;pointer-events:all;}
+#yedekUyari button{
+  background:var(--orange);color:#1a1a1a;border:none;
+  font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:1px;padding:5px 10px;border-radius:4px;cursor:pointer;white-space:nowrap;
+}
 @media(max-width:768px){
   .page-header{padding:0 12px;height:56px;}
   .stat-pill{display:none;}
@@ -573,6 +598,10 @@ footer{
     <div class="hdr-sub">FEFCO Karton Eni Hesaplama Sistemi</div>
   </div>
   <div class="hdr-right">
+    <div class="stat-pill" id="yedekPill" title="Son JSON yedeği" style="cursor:pointer;" onclick="exportJSON()">
+      <div class="sv" id="yedekZaman" style="font-size:11px;">—</div>
+      <div class="sl">Son Yedek</div>
+    </div>
     <div class="stat-pill"><div class="sv" id="hM2">0,00</div><div class="sl">Toplam m²</div></div>
     <div class="stat-pill"><div class="sv" id="hTL">0,00</div><div class="sl">Toplam TL</div></div>
     <div class="stat-pill"><div class="sv" id="hRulo">0,0</div><div class="sl">Rulo (m)</div></div>
@@ -751,6 +780,13 @@ footer{
 
 </div>
 <footer>ORİMAK MAKİNA &nbsp;·&nbsp; FEFCO Karton Eni Hesaplama Sistemi v3.0 &nbsp;·&nbsp; Tüm hesaplamalar otomatik</footer>
+
+<!-- Yedek uyarı toast -->
+<div id="yedekUyari">
+  <span id="yedekUyariMsg">⚠️ 10 değişiklik yapıldı — JSON yedeği alın!</span>
+  <button onclick="exportJSON();hideYedekUyari()">📥 Şimdi Al</button>
+  <button onclick="hideYedekUyari()" style="background:var(--surface);color:var(--muted);border:1px solid var(--dim);">Kapat</button>
+</div>
 
 <script>
 // ============================================================
@@ -1651,13 +1687,106 @@ function showSaveMsg(msg,color){
   el._t=setTimeout(()=>{el.style.opacity='0';},2500);
 }
 
+// ============================================================
+// YEDEK UYARI SİSTEMİ
+// ============================================================
+const YEDEK_KEY='orimak_son_yedek';
+const DEGISIKLIK_ESIGI=10; // kaç değişiklikte bir uyar
+let degisiklikSayaci=0;
+let yedekUyariTimer=null;
+
+function yedekZamanGuncelle(){
+  const raw=localStorage.getItem(YEDEK_KEY);
+  const pill=document.getElementById('yedekPill');
+  const el=document.getElementById('yedekZaman');
+  if(!el||!pill)return;
+  if(!raw){
+    el.textContent='Hiç alınmadı';
+    pill.className='old';
+    return;
+  }
+  const ts=parseInt(raw);
+  const diff=Math.floor((Date.now()-ts)/1000);
+  let label,cls;
+  if(diff<3600){label=Math.floor(diff/60)+'dk önce';cls='fresh';}
+  else if(diff<86400){label=Math.floor(diff/3600)+'sa önce';cls='warn';}
+  else{label=Math.floor(diff/86400)+'g önce';cls='old';}
+  el.textContent=label;
+  pill.className=cls;
+}
+
+function showYedekUyari(msg){
+  const el=document.getElementById('yedekUyari');
+  const msgEl=document.getElementById('yedekUyariMsg');
+  if(!el)return;
+  if(msgEl) msgEl.textContent=msg||'⚠️ Değişiklik yapıldı — JSON yedeği alın!';
+  el.classList.add('show');
+  clearTimeout(yedekUyariTimer);
+  yedekUyariTimer=setTimeout(hideYedekUyari,12000);
+}
+
+function hideYedekUyari(){
+  const el=document.getElementById('yedekUyari');
+  if(el) el.classList.remove('show');
+  clearTimeout(yedekUyariTimer);
+}
+
+function yedekSayacArtir(){
+  degisiklikSayaci++;
+  if(degisiklikSayaci>=DEGISIKLIK_ESIGI){
+    const son=parseInt(localStorage.getItem(YEDEK_KEY)||'0');
+    const gecenSaat=(Date.now()-son)/3600000;
+    if(!son||gecenSaat>1){
+      showYedekUyari(`⚠️ ${degisiklikSayaci} değişiklik yapıldı — JSON yedeği alın!`);
+    }
+    degisiklikSayaci=0;
+  }
+  yedekZamanGuncelle();
+}
+
+// exportJSON'u override et — yedek zamanını kaydet
+const _origExportJSON=exportJSON;
+exportJSON=function(){
+  _origExportJSON();
+  localStorage.setItem(YEDEK_KEY,Date.now().toString());
+  degisiklikSayaci=0;
+  hideYedekUyari();
+  yedekZamanGuncelle();
+};
+
+// Sayfa kapatma / sekme kapatma uyarısı
+window.addEventListener('beforeunload',(e)=>{
+  const son=parseInt(localStorage.getItem(YEDEK_KEY)||'0');
+  const gecenSaat=(Date.now()-son)/3600000;
+  const hicYok=!son;
+  const eskiYedek=gecenSaat>2;
+  const degisiklikVar=degisiklikSayaci>0;
+  if(hicYok||eskiYedek||degisiklikVar){
+    const msg='JSON yedeği almayı unutmayın! Veri kaybolabilir.';
+    e.returnValue=msg;
+    return msg;
+  }
+});
+
+// Sayfadan uzaklaşma (link tıklama)
+window.addEventListener('pagehide',()=>{
+  const son=parseInt(localStorage.getItem(YEDEK_KEY)||'0');
+  const gecenSaat=(Date.now()-son)/3600000;
+  if(!son||gecenSaat>2||degisiklikSayaci>0){
+    showYedekUyari('⚠️ Sayfadan ayrılmadan önce JSON yedeği alın!');
+  }
+});
+
+// Her dakika "son yedek" zamanını güncelle
+setInterval(yedekZamanGuncelle,60000);
+
 // Auto-save on every change
 const _origRecalcAll=recalcAll;
 recalcAll=function(){
   _origRecalcAll();
   // Debounced auto-save
   clearTimeout(recalcAll._t);
-  recalcAll._t=setTimeout(saveToLocal,800);
+  recalcAll._t=setTimeout(()=>{saveToLocal();yedekSayacArtir();},800);
 };
 
 window.addEventListener('DOMContentLoaded',()=>{
@@ -1681,6 +1810,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   FEFCO_TYPES.forEach(ft=>renderTable(ft.id));
   updateAll();
   kalibInit();
+  yedekZamanGuncelle();
 });
 
 // ============================================================
