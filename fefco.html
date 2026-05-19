@@ -621,8 +621,8 @@ footer{
       <button class="save-btn" onclick="openConverter()" title="Kendi Excel'ini dönüştür" style="background:rgba(245,166,35,.12);border-color:rgba(245,166,35,.4);color:var(--orange);">🔄 Excel Dönüştür</button>
       <button class="save-btn" onclick="exportExcel()" title="Ölçüleri Excel'e aktar" style="background:rgba(146,208,80,.12);border-color:rgba(146,208,80,.35);color:#92D050;">📊 Excel'e Aktar</button>
       <button class="save-btn" onclick="importExcel()" title="Excel'den ölçü yükle" style="background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.35);color:#60a5fa;">📂 Excel'den Al</button>
-      <button class="save-btn" onclick="exportJSON()" title="Veriyi JSON dosyası olarak indir">📥 JSON Aktar</button>
-      <button class="save-btn" onclick="importJSON()" title="JSON dosyasından veri yükle">📤 JSON Yükle</button>
+      <button class="save-btn" onclick="exportJSON()" title="Tüm veriyi JSON dosyası olarak kaydet">💾 JSON Olarak Kaydet</button>
+      <button class="save-btn" onclick="importJSON()" title="Daha önce kaydedilen JSON dosyasını aç">📂 JSON'dan Aç</button>
       <button class="save-btn del" onclick="clearAllData()" title="Tüm veriyi sıfırla">🗑️ Temizle</button>
       <span id="saveMsg" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--green);opacity:0;transition:opacity .3s;white-space:nowrap;">💾 Kaydedildi!</span>
     </div>
@@ -783,8 +783,8 @@ footer{
 
 <!-- Yedek uyarı toast -->
 <div id="yedekUyari">
-  <span id="yedekUyariMsg">⚠️ 10 değişiklik yapıldı — JSON yedeği alın!</span>
-  <button onclick="exportJSON();hideYedekUyari()">📥 Şimdi Al</button>
+  <span id="yedekUyariMsg">⚠️ Yaptığınız değişiklikler kaybolabilir! Lütfen JSON olarak kaydedin.</span>
+  <button onclick="exportJSON();hideYedekUyari()">💾 JSON Olarak Kaydet</button>
   <button onclick="hideYedekUyari()" style="background:var(--surface);color:var(--muted);border:1px solid var(--dim);">Kapat</button>
 </div>
 
@@ -1737,7 +1737,7 @@ function yedekSayacArtir(){
     const son=parseInt(localStorage.getItem(YEDEK_KEY)||'0');
     const gecenSaat=(Date.now()-son)/3600000;
     if(!son||gecenSaat>1){
-      showYedekUyari(`⚠️ ${degisiklikSayaci} değişiklik yapıldı — JSON yedeği alın!`);
+      showYedekUyari(`⚠️ Yaptığınız değişiklikler kaybolabilir! Lütfen JSON olarak kaydedin.`);
     }
     degisiklikSayaci=0;
   }
@@ -1762,7 +1762,7 @@ window.addEventListener('beforeunload',(e)=>{
   const eskiYedek=gecenSaat>2;
   const degisiklikVar=degisiklikSayaci>0;
   if(hicYok||eskiYedek||degisiklikVar){
-    const msg='JSON yedeği almayı unutmayın! Veri kaybolabilir.';
+    const msg='Yaptığınız değişiklikler kaybolabilir! Lütfen "JSON Olarak Kaydet" butonuyla yedeğinizi alın.';
     e.returnValue=msg;
     return msg;
   }
@@ -1773,7 +1773,7 @@ window.addEventListener('pagehide',()=>{
   const son=parseInt(localStorage.getItem(YEDEK_KEY)||'0');
   const gecenSaat=(Date.now()-son)/3600000;
   if(!son||gecenSaat>2||degisiklikSayaci>0){
-    showYedekUyari('⚠️ Sayfadan ayrılmadan önce JSON yedeği alın!');
+    showYedekUyari('⚠️ Sayfadan ayrılmadan önce JSON olarak kaydedin!');
   }
 });
 
