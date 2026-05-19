@@ -462,7 +462,84 @@ td select.yon-sel:focus{border-color:var(--orange);}
 ::-webkit-scrollbar-track{background:var(--bg);}
 ::-webkit-scrollbar-thumb{background:var(--dim);border-radius:3px;}
 
-/* FOOTER */
+/* EXCEL DÖNÜŞTÜRÜCÜ MODAL */
+.conv-modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;
+  display:flex;align-items:center;justify-content:center;padding:16px;
+}
+.conv-modal{
+  background:var(--dark);border:1px solid var(--border);border-top:3px solid var(--orange);
+  border-radius:12px;width:100%;max-width:780px;max-height:90vh;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.conv-modal-head{
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;flex-shrink:0;
+}
+.conv-modal-head h3{
+  font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;
+  letter-spacing:2px;color:var(--orange);text-transform:uppercase;flex:1;
+}
+.conv-modal-body{padding:20px;overflow-y:auto;flex:1;}
+.conv-step{margin-bottom:20px;}
+.conv-step-lbl{
+  font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:2px;color:var(--orange);text-transform:uppercase;margin-bottom:8px;
+}
+.conv-upload-area{
+  border:2px dashed var(--border);border-radius:8px;padding:28px;
+  text-align:center;cursor:pointer;transition:border-color .2s;
+  font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--muted);
+}
+.conv-upload-area:hover{border-color:var(--orange);color:var(--text);}
+.conv-upload-area.loaded{border-color:var(--green);color:#4ade80;}
+.conv-map-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;
+}
+.conv-map-item{
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:10px 12px;display:flex;flex-direction:column;gap:6px;
+}
+.conv-map-lbl{
+  font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;
+}
+.conv-map-lbl.dim{color:#60a5fa;}
+.conv-map-lbl.opt{color:var(--muted);}
+.conv-map-lbl.req{color:var(--orange);}
+.conv-map-sel{
+  background:var(--bg);border:1px solid var(--dim);border-radius:5px;
+  color:var(--text);font-family:'Barlow Condensed',sans-serif;font-size:12px;
+  padding:5px 8px;outline:none;cursor:pointer;transition:border-color .2s;
+}
+.conv-map-sel:focus{border-color:var(--orange);}
+.conv-map-sel.mapped{border-color:var(--orange-border);color:var(--orange);}
+.conv-preview{
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:12px 16px;font-family:'Barlow Condensed',sans-serif;font-size:11px;
+  color:var(--muted);max-height:180px;overflow-y:auto;
+}
+.conv-preview table{width:100%;border-collapse:collapse;font-size:11px;}
+.conv-preview th{color:var(--orange);padding:4px 8px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;}
+.conv-preview td{padding:3px 8px;border-bottom:1px solid rgba(255,255,255,.03);color:#ccc;white-space:nowrap;}
+.conv-footer{
+  padding:14px 20px;border-top:1px solid var(--border);
+  display:flex;gap:10px;align-items:center;flex-shrink:0;flex-wrap:wrap;
+}
+.conv-btn{
+  font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;padding:9px 20px;border-radius:6px;
+  cursor:pointer;transition:all .15s;border:1px solid;
+}
+.conv-btn.green{background:rgba(146,208,80,.15);border-color:rgba(146,208,80,.4);color:#92D050;}
+.conv-btn.green:hover{background:rgba(146,208,80,.28);}
+.conv-btn.blue{background:rgba(96,165,250,.15);border-color:rgba(96,165,250,.4);color:#60a5fa;}
+.conv-btn.blue:hover{background:rgba(96,165,250,.28);}
+.conv-btn.cancel{background:none;border-color:var(--dim);color:var(--muted);}
+.conv-btn.cancel:hover{border-color:var(--orange);color:var(--orange);}
+.conv-btn:disabled{opacity:.35;cursor:not-allowed;}
+.conv-info{font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--muted);letter-spacing:1px;margin-left:auto;}
+
 footer{
   border-top:1px solid var(--border);padding:14px 28px;
   text-align:center;font-family:'Barlow Condensed',sans-serif;
@@ -512,6 +589,7 @@ footer{
       <input type="text" class="gb-inp" id="aramaInput" placeholder="kutu adı..." oninput="aramaYap()" style="width:200px;">
     </div>
     <div style="margin-left:auto;display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap;">
+      <button class="save-btn" onclick="openConverter()" title="Kendi Excel'ini dönüştür" style="background:rgba(245,166,35,.12);border-color:rgba(245,166,35,.4);color:var(--orange);">🔄 Excel Dönüştür</button>
       <button class="save-btn" onclick="exportExcel()" title="Ölçüleri Excel'e aktar" style="background:rgba(146,208,80,.12);border-color:rgba(146,208,80,.35);color:#92D050;">📊 Excel'e Aktar</button>
       <button class="save-btn" onclick="importExcel()" title="Excel'den ölçü yükle" style="background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.35);color:#60a5fa;">📂 Excel'den Al</button>
       <button class="save-btn" onclick="exportJSON()" title="Veriyi JSON dosyası olarak indir">📥 JSON Aktar</button>
@@ -2181,6 +2259,280 @@ function importExcel(){
       reader.readAsArrayBuffer(file);
     };
     inp.click();
+  });
+}
+
+// ============================================================
+// EXCEL DÖNÜŞTÜRÜCÜ
+// ============================================================
+let convWb=null, convRows=[], convHeader=[];
+
+function openConverter(){
+  loadSheetJS(()=>{
+    const ft=FEFCO_TYPES.find(f=>f.id===activeTabId);
+    const bg=document.createElement('div');
+    bg.className='conv-modal-bg';
+    bg.id='convModalBg';
+    bg.innerHTML=`
+      <div class="conv-modal">
+        <div class="conv-modal-head">
+          <h3>🔄 Excel Dönüştürücü</h3>
+          <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--muted);">
+            Aktif sekme: <b style="color:var(--orange)">${ft?ft.kod+' – '+ft.ad:'(FEFCO sekmesi açık değil)'}</b>
+          </span>
+          <button class="conv-btn cancel" style="padding:5px 12px;font-size:10px;" onclick="closeConverter()">✕ Kapat</button>
+        </div>
+        <div class="conv-modal-body">
+
+          <!-- ADIM 1: Dosya Yükle -->
+          <div class="conv-step">
+            <div class="conv-step-lbl">① Excel Dosyasını Yükle</div>
+            <div class="conv-upload-area" id="convDropArea" onclick="convPickFile()">
+              📂 Tıkla veya dosyayı buraya sürükle<br>
+              <span style="font-size:10px;opacity:.6;">.xlsx · .xls · .csv</span>
+            </div>
+            <input type="file" id="convFileInp" accept=".xlsx,.xls,.csv" style="display:none" onchange="convLoadFile(this.files[0])">
+          </div>
+
+          <!-- ADIM 2: Sütun Eşleştirme -->
+          <div class="conv-step" id="convMapStep" style="display:none;">
+            <div class="conv-step-lbl">② Sütunları Eşleştir</div>
+            <div class="conv-map-grid" id="convMapGrid"></div>
+          </div>
+
+          <!-- ADIM 3: Önizleme -->
+          <div class="conv-step" id="convPreviewStep" style="display:none;">
+            <div class="conv-step-lbl">③ Önizleme <span id="convPreviewCount" style="color:var(--muted);font-size:9px;"></span></div>
+            <div class="conv-preview" id="convPreviewBox"></div>
+          </div>
+
+        </div>
+        <div class="conv-footer">
+          <button class="conv-btn cancel" onclick="closeConverter()">İptal</button>
+          <button class="conv-btn blue" id="convBtnExcel" disabled onclick="convDoExcel()">📊 Dönüştürülmüş Excel İndir</button>
+          <button class="conv-btn green" id="convBtnImport" disabled onclick="convDoImport()">${ft?'⬆️ "'+ft.kod+'" Sekmeye Aktar':'⚠️ FEFCO Sekmesi Seçin'}</button>
+          <span class="conv-info" id="convInfo">Dosya yükleyin</span>
+        </div>
+      </div>`;
+    document.body.appendChild(bg);
+    bg.onclick=(e)=>{if(e.target===bg)closeConverter();};
+
+    // Sürükle-bırak
+    const drop=bg.querySelector('#convDropArea');
+    drop.ondragover=(e)=>{e.preventDefault();drop.style.borderColor='var(--orange)';};
+    drop.ondragleave=()=>{drop.style.borderColor='';};
+    drop.ondrop=(e)=>{e.preventDefault();drop.style.borderColor='';const f=e.dataTransfer.files[0];if(f)convLoadFile(f);};
+  });
+}
+
+function closeConverter(){
+  const bg=document.getElementById('convModalBg');
+  if(bg) document.body.removeChild(bg);
+  convWb=null; convRows=[]; convHeader=[];
+}
+
+function convPickFile(){
+  document.getElementById('convFileInp').click();
+}
+
+function convLoadFile(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      convWb=XLSX.read(ev.target.result,{type:'array'});
+      const ws=convWb.Sheets[convWb.SheetNames[0]];
+      convRows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      if(!convRows.length){alert('Dosya boş görünüyor.');return;}
+
+      // İlk satır başlık mı? (sayı değilse başlık say)
+      const first=convRows[0];
+      const looksLikeHeader=first.some(c=>c!==''&&isNaN(parseFloat(c)));
+      if(looksLikeHeader){
+        convHeader=first.map((c,i)=>({label:String(c||'').trim()||colLetter(i), idx:i, raw:c}));
+        convRows=convRows.slice(1);
+      }else{
+        convHeader=first.map((_,i)=>({label:colLetter(i), idx:i, raw:''}));
+      }
+
+      const drop=document.getElementById('convDropArea');
+      drop.className='conv-upload-area loaded';
+      drop.innerHTML=`✅ ${file.name} yüklendi — ${convRows.length} satır, ${convHeader.length} sütun`;
+
+      convBuildMapGrid();
+      document.getElementById('convMapStep').style.display='';
+      document.getElementById('convInfo').textContent=`${convRows.length} satır okundu`;
+    }catch(e){
+      alert('Dosya okunamadı: '+e.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function colLetter(i){
+  let s='';
+  i++;
+  while(i>0){s=String.fromCharCode(64+(i%26||26))+s;i=Math.floor((i-1)/26);}
+  return s;
+}
+
+function convBuildMapGrid(){
+  const ft=FEFCO_TYPES.find(f=>f.id===activeTabId);
+  const vars=ft?ft._vars||extractAllVars(ft):['L','B','H'];
+
+  // Tanımlanacak alanlar
+  const fields=[
+    {key:'ad',   lbl:'Kutu Adı',  cls:'opt', hint:'opsiyonel'},
+    ...vars.map(v=>({
+      key:v,
+      lbl: v==='T'?'T Kalınlık':v==='K'?'K Kulak':v==='K1'?'K1 Kulak':v==='K2'?'K2 Kulak':v==='P'?'P Pay':v+' (mm)',
+      cls: ['L','B','H'].includes(v)?'dim':['T','K','K1','K2','P'].includes(v)?'opt':'dim',
+      hint: ['T','K','K1','K2','P'].includes(v)?'varsayılan kullanılır':'ölçü'
+    })),
+    {key:'adet',  lbl:'Adet',     cls:'opt', hint:'opsiyonel'},
+    {key:'fiyat', lbl:'Birim TL', cls:'opt', hint:'opsiyonel'},
+    {key:'yon',   lbl:'Yön',      cls:'opt', hint:'DİKEY/YATAY'},
+    {key:'notlar',lbl:'Notlar',   cls:'opt', hint:'opsiyonel'},
+  ];
+
+  // Otomatik eşleştirme — başlık benzerliği
+  const autoMap={};
+  const autoPatterns={
+    ad:['ad','kutu','isim','name','ürün','urun'],
+    L:['l','en','uzunluk','length'],
+    B:['b','boy','genişlik','genislik','width'],
+    H:['h','yükseklik','yukseklik','height','derinlik'],
+    T:['t','kalınlık','kalinlik','et','thickness'],
+    K:['k','kulak','flap','k kulak'],
+    K1:['k1','k1 kulak'],
+    K2:['k2','k2 kulak'],
+    P:['p','pay','extra'],
+    adet:['adet','miktar','qty','quantity','adet/koli'],
+    fiyat:['fiyat','birim tl','tl','price','birim fiyat'],
+    yon:['yön','yon','direction','kesim'],
+    notlar:['not','notlar','açıklama','aciklama','notes'],
+  };
+  convHeader.forEach(col=>{
+    const lc=col.label.toLowerCase().trim().replace(/\s*\(mm\)/,'');
+    for(const [k,pats] of Object.entries(autoPatterns)){
+      if(pats.some(p=>lc===p||lc.startsWith(p))){
+        if(!autoMap[k]) autoMap[k]=col.idx;
+      }
+    }
+  });
+
+  const opts=`<option value="">— Seçin —</option>`+
+    convHeader.map(c=>`<option value="${c.idx}">${c.label}${convRows[0]&&convRows[0][c.idx]!==''?' (örn: '+String(convRows[0][c.idx]).substring(0,12)+')':''}</option>`).join('');
+
+  document.getElementById('convMapGrid').innerHTML=fields.map(f=>`
+    <div class="conv-map-item">
+      <div class="conv-map-lbl ${f.cls}">${f.lbl} <span style="color:var(--dim);font-size:8px;">${f.hint}</span></div>
+      <select class="conv-map-sel${autoMap[f.key]!==undefined?' mapped':''}" id="cmap_${f.key}"
+        onchange="convUpdatePreview()">
+        ${opts.replace(`value="${autoMap[f.key]}"`,`value="${autoMap[f.key]}" selected`)}
+      </select>
+    </div>`).join('');
+
+  convUpdatePreview();
+}
+
+function convGetMapping(){
+  const ft=FEFCO_TYPES.find(f=>f.id===activeTabId);
+  const vars=ft?ft._vars||extractAllVars(ft):['L','B','H'];
+  const keys=['ad',...vars,'adet','fiyat','yon','notlar'];
+  const map={};
+  keys.forEach(k=>{
+    const sel=document.getElementById('cmap_'+k);
+    if(sel&&sel.value!=='') map[k]=parseInt(sel.value);
+  });
+  return map;
+}
+
+function convBuildRows(map){
+  const ft=FEFCO_TYPES.find(f=>f.id===activeTabId);
+  const vars=ft?ft._vars||extractAllVars(ft):['L','B','H'];
+  return convRows
+    .filter(r=>!r.every(c=>c===''||c===null||c===undefined))
+    .map(r=>{
+      const row=emptyRow(ft);
+      if(map.ad!==undefined)     row.ad=String(r[map.ad]||'');
+      if(map.yon!==undefined)    row.yon=String(r[map.yon]||'').toUpperCase().includes('YATAY')?'YATAY':'DİKEY';
+      if(map.adet!==undefined)   row.adet=parseFloat(r[map.adet])||0;
+      if(map.fiyat!==undefined && r[map.fiyat]!==''){
+        row.fiyat=parseFloat(r[map.fiyat])||gF(ft?ft.id:null);
+        row._fiyatManuel=true;
+      }
+      if(map.notlar!==undefined) row.notlar=String(r[map.notlar]||'');
+      vars.forEach(v=>{
+        if(map[v]!==undefined && r[map[v]]!==''){
+          const val=parseFloat(r[map[v]]);
+          if(!isNaN(val)) row[v]=val;
+        }
+      });
+      return row;
+    });
+}
+
+function convUpdatePreview(){
+  const map=convGetMapping();
+  const ft=FEFCO_TYPES.find(f=>f.id===activeTabId);
+  const vars=ft?ft._vars||extractAllVars(ft):['L','B','H'];
+  const rows=convBuildRows(map);
+  const hasData=rows.length>0;
+
+  document.getElementById('convBtnExcel').disabled=!hasData;
+  document.getElementById('convBtnImport').disabled=!hasData||!ft;
+  document.getElementById('convPreviewStep').style.display=hasData?'':'none';
+  if(!hasData)return;
+
+  document.getElementById('convPreviewCount').textContent=`— ${rows.length} satır`;
+
+  // Önizleme tablosu (ilk 6 satır)
+  const previewCols=['ad',...vars,'adet','yon'];
+  const colLabels={ad:'Kutu Adı',L:'L',B:'B',H:'H',T:'T',K:'K',K1:'K1',K2:'K2',P:'P',adet:'Adet',yon:'Yön'};
+  const head=previewCols.map(c=>`<th>${colLabels[c]||c}</th>`).join('');
+  const body=rows.slice(0,6).map(r=>`<tr>${previewCols.map(c=>`<td>${r[c]!==undefined&&r[c]!==''?r[c]:'—'}</td>`).join('')}</tr>`).join('');
+  document.getElementById('convPreviewBox').innerHTML=`<table><thead><tr>${head}</tr></thead><tbody>${body}${rows.length>6?`<tr><td colspan="${previewCols.length}" style="color:var(--dim);text-align:center;">... ve ${rows.length-6} satır daha</td></tr>`:''}</tbody></table>`;
+}
+
+function convDoImport(){
+  const ft=FEFCO_TYPES.find(f=>f.id===activeTabId);
+  if(!ft){alert('Önce bir FEFCO sekmesi açın.');return;}
+  const map=convGetMapping();
+  const newRows=convBuildRows(map);
+  if(!newRows.length){showSaveMsg('⚠️ Aktarılacak satır yok','#facc15');return;}
+  DATA[ft.id]=[...DATA[ft.id].filter(r=>r.ad||extractAllVars(ft).some(v=>r[v]&&r[v]>0&&!['T','P','K','K1','K2'].includes(v))),...newRows];
+  recalcAll();
+  saveToLocal();
+  closeConverter();
+  showSaveMsg(`✅ ${newRows.length} satır "${ft.kod}" sekemsine aktarıldı!`);
+}
+
+function convDoExcel(){
+  const ft=FEFCO_TYPES.find(f=>f.id===activeTabId);
+  const map=convGetMapping();
+  const newRows=convBuildRows(map);
+  if(!newRows.length){showSaveMsg('⚠️ Dönüştürülecek satır yok','#facc15');return;}
+
+  loadSheetJS(()=>{
+    const vars=ft?ft._vars||extractAllVars(ft):['L','B','H'];
+    const header=['Kutu Adı',...vars.map(v=>v==='K'?'K Kulak (mm)':v==='T'?'T Kalınlık (mm)':v==='P'?'P Pay (mm)':v+' (mm)'),'Yön','Adet','Birim TL','Notlar'];
+    const dataRows=newRows.map(r=>[
+      r.ad||'',
+      ...vars.map(v=>r[v]!==undefined?r[v]:''),
+      r.yon||'DİKEY',
+      r.adet||0,
+      r.fiyat||'',
+      r.notlar||''
+    ]);
+    const ws=XLSX.utils.aoa_to_sheet([header,...dataRows]);
+    ws['!cols']=[{wch:18},...vars.map(()=>({wch:12})),{wch:8},{wch:7},{wch:9},{wch:18}];
+    const wb=XLSX.utils.book_new();
+    const sheetName=ft?(ft.kod+' '+ft.ad).replace(/[\\\/\*\[\]\:\?]/g,'').substring(0,31):'Donusturulmus';
+    XLSX.utils.book_append_sheet(wb,ws,sheetName);
+    const d=new Date();
+    XLSX.writeFile(wb,`orimak_donustur_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.xlsx`);
+    showSaveMsg('📊 Dönüştürülmüş Excel indirildi!');
   });
 }
 
