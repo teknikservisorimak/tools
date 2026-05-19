@@ -122,18 +122,32 @@
   }
   .input-group input:focus, .input-group select:focus { border-color: var(--accent); }
 
-  .color-row { display: flex; gap: 6px; align-items: center; }
+  .color-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .color-swatch {
-    width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
-    border: 2px solid transparent; transition: all 0.2s;
+    width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+    border: 2.5px solid transparent; transition: all 0.2s;
   }
-  .color-swatch:hover, .color-swatch.active { border-color: #fff; transform: scale(1.15); }
+  .color-swatch:hover, .color-swatch.active { border-color: #fff; transform: scale(1.2); }
+
+  /* Orientation toggle */
+  .orient-row { display: flex; gap: 8px; align-items: center; }
+  .orient-btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 9px 10px; border-radius: 10px; cursor: pointer;
+    background: var(--bg-input); border: 1.5px solid var(--border);
+    color: var(--text-secondary); font-size: 12px; font-weight: 600;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .orient-btn:hover { border-color: var(--accent); background: rgba(249,115,22,0.05); }
+  .orient-btn.active { border-color: var(--accent); background: rgba(249,115,22,0.13); color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+  .orient-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
 
   /* Symbols row */
-  .symbols-section { margin-top: 4px; }
-  .symbols-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .symbols-section { margin-top: 0; }
+  .symbols-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .symbol-btn {
-    width: 40px; height: 40px; border-radius: 8px;
+    width: 42px; height: 42px; border-radius: 10px;
     background: var(--bg-input); border: 1.5px solid var(--border);
     cursor: pointer; transition: all 0.2s;
     display: flex; align-items: center; justify-content: center;
@@ -424,49 +438,62 @@
           <div class="input-group"><label>Boy (cm)</label><input type="number" id="boxD" value="40" min="1"></div>
           <div class="input-group"><label>Yükseklik</label><input type="number" id="boxH" value="40" min="1"></div>
         </div>
-        <div class="form-row-3col">
+        <div class="form-row-2">
           <div class="input-group"><label>Ağırlık (kg)</label><input type="number" id="boxWeight" value="25" min="0.1" step="0.1"></div>
           <div class="input-group"><label>Adet</label><input type="number" id="boxQty" value="1" min="1"></div>
-          <div class="input-group"><label>Maks Yığın (kg)</label><input type="number" id="boxMaxStack" value="0" min="0" step="1" title="0 = sınırsız"></div>
         </div>
         <div class="form-row-2">
           <div class="input-group">
-            <label>Renk</label>
-            <div class="color-row">
-              <div class="color-swatch active" style="background:#f97316" data-color="#f97316"></div>
-              <div class="color-swatch" style="background:#3b82f6" data-color="#3b82f6"></div>
-              <div class="color-swatch" style="background:#10b981" data-color="#10b981"></div>
-              <div class="color-swatch" style="background:#f59e0b" data-color="#f59e0b"></div>
-              <div class="color-swatch" style="background:#ef4444" data-color="#ef4444"></div>
-              <div class="color-swatch" style="background:#8b5cf6" data-color="#8b5cf6"></div>
-              <div class="color-swatch" style="background:#06b6d4" data-color="#06b6d4"></div>
-              <div class="color-swatch" style="background:#ec4899" data-color="#ec4899"></div>
+            <label>Yön / Duruş</label>
+            <div class="orient-row">
+              <button type="button" class="orient-btn active" data-orient="dikey" onclick="setOrientation('dikey', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="7" y="2" width="10" height="20" rx="1.5"/><path d="M12 6v4M10 8h4" opacity="0.4"/></svg>
+                Dikey
+              </button>
+              <button type="button" class="orient-btn" data-orient="yatay" onclick="setOrientation('yatay', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="10" rx="1.5"/><path d="M6 12h4M8 10v4" opacity="0.4"/></svg>
+                Yatay
+              </button>
             </div>
           </div>
-          <div class="input-group symbols-section">
-            <label>Semboller</label>
-            <div class="symbols-row" id="symbolsRow">
-              <button type="button" class="symbol-btn" data-sym="fragile" title="Kırılır">
-                <span class="sym-tip">Kırılır</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L8 8h8l-4-6zM8 8l-2 6h4l-1 8 7-10h-4l2-4H8z"/></svg>
-              </button>
-              <button type="button" class="symbol-btn" data-sym="up" title="Bu Taraf Yukarı">
-                <span class="sym-tip">Bu Taraf Yukarı</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v16M5 11l7-7 7 7"/></svg>
-              </button>
-              <button type="button" class="symbol-btn" data-sym="nostack" title="Üstüne Koymayın">
-                <span class="sym-tip">Üstüne Koymayın</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="14" width="16" height="6" rx="1"/><rect x="4" y="4" width="16" height="6" rx="1"/><line x1="2" y1="2" x2="22" y2="22" stroke-width="2.5"/></svg>
-              </button>
-              <button type="button" class="symbol-btn" data-sym="keepdry" title="Kuru Tutun">
-                <span class="sym-tip">Kuru Tutun</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 6c-1.5 3-3 4.5-3 6.5a3 3 0 006 0c0-2-1.5-3.5-3-6.5z"/></svg>
-              </button>
-              <button type="button" class="symbol-btn" data-sym="heavy" title="Ağır Yük">
-                <span class="sym-tip">Ağır Yük</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><text x="5" y="18" font-size="16" font-weight="bold" fill="currentColor" stroke="none">KG</text></svg>
-              </button>
-            </div>
+          <div class="input-group"><label>Maks Yığın (kg)</label><input type="number" id="boxMaxStack" value="0" min="0" step="1" title="0 = sınırsız"></div>
+        </div>
+        <div class="input-group">
+          <label>Renk</label>
+          <div class="color-row">
+            <div class="color-swatch active" style="background:#f97316" data-color="#f97316"></div>
+            <div class="color-swatch" style="background:#3b82f6" data-color="#3b82f6"></div>
+            <div class="color-swatch" style="background:#10b981" data-color="#10b981"></div>
+            <div class="color-swatch" style="background:#f59e0b" data-color="#f59e0b"></div>
+            <div class="color-swatch" style="background:#ef4444" data-color="#ef4444"></div>
+            <div class="color-swatch" style="background:#8b5cf6" data-color="#8b5cf6"></div>
+            <div class="color-swatch" style="background:#06b6d4" data-color="#06b6d4"></div>
+            <div class="color-swatch" style="background:#ec4899" data-color="#ec4899"></div>
+          </div>
+        </div>
+        <div class="input-group symbols-section">
+          <label>Kargo Sembolleri</label>
+          <div class="symbols-row" id="symbolsRow">
+            <button type="button" class="symbol-btn" data-sym="fragile" title="Kırılır">
+              <span class="sym-tip">Kırılır</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L8 8h8l-4-6zM8 8l-2 6h4l-1 8 7-10h-4l2-4H8z"/></svg>
+            </button>
+            <button type="button" class="symbol-btn" data-sym="up" title="Bu Taraf Yukarı">
+              <span class="sym-tip">Bu Taraf Yukarı</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v16M5 11l7-7 7 7"/></svg>
+            </button>
+            <button type="button" class="symbol-btn" data-sym="nostack" title="Üstüne Koymayın">
+              <span class="sym-tip">Üstüne Koymayın</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="14" width="16" height="6" rx="1"/><rect x="4" y="4" width="16" height="6" rx="1"/><line x1="2" y1="2" x2="22" y2="22" stroke-width="2.5"/></svg>
+            </button>
+            <button type="button" class="symbol-btn" data-sym="keepdry" title="Kuru Tutun">
+              <span class="sym-tip">Kuru Tutun</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 6c-1.5 3-3 4.5-3 6.5a3 3 0 006 0c0-2-1.5-3.5-3-6.5z"/></svg>
+            </button>
+            <button type="button" class="symbol-btn" data-sym="heavy" title="Ağır Yük">
+              <span class="sym-tip">Ağır Yük</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><text x="5" y="18" font-size="16" font-weight="bold" fill="currentColor" stroke="none">KG</text></svg>
+            </button>
           </div>
         </div>
         <button class="btn btn-primary" onclick="addBox()">＋ Kutu Ekle</button>
@@ -545,6 +572,7 @@ let boxTypes = [];
 let placedBoxes = [];
 let selectedColor = '#f97316';
 let selectedSymbols = [];
+let selectedOrientation = 'dikey';
 let boxIdCounter = 0;
 let showDimLabels = true;
 let showBoxDimLabels = false;
@@ -564,6 +592,22 @@ function getSelectedSymbols() {
     syms.push(btn.dataset.sym);
   });
   return syms;
+}
+
+function setOrientation(orient, btn) {
+  selectedOrientation = orient;
+  document.querySelectorAll('.orient-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Swap W and H values if orientation changes
+  const wInput = document.getElementById('boxW');
+  const hInput = document.getElementById('boxH');
+  const w = parseInt(wInput.value) || 60;
+  const h = parseInt(hInput.value) || 40;
+  if (orient === 'yatay' && h > w) {
+    wInput.value = h; hInput.value = w;
+  } else if (orient === 'dikey' && w > h) {
+    wInput.value = h; hInput.value = w;
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -1087,9 +1131,10 @@ function addBox() {
   const qty = parseInt(document.getElementById('boxQty').value) || 1;
   const maxStack = parseInt(document.getElementById('boxMaxStack').value) || 0;
   const symbols = getSelectedSymbols();
-  boxTypes.push({ id: ++boxIdCounter, name, w, d, h, weight, qty, color: selectedColor, maxStack, symbols });
+  const orientation = selectedOrientation; // 'dikey' or 'yatay'
+  boxTypes.push({ id: ++boxIdCounter, name, w, d, h, weight, qty, color: selectedColor, maxStack, symbols, orientation });
   renderBoxList();
-  showToast(`"${name}" eklendi (${qty} adet)`);
+  showToast(`"${name}" eklendi (${qty} adet, ${orientation})`);
 }
 
 function removeBox(id) {
@@ -1105,11 +1150,13 @@ function renderBoxList() {
   }
   container.innerHTML = boxTypes.map(b => {
     const symIcons = (b.symbols || []).map(s => `<span class="mini-sym" title="${SYMBOL_DEFS[s]?.label || s}">${SYMBOL_DEFS[s]?.icon || '?'}</span>`).join('');
+    const orientIcon = b.orientation === 'yatay' ? '↔' : '↕';
+    const orientLabel = b.orientation === 'yatay' ? 'Yatay' : 'Dikey';
     return `
     <div class="box-item" data-id="${b.id}">
       <div class="box-color-dot" style="background:${b.color}"></div>
       <div class="box-info">
-        <div class="box-name">${b.name}</div>
+        <div class="box-name">${b.name} <span style="font-size:9px;color:var(--text-muted);font-weight:400">${orientIcon} ${orientLabel}</span></div>
         <div class="box-dims">${b.w}×${b.d}×${b.h} cm · ${b.weight}kg${b.maxStack > 0 ? ' · maks:' + b.maxStack + 'kg' : ''}</div>
         ${symIcons ? `<div class="box-symbols">${symIcons}</div>` : ''}
       </div>
@@ -1144,15 +1191,31 @@ function loadCargo() {
   const spaces = [{ x: 0, y: 0, z: 0, w: cargoW, d: cargoD, h: cargoH }];
 
   allBoxes.forEach(box => {
-    // If nostack, try to prefer bottom-level placements
-    const rotations = [
-      { w: box.w, d: box.d, h: box.h },
-      { w: box.w, d: box.h, h: box.d },
-      { w: box.d, d: box.w, h: box.h },
-      { w: box.d, d: box.h, h: box.w },
-      { w: box.h, d: box.w, h: box.d },
-      { w: box.h, d: box.d, h: box.w },
-    ];
+    // Generate allowed rotations based on orientation preference
+    let rotations;
+    if (box.orientation === 'yatay') {
+      // Yatay: height should stay as the smallest dimension (box lies flat)
+      // Only rotate W and D on the horizontal plane, keep H as the shortest
+      const dims = [box.w, box.d, box.h].sort((a, b) => a - b);
+      const shortest = dims[0];
+      const mid = dims[1];
+      const longest = dims[2];
+      rotations = [
+        { w: longest, d: mid, h: shortest },
+        { w: mid, d: longest, h: shortest },
+      ];
+    } else {
+      // Dikey: height should stay as the tallest dimension (box stands up)
+      // Only rotate W and D on the horizontal plane, keep H as the tallest
+      const dims = [box.w, box.d, box.h].sort((a, b) => a - b);
+      const shortest = dims[0];
+      const mid = dims[1];
+      const tallest = dims[2];
+      rotations = [
+        { w: mid, d: shortest, h: tallest },
+        { w: shortest, d: mid, h: tallest },
+      ];
+    }
     let bestSpace = null, bestRot = null, bestIdx = -1;
     for (let si = 0; si < spaces.length; si++) {
       const sp = spaces[si];
@@ -1171,6 +1234,7 @@ function loadCargo() {
         name: box.name, color: box.color, weight: box.weight,
         origW: box.w, origD: box.d, origH: box.h,
         maxStack: box.maxStack || 0, symbols: box.symbols || [],
+        orientation: box.orientation || 'dikey',
       });
       spaces.splice(bestIdx, 1);
       if (bestSpace.w - bestRot.w > 0)
