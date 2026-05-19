@@ -73,28 +73,28 @@
   .main-container { display: flex; flex: 1; overflow: hidden; }
 
   .panel-left {
-    width: 360px; min-width: 360px;
+    width: 420px; min-width: 420px;
     background: var(--bg-secondary);
     border-right: 1px solid var(--border);
     display: flex; flex-direction: column; overflow: hidden;
   }
 
-  .panel-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .panel-section { padding: 16px 20px; border-bottom: 1px solid var(--border); }
   .panel-section-title {
-    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
-    color: var(--text-muted); margin-bottom: 10px; font-weight: 700;
+    font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-muted); margin-bottom: 12px; font-weight: 700;
   }
 
-  .cargo-space-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .cargo-space-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .cargo-space-btn {
     background: var(--bg-input); border: 1.5px solid var(--border);
-    border-radius: 8px; padding: 8px; cursor: pointer;
+    border-radius: 8px; padding: 10px 12px; cursor: pointer;
     transition: all 0.2s; text-align: left; color: var(--text-primary);
   }
   .cargo-space-btn:hover { border-color: var(--accent); background: rgba(249,115,22,0.05); }
   .cargo-space-btn.active { border-color: var(--accent); background: rgba(249,115,22,0.1); box-shadow: 0 0 12px var(--accent-glow); }
-  .cargo-space-btn .cs-name { font-size: 11px; font-weight: 700; margin-bottom: 2px; }
-  .cargo-space-btn .cs-dim { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-muted); }
+  .cargo-space-btn .cs-name { font-size: 12px; font-weight: 700; margin-bottom: 3px; }
+  .cargo-space-btn .cs-dim { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); }
 
   .custom-dims { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px; }
   .custom-dims.hidden { display: none; }
@@ -108,40 +108,40 @@
   }
   .dim-input:focus { border-color: var(--accent); }
 
-  .add-box-form { display: flex; flex-direction: column; gap: 6px; }
-  .form-row-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
-  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .input-group { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-  .input-group label { font-size: 9px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+  .add-box-form { display: flex; flex-direction: column; gap: 10px; }
+  .form-row-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .input-group { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .input-group label { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
   .input-group input, .input-group select {
     background: var(--bg-input); border: 1px solid var(--border);
-    border-radius: 6px; padding: 7px 6px; color: var(--text-primary);
-    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    border-radius: 6px; padding: 9px 10px; color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
     outline: none; transition: border-color 0.2s; width: 100%; min-width: 0;
   }
   .input-group input:focus, .input-group select:focus { border-color: var(--accent); }
 
-  .color-row { display: flex; gap: 5px; align-items: center; }
+  .color-row { display: flex; gap: 6px; align-items: center; }
   .color-swatch {
-    width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
+    width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
     border: 2px solid transparent; transition: all 0.2s;
   }
   .color-swatch:hover, .color-swatch.active { border-color: #fff; transform: scale(1.15); }
 
   /* Symbols row */
   .symbols-section { margin-top: 4px; }
-  .symbols-row { display: flex; gap: 4px; flex-wrap: wrap; }
+  .symbols-row { display: flex; gap: 6px; flex-wrap: wrap; }
   .symbol-btn {
-    width: 34px; height: 34px; border-radius: 6px;
+    width: 40px; height: 40px; border-radius: 8px;
     background: var(--bg-input); border: 1.5px solid var(--border);
     cursor: pointer; transition: all 0.2s;
     display: flex; align-items: center; justify-content: center;
-    font-size: 10px; color: var(--text-secondary); position: relative;
+    font-size: 11px; color: var(--text-secondary); position: relative;
   }
   .symbol-btn:hover { border-color: var(--accent); background: rgba(249,115,22,0.08); }
   .symbol-btn.active { border-color: var(--accent); background: rgba(249,115,22,0.15); color: var(--accent); }
-  .symbol-btn svg { width: 20px; height: 20px; }
+  .symbol-btn svg { width: 22px; height: 22px; }
   .symbol-btn .sym-tip {
     position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
     background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px;
@@ -169,7 +169,7 @@
   .btn-danger:hover { background: rgba(239,68,68,0.25); }
   .btn-sm { padding: 6px 12px; font-size: 11px; }
 
-  .box-list-container { flex: 1; overflow-y: auto; padding: 10px 16px; }
+  .box-list-container { flex: 1; overflow-y: auto; padding: 12px 20px; }
   .box-list-container::-webkit-scrollbar { width: 4px; }
   .box-list-container::-webkit-scrollbar-track { background: transparent; }
   .box-list-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
@@ -754,14 +754,16 @@ let originalColor = null;
 function selectBox(mesh) {
   deselectBox();
   selectedMesh = mesh;
-  originalColor = mesh.material.emissive.clone();
-  mesh.material.emissive.set(0x222244);
+  const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+  originalColor = mats[0].emissive.clone();
+  mats.forEach(m => m.emissive.set(0x222244));
   document.getElementById('editHint').classList.add('visible');
 }
 
 function deselectBox() {
   if (selectedMesh) {
-    selectedMesh.material.emissive.copy(originalColor || new THREE.Color(0x000000));
+    const mats = Array.isArray(selectedMesh.material) ? selectedMesh.material : [selectedMesh.material];
+    mats.forEach(m => m.emissive.copy(originalColor || new THREE.Color(0x000000)));
     selectedMesh = null;
     originalColor = null;
   }
@@ -1128,7 +1130,7 @@ function clearAll() {
 // ═══════════════════════════════════════════
 function loadCargo() {
   placedBoxes = [];
-  boxMeshes.forEach(m => { m.geometry.dispose(); m.material.dispose(); containerGroup.remove(m); });
+  boxMeshes.forEach(m => { m.geometry.dispose(); if(Array.isArray(m.material)) m.material.forEach(mt=>mt.dispose()); else m.material.dispose(); containerGroup.remove(m); });
   edgeLines.forEach(l => { if(l) { l.geometry.dispose(); containerGroup.remove(l); } });
   boxMeshes = []; edgeLines = [];
   deselectBox();
@@ -1181,15 +1183,122 @@ function loadCargo() {
     }
   });
 
+// ═══════════════════════════════════════════
+// SYMBOL TEXTURES ON 3D BOXES
+// ═══════════════════════════════════════════
+const SYMBOL_DRAW = {
+  fragile(ctx, x, y, s) {
+    ctx.save(); ctx.translate(x, y);
+    ctx.strokeStyle = '#ff4444'; ctx.lineWidth = s*0.08; ctx.lineCap = 'round';
+    // wine glass
+    ctx.beginPath(); ctx.moveTo(-s*0.2, -s*0.4); ctx.lineTo(-s*0.2, -s*0.1);
+    ctx.quadraticCurveTo(-s*0.2, s*0.1, 0, s*0.15);
+    ctx.quadraticCurveTo(s*0.2, s*0.1, s*0.2, -s*0.1);
+    ctx.lineTo(s*0.2, -s*0.4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, s*0.15); ctx.lineTo(0, s*0.35); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-s*0.15, s*0.35); ctx.lineTo(s*0.15, s*0.35); ctx.stroke();
+    // crack
+    ctx.strokeStyle = '#ff6666'; ctx.lineWidth = s*0.05;
+    ctx.beginPath(); ctx.moveTo(-s*0.05, -s*0.35); ctx.lineTo(s*0.05, -s*0.15);
+    ctx.lineTo(-s*0.05, -s*0.05); ctx.stroke();
+    ctx.restore();
+  },
+  up(ctx, x, y, s) {
+    ctx.save(); ctx.translate(x, y);
+    ctx.strokeStyle = '#4488ff'; ctx.lineWidth = s*0.08; ctx.lineCap = 'round';
+    // two arrows up
+    ctx.beginPath(); ctx.moveTo(-s*0.15, s*0.1); ctx.lineTo(-s*0.15, -s*0.3);
+    ctx.moveTo(-s*0.3, -s*0.1); ctx.lineTo(-s*0.15, -s*0.3); ctx.lineTo(0, -s*0.1); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s*0.15, s*0.1); ctx.lineTo(s*0.15, -s*0.3);
+    ctx.moveTo(0, -s*0.1); ctx.lineTo(s*0.15, -s*0.3); ctx.lineTo(s*0.3, -s*0.1); ctx.stroke();
+    ctx.restore();
+  },
+  nostack(ctx, x, y, s) {
+    ctx.save(); ctx.translate(x, y);
+    ctx.strokeStyle = '#ff8800'; ctx.lineWidth = s*0.06;
+    // two boxes
+    ctx.strokeRect(-s*0.25, s*0.0, s*0.5, s*0.25);
+    ctx.strokeRect(-s*0.25, -s*0.3, s*0.5, s*0.25);
+    // cross line
+    ctx.strokeStyle = '#ff4444'; ctx.lineWidth = s*0.08;
+    ctx.beginPath(); ctx.moveTo(-s*0.35, -s*0.4); ctx.lineTo(s*0.35, s*0.35); ctx.stroke();
+    ctx.restore();
+  },
+  keepdry(ctx, x, y, s) {
+    ctx.save(); ctx.translate(x, y);
+    ctx.strokeStyle = '#00aaff'; ctx.lineWidth = s*0.07; ctx.lineCap = 'round';
+    // umbrella
+    ctx.beginPath(); ctx.arc(0, -s*0.1, s*0.3, Math.PI, 0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, -s*0.1); ctx.lineTo(0, s*0.3); ctx.stroke();
+    ctx.beginPath(); ctx.arc(s*0.08, s*0.3, s*0.08, 0, Math.PI); ctx.stroke();
+    // drops
+    ctx.fillStyle = '#00aaff';
+    ctx.beginPath(); ctx.arc(-s*0.25, s*0.15, s*0.04, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(s*0.25, s*0.25, s*0.04, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  },
+  heavy(ctx, x, y, s) {
+    ctx.save(); ctx.translate(x, y);
+    ctx.fillStyle = '#ffaa00'; ctx.font = `bold ${s*0.5}px Arial`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('KG', 0, 0);
+    ctx.restore();
+  }
+};
+
+function createSymbolTexture(symbols, color, boxW, boxH) {
+  if (!symbols || symbols.length === 0) return null;
+  const size = 256;
+  const cvs = document.createElement('canvas');
+  cvs.width = size; cvs.height = size;
+  const ctx = cvs.getContext('2d');
+
+  // Fill with box color (slightly lighter for top face feel)
+  const c = new THREE.Color(color);
+  const r = Math.min(255, Math.round(c.r * 255 * 1.15));
+  const g = Math.min(255, Math.round(c.g * 255 * 1.15));
+  const b = Math.min(255, Math.round(c.b * 255 * 1.15));
+  ctx.fillStyle = `rgb(${r},${g},${b})`;
+  ctx.fillRect(0, 0, size, size);
+
+  // Draw symbols in a row on the top face
+  const count = symbols.length;
+  const symSize = Math.min(size / count * 0.7, size * 0.45);
+  const startX = (size - count * symSize) / 2 + symSize / 2;
+  symbols.forEach((sym, i) => {
+    const drawFn = SYMBOL_DRAW[sym];
+    if (drawFn) {
+      drawFn(ctx, startX + i * symSize, size / 2, symSize);
+    }
+  });
+
+  const tex = new THREE.CanvasTexture(cvs);
+  tex.needsUpdate = true;
+  return tex;
+}
+
   // Draw boxes
   placedBoxes.forEach((pb) => {
     const w = pb.w * SCALE, d = pb.d * SCALE, h = pb.h * SCALE;
     const x = pb.x * SCALE, y = pb.y * SCALE, z = pb.z * SCALE;
     const geo = new THREE.BoxGeometry(w, h, d);
-    const mat = new THREE.MeshStandardMaterial({
+    const baseMat = new THREE.MeshStandardMaterial({
       color: new THREE.Color(pb.color), metalness: 0.05, roughness: 0.55,
     });
-    const mesh = new THREE.Mesh(geo, mat);
+
+    // Create materials array: [+X, -X, +Y(top), -Y(bottom), +Z, -Z]
+    let materials;
+    const symTex = createSymbolTexture(pb.symbols, pb.color, pb.w, pb.d);
+    if (symTex) {
+      const topMat = new THREE.MeshStandardMaterial({
+        map: symTex, metalness: 0.05, roughness: 0.55,
+      });
+      materials = [baseMat, baseMat, topMat, baseMat, baseMat, baseMat];
+    } else {
+      materials = baseMat;
+    }
+
+    const mesh = new THREE.Mesh(geo, materials);
     mesh.position.set(x + w / 2, y + h / 2, z + d / 2);
     mesh.castShadow = true; mesh.receiveShadow = true;
     mesh.userData = {
@@ -1496,6 +1605,49 @@ function generatePDF() {
     cols.forEach(c => doc.text(c.label, c.x + 2, y + 5));
     y += 7;
 
+    // PDF symbol drawing functions
+    function drawPdfSymbol(doc, sym, cx, cy, sz) {
+      const r = sz / 2;
+      if (sym === 'fragile') {
+        doc.setDrawColor(255, 68, 68); doc.setLineWidth(0.3);
+        // glass shape
+        doc.line(cx - r*0.4, cy - r*0.7, cx - r*0.4, cy - r*0.1);
+        doc.line(cx + r*0.4, cy - r*0.7, cx + r*0.4, cy - r*0.1);
+        doc.line(cx - r*0.4, cy - r*0.7, cx + r*0.4, cy - r*0.7);
+        doc.line(cx - r*0.25, cy - r*0.1, cx + r*0.25, cy - r*0.1);
+        doc.line(cx, cy - r*0.1, cx, cy + r*0.4);
+        doc.line(cx - r*0.3, cy + r*0.4, cx + r*0.3, cy + r*0.4);
+      } else if (sym === 'up') {
+        doc.setDrawColor(68, 136, 255); doc.setLineWidth(0.3);
+        doc.line(cx, cy - r*0.6, cx, cy + r*0.4);
+        doc.line(cx - r*0.35, cy - r*0.15, cx, cy - r*0.6);
+        doc.line(cx + r*0.35, cy - r*0.15, cx, cy - r*0.6);
+      } else if (sym === 'nostack') {
+        doc.setDrawColor(255, 136, 0); doc.setLineWidth(0.25);
+        doc.rect(cx - r*0.4, cy - r*0.1, r*0.8, r*0.5, 'S');
+        doc.rect(cx - r*0.4, cy - r*0.65, r*0.8, r*0.5, 'S');
+        doc.setDrawColor(255, 68, 68); doc.setLineWidth(0.35);
+        doc.line(cx - r*0.5, cy - r*0.7, cx + r*0.5, cy + r*0.5);
+      } else if (sym === 'keepdry') {
+        doc.setDrawColor(0, 170, 255); doc.setLineWidth(0.3);
+        // umbrella top
+        const ux = cx, uy = cy - r*0.2;
+        doc.line(ux - r*0.45, uy, ux + r*0.45, uy);
+        doc.line(ux, uy - r*0.45, ux - r*0.45, uy);
+        doc.line(ux, uy - r*0.45, ux + r*0.45, uy);
+        doc.line(ux, uy, ux, cy + r*0.5);
+        // drop
+        doc.setFillColor(0, 170, 255);
+        doc.circle(cx - r*0.3, cy + r*0.3, r*0.08, 'F');
+      } else if (sym === 'heavy') {
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(sz * 0.6);
+        doc.setTextColor(255, 170, 0);
+        doc.text('KG', cx, cy + r*0.2, { align: 'center' });
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+        doc.setTextColor(226, 232, 240);
+      }
+    }
+
     doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
     const hexToRgb = h => ({ r: parseInt(h.slice(1,3),16), g: parseInt(h.slice(3,5),16), b: parseInt(h.slice(5,7),16) });
     boxTypes.forEach((bt, idx) => {
@@ -1509,11 +1661,20 @@ function generatePDF() {
       doc.circle(margin + 3, y + 4, 2, 'F');
       doc.setTextColor(226, 232, 240);
       const vol = ((bt.w * bt.d * bt.h * bt.qty) / 1e6).toFixed(3);
-      const symStr = (bt.symbols || []).map(s => SYMBOL_DEFS[s]?.pdfIcon || '').join(', ');
-      const rowData = [tr(bt.name), `${bt.w}x${bt.d}x${bt.h}`, `${bt.weight} kg`, `${bt.qty}`, vol, bt.maxStack > 0 ? `${bt.maxStack} kg` : '-', symStr || '-'];
+      const rowData = [tr(bt.name), `${bt.w}x${bt.d}x${bt.h}`, `${bt.weight} kg`, `${bt.qty}`, vol, bt.maxStack > 0 ? `${bt.maxStack} kg` : '-'];
       cols.forEach((c, ci) => {
-        doc.text(String(rowData[ci]), ci === 0 ? c.x + 7 : c.x + 2, y + 5.5);
+        if (ci < 6) doc.text(String(rowData[ci]), ci === 0 ? c.x + 7 : c.x + 2, y + 5.5);
       });
+      // Draw symbol icons in last column
+      const syms = bt.symbols || [];
+      if (syms.length > 0) {
+        const symStartX = cols[6].x + 3;
+        syms.forEach((s, si) => {
+          drawPdfSymbol(doc, s, symStartX + si * 5.5, y + 4, 5);
+        });
+      } else {
+        doc.text('-', cols[6].x + 2, y + 5.5);
+      }
       y += 8;
     });
 
