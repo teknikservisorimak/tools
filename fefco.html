@@ -193,6 +193,10 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 }
 .price-inp:focus{box-shadow:0 0 0 2px rgba(245,166,35,.2);}
 .price-hint{font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--dim);}
+td input.row-price-manual{
+  border-left:3px solid #60a5fa !important;
+  color:#60a5fa !important;
+}
 
 /* TABLE WRAPPER */
 .tbl-outer{
@@ -504,16 +508,14 @@ footer{
 
   <div class="global-bar">
     <div class="gb-field">
-      <div class="gb-lbl">Global Birim Fiyat (TL/m²)</div>
-      <input type="number" class="gb-inp or" id="globalFiyat" value="5.5" step="0.1" min="0" onchange="recalcAll()">
-    </div>
-    <div class="gb-field">
       <div class="gb-lbl">Kutu Adı Ara</div>
       <input type="text" class="gb-inp" id="aramaInput" placeholder="kutu adı..." oninput="aramaYap()" style="width:200px;">
     </div>
     <div style="margin-left:auto;display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap;">
-      <button class="save-btn" onclick="exportJSON()" title="Veriyi JSON dosyası olarak indir">📥 Dışa Aktar</button>
-      <button class="save-btn" onclick="importJSON()" title="JSON dosyasından veri yükle">📤 İçe Aktar</button>
+      <button class="save-btn" onclick="exportExcel()" title="Ölçüleri Excel'e aktar" style="background:rgba(146,208,80,.12);border-color:rgba(146,208,80,.35);color:#92D050;">📊 Excel'e Aktar</button>
+      <button class="save-btn" onclick="importExcel()" title="Excel'den ölçü yükle" style="background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.35);color:#60a5fa;">📂 Excel'den Al</button>
+      <button class="save-btn" onclick="exportJSON()" title="Veriyi JSON dosyası olarak indir">📥 JSON Aktar</button>
+      <button class="save-btn" onclick="importJSON()" title="JSON dosyasından veri yükle">📤 JSON Yükle</button>
       <button class="save-btn del" onclick="clearAllData()" title="Tüm veriyi sıfırla">🗑️ Temizle</button>
       <span id="saveMsg" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--green);opacity:0;transition:opacity .3s;white-space:nowrap;">💾 Kaydedildi!</span>
     </div>
@@ -813,9 +815,25 @@ const nearPiyasa=en=>PIYASA.find(p=>p>=en)||Math.max(...PIYASA);
 
 const DATA={};
 
-const gF=()=>parseFloat(document.getElementById('globalFiyat').value)||5.5;
+// Sekmenin birim fiyatını döner (price-row inputundan)
+const DEFAULT_FIYAT=5.5;
+function gF(ftId){
+  if(ftId){
+    const el=document.getElementById('fp_'+ftId);
+    if(el) return parseFloat(el.value)||DEFAULT_FIYAT;
+    // Henüz render edilmemişse DATA içindeki ilk dolu fiyata bak
+    const rows=DATA[ftId];
+    if(rows&&rows.length){
+      const f=rows.find(r=>r.fiyat&&r.fiyat>0);
+      if(f) return f.fiyat;
+    }
+  }
+  return DEFAULT_FIYAT;
+}
 function emptyRow(ft){
-  const row={ad:'',yon:'DİKEY',adet:0,fiyat:gF(),notlar:'',ozelEn:0,ozelBoy:0};
+  // Yeni satır için sekme varsayılan fiyatını al
+  const fiyat=ft?gF(ft.id):DEFAULT_FIYAT;
+  const row={ad:'',yon:'DİKEY',adet:0,fiyat,notlar:'',ozelEn:0,ozelBoy:0,_fiyatManuel:false};
   const vars=ft?ft._vars||[]:['L','B','H','T','P','K'];
   vars.forEach(v=>{ row[v]=VAR_DEFAULTS[v]!==undefined?VAR_DEFAULTS[v]:0; });
   return row;
@@ -851,8 +869,9 @@ function buildDynamicDOM(){
     btn.className='tab-btn';
     btn.id='tab-'+ft.id;
     btn.textContent=ft.kod+(ft.ad?' – '+ft.ad.split('(')[0].trim():'');
-    btn.title=ft.ad;
+    btn.title=ft.ad+' (çift tıkla → adı değiştir)';
     btn.onclick=()=>switchTab(ft.id,btn);
+    btn.ondblclick=(e)=>{e.stopPropagation();inlineRenameTab(ft.id,btn);};
 
     const del=document.createElement('button');
     del.className='tab-dyn-del';
@@ -1030,7 +1049,7 @@ function hesapla(ft,r){
   const H=parseFloat(r.H)||0;
   const T=parseFloat(r.T)||3;
   const slot=4*H*T/1e6,trim=0.04*m2A,totFire=slot+trim;
-  const adet=r.adet||0,fi=parseFloat(r.fiyat)||gF();
+  const adet=r.adet||0,fi=parseFloat(r.fiyat)||gF(ft.id);
   const totM2=m2A*adet,totFireM2=totFire*adet;
   return{en,boy,m2A,totM2,totFireM2,totTL:totM2*fi,
     fireOran:m2A>0?(totFire/m2A)*100:0,fireTL:totFireM2*fi,
@@ -1104,7 +1123,8 @@ function renderTable(ftId){
   let tbHtml='';
   rows.forEach((row,i)=>{
     const h=hesapla(ft,row);
-    const fi=parseFloat(row.fiyat)||gF();
+    const fi=parseFloat(row.fiyat)||gF(ftId);
+    const fiyatManuel=row._fiyatManuel||false;
     let rowVisible=true;
     if(aramaQ){
       const ad=(row.ad||'').toLowerCase();
@@ -1136,8 +1156,9 @@ ${varCells}
 <td><input type="number" value="${row.adet||''}" placeholder="adet" min="0"
   onchange="setV('${ftId}',${i},'adet',+this.value);recalcAll()"></td>
 <td>${h?cv(h.totM2,'cv-m2',2):cv(null)}</td>
-<td><input type="number" class="row-price" value="${fi}" step="0.1" min="0"
-  onchange="setV('${ftId}',${i},'fiyat',+this.value);recalcAll()"></td>
+<td><input type="number" class="row-price${fiyatManuel?' row-price-manual':''}" value="${fi}" step="0.1" min="0"
+  title="${fiyatManuel?'Manuel fiyat — sekme fiyatından etkilenmez':'Sekme varsayılan fiyatı'}"
+  onchange="setV('${ftId}',${i},'fiyat',+this.value);setV('${ftId}',${i},'_fiyatManuel',true);recalcAll()"></td>
 <td>${h?cv(h.totTL,'cv-tl',2):cv(null)}</td>
 <td>${h?(()=>{const fc=h.fireOran<=5?'ok':h.fireOran<=12?'warn':'bad';return`<div class="fire-cell"><span class="fire-cell-pct ${fc}">${h.fireOran.toFixed(1)}%</span><div class="fire-cell-bar ${fc}" style="width:${Math.min(h.fireOran*4,100)}%"></div></div>`;})():cv(null)}</td>
 <td>${h?cv(h.totFireM2,'cv-fire',3):cv(null)}</td>
@@ -1199,9 +1220,9 @@ ${isOzel?`<td><input type="number" value="${row.ozelEn||''}" placeholder="mm" mi
   ${formulaHtml}
   <div class="price-row">
     <label>BİRİM FİYAT (TL/m²)</label>
-    <input type="number" class="price-inp" id="fp_${ftId}" value="${gF()}" step="0.1" min="0"
-      onchange="setAllFiyat('${ftId}',+this.value);recalcAll()">
-    <span class="price-hint">← tüm satırları günceller</span>
+    <input type="number" class="price-inp" id="fp_${ftId}" value="${gF(ftId)}" step="0.1" min="0"
+      onchange="setDefaultFiyat('${ftId}',+this.value);recalcAll()">
+    <span class="price-hint">← manuel değiştirilmemiş satırları günceller</span>
   </div>
   <div class="tbl-outer">
     <table style="width:${Math.max(totalW,900)}px;table-layout:fixed;">
@@ -1262,7 +1283,10 @@ function addRow(ftId){
 }
 function delRow(ftId,i){DATA[ftId].splice(i,1);renderTable(ftId);updateAll();}
 function setV(ftId,i,k,v){DATA[ftId][i][k]=v;}
-function setAllFiyat(ftId,v){DATA[ftId].forEach(r=>r.fiyat=v);}
+function setDefaultFiyat(ftId,v){
+  // Sadece manuel değiştirilmemiş satırları güncelle
+  DATA[ftId].forEach(r=>{ if(!r._fiyatManuel) r.fiyat=v; });
+}
 function recalcAll(){FEFCO_TYPES.forEach(ft=>renderTable(ft.id));updateAll();}
 function updateAll(){updateOzet();updatePiyasa();updateFire();updateHeader();}
 
@@ -1419,7 +1443,6 @@ const STORAGE_KEY='orimak_fefco_v4';
 function buildSaveObj(){
   return{
     version:4,
-    globalFiyat:gF(),
     types: FEFCO_TYPES.map(ft=>({
       id:ft.id,kod:ft.kod,ad:ft.ad,
       dikeyEn:ft.dikeyEn,dikeyBoy:ft.dikeyBoy,
@@ -1451,8 +1474,6 @@ function loadFromLocal(){
 
 function applyLoadedData(obj){
   try{
-    if(obj.globalFiyat){document.getElementById('globalFiyat').value=obj.globalFiyat;}
-
     // v4: restore dynamic types
     if(obj.types&&Array.isArray(obj.types)){
       FEFCO_TYPES.length=0;
@@ -1936,6 +1957,193 @@ function kalibShowResults(ftId){
     });
     document.getElementById('kalibPredInputs').innerHTML=pHtml;
   }
+}
+
+// ============================================================
+// INLINE TAB RENAME — çift tıkla sekme adını değiştir
+// ============================================================
+function inlineRenameTab(ftId, btn){
+  const ft=FEFCO_TYPES.find(f=>f.id===ftId);
+  if(!ft) return;
+  const oldText=btn.textContent;
+  const inp=document.createElement('input');
+  inp.type='text';
+  inp.value=ft.ad;
+  inp.style.cssText='background:var(--bg);border:1px solid var(--orange);border-radius:4px;color:var(--orange);font-family:\'Barlow Condensed\',sans-serif;font-size:12px;font-weight:700;letter-spacing:.5px;padding:3px 7px;width:160px;outline:none;';
+  btn.textContent='';
+  btn.appendChild(inp);
+  inp.focus();
+  inp.select();
+  const finish=(save)=>{
+    const newAd=inp.value.trim();
+    if(save && newAd){
+      ft.ad=newAd;
+      compileFormulas(ft);
+      saveToLocal();
+      updateAll();
+    }
+    btn.textContent=ft.kod+(ft.ad?' – '+ft.ad.split('(')[0].trim():'');
+    btn.title=ft.ad+' (çift tıkla → adı değiştir)';
+  };
+  inp.onblur=()=>finish(true);
+  inp.onkeydown=(e)=>{
+    if(e.key==='Enter'){inp.blur();}
+    else if(e.key==='Escape'){inp.onblur=null;btn.textContent=oldText;btn.title=ft.ad+' (çift tıkla → adı değiştir)';}
+  };
+}
+
+// ============================================================
+// EXCEL AKTARIM — SheetJS ile içe/dışa aktar
+// ============================================================
+function loadSheetJS(cb){
+  if(window.XLSX){cb();return;}
+  const s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  s.onload=cb;
+  s.onerror=()=>alert('SheetJS yüklenemedi. İnternet bağlantınızı kontrol edin.');
+  document.head.appendChild(s);
+}
+
+function exportExcel(){
+  loadSheetJS(()=>{
+    const wb=XLSX.utils.book_new();
+    FEFCO_TYPES.forEach(ft=>{
+      const vars=ft._vars||extractAllVars(ft);
+      // Başlık satırı
+      const header=['Kutu Adı',...vars.map(v=>{
+        if(v==='K')return 'K Kulak (mm)';
+        if(v==='K1')return 'K1 Kulak (mm)';
+        if(v==='K2')return 'K2 Kulak (mm)';
+        if(v==='T')return 'T Kalınlık (mm)';
+        if(v==='P')return 'P Pay (mm)';
+        return v+' (mm)';
+      }),'Yön','Adet','Karton Eni (mm)','Piyasa Eni (mm)','Karton Boy (mm)','m²/Adet','Toplam m²','Birim TL','Toplam TL','Fire %','Fire m²','Rulo (m)','Notlar'];
+
+      const rows=[header];
+      (DATA[ft.id]||[]).forEach(r=>{
+        const h=hesapla(ft,r);
+        const fi=parseFloat(r.fiyat)||gF(ft.id);
+        const varVals=vars.map(v=>{
+          const def=VAR_DEFAULTS[v]!==undefined?VAR_DEFAULTS[v]:0;
+          const val=r[v];
+          return val!==undefined&&val!==''&&val!==null?(parseFloat(val)||0):def;
+        });
+        rows.push([
+          r.ad||'',
+          ...varVals,
+          r.yon||'DİKEY',
+          r.adet||0,
+          h?h.en:'',
+          h?h.piyasa:'',
+          h?h.boy:'',
+          h?parseFloat(h.m2A.toFixed(4)):'',
+          h?parseFloat(h.totM2.toFixed(4)):'',
+          fi,
+          h?parseFloat(h.totTL.toFixed(2)):'',
+          h?parseFloat(h.fireOran.toFixed(2)):'',
+          h?parseFloat(h.totFireM2.toFixed(4)):'',
+          h?parseFloat(h.rulo.toFixed(2)):'',
+          r.notlar||''
+        ]);
+      });
+
+      const ws=XLSX.utils.aoa_to_sheet(rows);
+      // Sütun genişlikleri
+      ws['!cols']=[{wch:18},...vars.map(()=>({wch:12})),{wch:8},{wch:7},{wch:13},{wch:13},{wch:13},{wch:10},{wch:11},{wch:9},{wch:11},{wch:8},{wch:10},{wch:10},{wch:16}];
+      // Sayfa adı max 31 karakter
+      const sheetName=(ft.kod+' '+ft.ad).replace(/[\\\/\*\[\]\:\?]/g,'').substring(0,31);
+      XLSX.utils.book_append_sheet(wb,ws,sheetName);
+    });
+
+    // Özet sayfası
+    const sumHeader=['FEFCO Tipi','Ad','Toplam m²','Toplam TL','Rulo (m)'];
+    const sumRows=[sumHeader];
+    let tM2=0,tTL=0,tRulo=0;
+    FEFCO_TYPES.forEach(ft=>{
+      let m2=0,tl=0,rulo=0;
+      DATA[ft.id].forEach(r=>{const h=hesapla(ft,r);if(h){m2+=h.totM2;tl+=h.totTL;rulo+=h.rulo;}});
+      tM2+=m2;tTL+=tl;tRulo+=rulo;
+      sumRows.push([ft.kod,ft.ad,parseFloat(m2.toFixed(4)),parseFloat(tl.toFixed(2)),parseFloat(rulo.toFixed(2))]);
+    });
+    sumRows.push(['','TOPLAM',parseFloat(tM2.toFixed(4)),parseFloat(tTL.toFixed(2)),parseFloat(tRulo.toFixed(2))]);
+    const wsSum=XLSX.utils.aoa_to_sheet(sumRows);
+    wsSum['!cols']=[{wch:14},{wch:28},{wch:13},{wch:13},{wch:12}];
+    XLSX.utils.book_append_sheet(wb,wsSum,'ÖZET');
+
+    const d=new Date();
+    const fname=`orimak_fefco_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.xlsx`;
+    XLSX.writeFile(wb,fname);
+    showSaveMsg('📊 Excel indirildi!');
+  });
+}
+
+function importExcel(){
+  loadSheetJS(()=>{
+    const inp=document.createElement('input');
+    inp.type='file';inp.accept='.xlsx,.xls,.csv';
+    inp.onchange=e=>{
+      const file=e.target.files[0];
+      if(!file)return;
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        try{
+          const wb=XLSX.read(ev.target.result,{type:'array'});
+          let imported=0;
+          wb.SheetNames.forEach(sheetName=>{
+            if(sheetName==='ÖZET')return;
+            // Hangi FEFCO tipine ait? Sayfa adından kod eşleştir
+            const ft=FEFCO_TYPES.find(f=>{
+              const sn=(f.kod+' '+f.ad).replace(/[\\\/\*\[\]\:\?]/g,'').substring(0,31);
+              return sn===sheetName||sheetName.startsWith(f.kod);
+            });
+            if(!ft)return;
+            const ws=wb.Sheets[sheetName];
+            const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+            if(rows.length<2)return;
+            const header=rows[0].map(h=>String(h));
+            const vars=ft._vars||extractAllVars(ft);
+            const newData=[];
+            rows.slice(1).forEach(row=>{
+              if(row.every(c=>c===''||c===null||c===undefined))return;
+              const r=emptyRow(ft);
+              header.forEach((h,ci)=>{
+                const val=row[ci];
+                if(h==='Kutu Adı'){r.ad=String(val||'');}
+                else if(h==='Yön'){r.yon=String(val||'DİKEY').toUpperCase().includes('YATAY')?'YATAY':'DİKEY';}
+                else if(h==='Adet'){r.adet=parseFloat(val)||0;}
+                else if(h.startsWith('Birim TL')){r.fiyat=parseFloat(val)||gF(ft.id);r._fiyatManuel=!!(parseFloat(val));}
+                else if(h==='Notlar'){r.notlar=String(val||'');}
+                else{
+                  // Değişken sütunları eşleştir
+                  vars.forEach(v=>{
+                    const lbl=v==='K'?'K Kulak (mm)':v==='K1'?'K1 Kulak (mm)':v==='K2'?'K2 Kulak (mm)':v==='T'?'T Kalınlık (mm)':v==='P'?'P Pay (mm)':v+' (mm)';
+                    if(h===lbl||h===v){r[v]=parseFloat(val)||0;}
+                  });
+                }
+              });
+              newData.push(r);
+            });
+            if(newData.length){
+              DATA[ft.id]=newData;
+              imported+=newData.length;
+            }
+          });
+          if(imported>0){
+            recalcAll();
+            saveToLocal();
+            showSaveMsg(`✅ ${imported} satır yüklendi!`);
+          }else{
+            showSaveMsg('⚠️ Eşleşen sekme bulunamadı','#facc15');
+          }
+        }catch(err){
+          console.error(err);
+          showSaveMsg('❌ Excel okunamadı','red');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    };
+    inp.click();
+  });
 }
 
 function kalibPredCalc(){
