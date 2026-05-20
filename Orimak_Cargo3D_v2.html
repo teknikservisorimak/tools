@@ -641,6 +641,7 @@
     <div class="dim-toggle">
       <button class="dim-toggle-btn active" onclick="toggleDimLabels(this)">📏 Ölçüler</button>
       <button class="dim-toggle-btn" onclick="toggleBoxDimLabels(this)">📐 Kutu Ölçüleri</button>
+      <button class="dim-toggle-btn" onclick="toggleLoadOrder(this)">🔢 Sıra No</button>
     </div>
     <div class="viewport-controls">
       <button class="view-btn active" onclick="setCameraView('perspective')">3D</button>
@@ -707,6 +708,8 @@ let editingBoxId = null;
 let boxIdCounter = 0;
 let showDimLabels = true;
 let showBoxDimLabels = false;
+let showLoadOrderLabels = false;
+let orderSprites = [];
 
 // ═══════════════════════════════════════════
 // SYMBOL BUTTONS
@@ -1214,6 +1217,12 @@ function toggleBoxDimLabels(btn) {
   updateBoxDimLabels();
 }
 
+function toggleLoadOrder(btn) {
+  showLoadOrderLabels = !showLoadOrderLabels;
+  btn.classList.toggle('active', showLoadOrderLabels);
+  orderSprites.forEach(s => { s.visible = showLoadOrderLabels; });
+}
+
 // ═══════════════════════════════════════════
 // DRAW CONTAINER
 // ═══════════════════════════════════════════
@@ -1487,7 +1496,8 @@ function loadCargo() {
     containerGroup.remove(m);
   });
   edgeLines.forEach(l => { if(l) { l.geometry.dispose(); containerGroup.remove(l); } });
-  boxMeshes = []; edgeLines = [];
+  orderSprites.forEach(s => { if(s.material) s.material.dispose(); containerGroup.remove(s); });
+  boxMeshes = []; edgeLines = []; orderSprites = [];
   deselectBox();
 
   let allBoxes = [];
@@ -1696,8 +1706,9 @@ function createSymbolTexture(symbols, color, boxW, boxH) {
     const orderSprite = makeTextSprite(String(pb.loadOrder || idx + 1), '#ffffff', 42, 'rgba(0,0,0,0.65)');
     orderSprite.position.set(x + w / 2, y + h / 2, z + d + 0.005);
     orderSprite.scale.set(Math.min(w, h) * 0.4, Math.min(w, h) * 0.25, 1);
+    orderSprite.visible = showLoadOrderLabels;
     containerGroup.add(orderSprite);
-    boxMeshes.push(orderSprite); // so it gets cleaned up
+    orderSprites.push(orderSprite);
   });
 
   // Drop animation
