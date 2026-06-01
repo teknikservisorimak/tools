@@ -732,16 +732,8 @@ function setOrientation(orient, btn) {
   selectedOrientation = orient;
   document.querySelectorAll('.orient-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  // Swap W and H values if orientation changes
-  const wInput = document.getElementById('boxW');
-  const hInput = document.getElementById('boxH');
-  const w = parseInt(wInput.value) || 60;
-  const h = parseInt(hInput.value) || 40;
-  if (orient === 'yatay' && h > w) {
-    wInput.value = h; hInput.value = w;
-  } else if (orient === 'dikey' && w > h) {
-    wInput.value = h; hInput.value = w;
-  }
+  // NOT: Yön tercihi yalnızca yükleme sırasında kutunun nasıl döndürüleceğini
+  // belirler. Kullanıcının girdiği En/Boy/Yükseklik değerleri DEĞİŞTİRİLMEZ.
 }
 
 // ═══════════════════════════════════════════
@@ -1509,29 +1501,26 @@ function loadCargo() {
   const spaces = [{ x: 0, y: 0, z: 0, w: cargoW, d: cargoD, h: cargoH }];
 
   allBoxes.forEach(box => {
-    // Generate allowed rotations based on orientation preference
+    // Kullanıcının girdiği boyutları ASLA yeniden sıralamıyoruz.
+    // Sadece hangi eksende duracaklarını yön tercihine göre değiştiriyoruz;
+    // böylece her kutu tam olarak girilen En/Boy/Yükseklik ile yerleşir.
+    const W = box.w, D = box.d, H = box.h; // En, Boy, Yükseklik
     let rotations;
     if (box.orientation === 'yatay') {
-      // Yatay: height should stay as the smallest dimension (box lies flat)
-      // Only rotate W and D on the horizontal plane, keep H as the shortest
-      const dims = [box.w, box.d, box.h].sort((a, b) => a - b);
-      const shortest = dims[0];
-      const mid = dims[1];
-      const longest = dims[2];
+      // Yatay: kutu yan yatırılır. Yükseklik (H) artık yatay düzlemde kalır,
+      // dikey eksende En (W) veya Boy (D) bulunur. Taban da kendi içinde döner.
       rotations = [
-        { w: longest, d: mid, h: shortest },
-        { w: mid, d: longest, h: shortest },
+        { w: W, d: H, h: D }, // dikey eksende Boy
+        { w: H, d: W, h: D },
+        { w: D, d: H, h: W }, // dikey eksende En
+        { w: H, d: D, h: W },
       ];
     } else {
-      // Dikey: height should stay as the tallest dimension (box stands up)
-      // Only rotate W and D on the horizontal plane, keep H as the tallest
-      const dims = [box.w, box.d, box.h].sort((a, b) => a - b);
-      const shortest = dims[0];
-      const mid = dims[1];
-      const tallest = dims[2];
+      // Dikey: kutu ayakta durur. Yükseklik (H) dikey eksende sabit kalır,
+      // yalnızca taban (En/Boy) 90° döndürülebilir.
       rotations = [
-        { w: mid, d: shortest, h: tallest },
-        { w: shortest, d: mid, h: tallest },
+        { w: W, d: D, h: H },
+        { w: D, d: W, h: H },
       ];
     }
     let bestSpace = null, bestRot = null, bestIdx = -1;
