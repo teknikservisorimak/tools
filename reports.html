@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORİMAK — Makine Raporları</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a;
+  --surface: #111111;
+  --surface2: #1a1a1a;
+  --surface3: #222222;
+  --border: #2a2a2a;
+  --border-hi: #3d3d3d;
+  --text: #f0f0f0;
+  --text2: #a0a0a0;
+  --text3: #5a5a5a;
+  --accent: #F7A800;
+  --accent2: #E09600;
+  --accent-bg: rgba(247,168,0,0.09);
+  --orange: #e8751a;
+  --orange-dim: rgba(232,117,26,0.12);
+  --orange-border: rgba(232,117,26,0.3);
+  --green: #22c55e;
+  --green-dim: rgba(34,197,94,0.1);
+  --red: #ef4444;
+  --red-dim: rgba(239,68,68,0.1);
+  --radius: 12px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Exo 2', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* HEADER */
+.header {
+  background: linear-gradient(135deg, #0d1f33 0%, #1a3a5c 50%, #1e4a6e 100%);
+  border-bottom: 3px solid var(--orange);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.6);
+}
+.header-left { display:flex; align-items:center; gap:16px; }
+.header-title h1 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 22px; font-weight: 700;
+  color: #fff; letter-spacing: 4px;
+}
+.header-title span {
+  font-size: 11px; color: var(--orange);
+  letter-spacing: 3px; text-transform: uppercase; font-weight: 500;
+}
+.header-right { display:flex; align-items:center; gap:12px; }
+.machine-badge {
+  background: var(--orange-dim);
+  border: 1px solid var(--orange-border);
+  color: var(--orange);
+  padding: 6px 16px; border-radius: 20px;
+  font-size: 12px; font-weight: 700;
+  font-family: 'Rajdhani', sans-serif; letter-spacing: 2px;
+}
+.btn-logout {
+  background: transparent;
+  border: 1px solid var(--border-hi);
+  color: var(--text2);
+  padding: 6px 14px; border-radius: 8px;
+  font-size: 12px; cursor: pointer;
+  font-family: 'Exo 2', sans-serif;
+  transition: all 0.2s;
+}
+.btn-logout:hover { border-color: var(--red); color: var(--red); }
+.back-link {
+  color: var(--text3); text-decoration: none;
+  font-size: 12px; letter-spacing: 1px;
+  transition: color 0.2s;
+}
+.back-link:hover { color: var(--orange); }
+
+/* LOGIN SCREEN */
+#login-screen {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at center, rgba(232,117,26,0.06) 0%, transparent 60%);
+}
+.login-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 48px 40px;
+  width: 380px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.login-logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.login-logo h2 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 28px; font-weight: 700;
+  letter-spacing: 5px; color: #fff;
+}
+.login-logo p {
+  font-size: 11px; color: var(--orange);
+  letter-spacing: 3px; text-transform: uppercase; margin-top: 4px;
+}
+.login-icon {
+  font-size: 48px; margin-bottom: 12px;
+}
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block;
+  font-size: 11px; color: var(--text2);
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.form-group input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: var(--text);
+  font-family: 'Exo 2', sans-serif;
+  font-size: 14px;
+  transition: border-color 0.2s;
+  outline: none;
+}
+.form-group input:focus { border-color: var(--orange); }
+.btn-login {
+  width: 100%;
+  background: linear-gradient(135deg, var(--orange), var(--accent));
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  color: #fff;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px; font-weight: 700;
+  letter-spacing: 3px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: opacity 0.2s;
+}
+.btn-login:hover { opacity: 0.9; }
+.login-error {
+  background: var(--red-dim);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px; color: var(--red);
+  margin-top: 12px; display: none;
+}
+
+/* DASHBOARD */
+#dashboard { display: none; padding: 32px; }
+
+/* STAT CARDS */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  transition: border-color 0.2s;
+}
+.stat-card:hover { border-color: var(--border-hi); }
+.stat-label {
+  font-size: 10px; color: var(--text3);
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.stat-value {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 32px; font-weight: 700; color: #fff;
+}
+.stat-sub {
+  font-size: 11px; color: var(--text2); margin-top: 4px;
+}
+.stat-card.orange { border-left: 3px solid var(--orange); }
+.stat-card.green  { border-left: 3px solid var(--green); }
+.stat-card.red    { border-left: 3px solid var(--red); }
+.stat-card.yellow { border-left: 3px solid var(--accent); }
+
+/* MALİYET PANEL */
+.cost-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.cost-panel-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px; font-weight: 700;
+  letter-spacing: 2px; color: var(--text2);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.cost-input-wrap {
+  display: flex; align-items: center; gap: 10px;
+}
+.cost-input-wrap input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--text); width: 160px;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 14px; outline: none;
+  transition: border-color 0.2s;
+}
+.cost-input-wrap input:focus { border-color: var(--accent); }
+.cost-input-wrap span {
+  color: var(--text2); font-size: 13px;
+}
+.btn-apply {
+  background: var(--accent-bg);
+  border: 1px solid rgba(247,168,0,0.3);
+  border-radius: 8px;
+  padding: 10px 20px;
+  color: var(--accent);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px; font-weight: 700;
+  letter-spacing: 2px; cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-apply:hover { background: rgba(247,168,0,0.18); }
+.cost-result {
+  margin-left: auto;
+  text-align: right;
+}
+.cost-result-label { font-size: 10px; color: var(--text3); letter-spacing: 2px; }
+.cost-result-value {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 28px; font-weight: 700; color: var(--red);
+}
+
+/* FİLTRE */
+.filter-bar {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 20px; align-items: center;
+}
+.filter-bar select,
+.filter-bar input[type="date"] {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 14px;
+  color: var(--text);
+  font-family: 'Exo 2', sans-serif;
+  font-size: 13px; outline: none;
+  transition: border-color 0.2s;
+}
+.filter-bar select:focus,
+.filter-bar input[type="date"]:focus { border-color: var(--orange); }
+.filter-label {
+  font-size: 11px; color: var(--text3);
+  letter-spacing: 1px; align-self: center;
+}
+.btn-filter {
+  background: var(--orange-dim);
+  border: 1px solid var(--orange-border);
+  border-radius: 8px;
+  padding: 9px 18px;
+  color: var(--orange);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px; font-weight: 700;
+  letter-spacing: 2px; cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-filter:hover { background: rgba(232,117,26,0.2); }
+
+/* TABLO */
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.table-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.table-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px; font-weight: 700;
+  letter-spacing: 2px; color: var(--text2);
+  text-transform: uppercase;
+}
+.table-count {
+  font-size: 12px; color: var(--text3);
+}
+.table-scroll { overflow-x: auto; }
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px;
+}
+thead th {
+  padding: 12px 16px;
+  text-align: left;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text3);
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+tbody tr:hover { background: var(--surface2); }
+tbody tr:last-child { border-bottom: none; }
+tbody td {
+  padding: 12px 16px;
+  color: var(--text2);
+  white-space: nowrap;
+}
+tbody td.product { color: var(--text); font-weight: 500; }
+tbody td.waste {
+  font-weight: 700;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px;
+}
+tbody td.waste.low   { color: var(--green); }
+tbody td.waste.mid   { color: var(--accent); }
+tbody td.waste.high  { color: var(--red); }
+tbody td.cost        { color: var(--red); font-weight: 600; font-family: 'Rajdhani', sans-serif; font-size: 14px; }
+.empty-state {
+  text-align: center; padding: 60px 24px;
+  color: var(--text3);
+}
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+.loading { text-align: center; padding: 60px; color: var(--text3); }
+
+/* ADMIN: makine seçici */
+.admin-bar {
+  display: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 24px;
+  margin-bottom: 20px;
+  align-items: center; gap: 16px;
+}
+.admin-bar.visible { display: flex; }
+.admin-bar label { font-size: 11px; color: var(--text3); letter-spacing: 2px; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header { padding: 12px 16px; }
+  #dashboard { padding: 16px; }
+  .cost-panel { flex-direction: column; align-items: flex-start; }
+  .cost-result { margin-left: 0; text-align: left; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-title">
+      <h1>ORİMAK</h1>
+      <span>Makine Raporları</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <a href="index.html" class="back-link">← Ana Sayfa</a>
+    <span class="machine-badge" id="header-machine">—</span>
+    <button class="btn-logout" onclick="logout()">Çıkış</button>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-icon">🏭</div>
+      <h2>ORİMAK</h2>
+      <p>Makine Rapor Sistemi</p>
+    </div>
+    <div class="form-group">
+      <label>Kullanıcı Adı</label>
+      <input type="text" id="inp-user" placeholder="makine1" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>Şifre</label>
+      <input type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button class="btn-login" onclick="doLogin()">GİRİŞ YAP</button>
+    <div class="login-error" id="login-error">Kullanıcı adı veya şifre hatalı.</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+
+  <!-- Admin makine seçici -->
+  <div class="admin-bar" id="admin-bar">
+    <label>MAKİNE SEÇ</label>
+    <select id="admin-machine-select" onchange="loadData()">
+      <option value="ALL">Tüm Makineler</option>
+    </select>
+  </div>
+
+  <!-- İSTATİSTİKLER -->
+  <div class="stats-grid">
+    <div class="stat-card orange">
+      <div class="stat-label">Toplam Kesim</div>
+      <div class="stat-value" id="stat-cuts">—</div>
+      <div class="stat-sub">adet işlem</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="stat-label">Toplam Alan</div>
+      <div class="stat-value" id="stat-area">—</div>
+      <div class="stat-sub">m² üretim</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-label">Ort. Fire Oranı</div>
+      <div class="stat-value" id="stat-waste">—</div>
+      <div class="stat-sub">% ortalama</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Toplam Kutu</div>
+      <div class="stat-value" id="stat-boxes">—</div>
+      <div class="stat-sub">adet üretim</div>
+    </div>
+  </div>
+
+  <!-- MALİYET PANELİ -->
+  <div class="cost-panel">
+    <div class="cost-panel-title">🔥 Fire Maliyeti Hesapla</div>
+    <div class="cost-input-wrap">
+      <input type="number" id="cost-per-m2" placeholder="0.00" step="0.01" min="0">
+      <span>TL / m²</span>
+    </div>
+    <button class="btn-apply" onclick="calcCost()">HESAPLA</button>
+    <div class="cost-result">
+      <div class="cost-result-label">TOPLAM FİRE MALİYETİ</div>
+      <div class="cost-result-value" id="total-cost">— TL</div>
+    </div>
+  </div>
+
+  <!-- FİLTRE -->
+  <div class="filter-bar">
+    <span class="filter-label">TARİH:</span>
+    <input type="date" id="filter-start">
+    <span class="filter-label">—</span>
+    <input type="date" id="filter-end">
+    <select id="filter-product">
+      <option value="">Tüm Ürünler</option>
+    </select>
+    <button class="btn-filter" onclick="applyFilter()">FİLTRELE</button>
+    <button class="btn-filter" style="background:transparent;border-color:var(--border);color:var(--text3);" onclick="clearFilter()">TEMİZLE</button>
+  </div>
+
+  <!-- TABLO -->
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="table-title">Kesim Kayıtları</div>
+      <div class="table-count" id="table-count">—</div>
+    </div>
+    <div class="table-scroll">
+      <div class="loading" id="loading">⏳ Veriler yükleniyor...</div>
+      <table id="data-table" style="display:none">
+        <thead>
+          <tr>
+            <th>Tarih / Saat</th>
+            <th>Makine</th>
+            <th>Ürün</th>
+            <th>Kutu</th>
+            <th>Süre</th>
+            <th>Alan (m²)</th>
+            <th>Genişlik</th>
+            <th>Fire %</th>
+            <th>Fire (m²)</th>
+            <th>Fire Maliyeti</th>
+          </tr>
+        </thead>
+        <tbody id="data-body"></tbody>
+      </table>
+      <div class="empty-state" id="empty-state" style="display:none">
+        <div class="icon">📭</div>
+        <div>Kayıt bulunamadı</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+// SUPABASE CONFIG — BURAYA DOLDURUN
+// ─────────────────────────────────────────
+const SUPABASE_URL = "https://xixbpjxxlbdiofulmfoy.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpeGJweHhsYmRpb2Z1bG1mb3kiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4MDU5NDY0NywiZXhwIjoyMDk2MTcwNjQ3fQ.Kv9PpKSvMDZf2W8N5XmH0HLRSmd6zWJqW-qtv9YWD-k";
+// ─────────────────────────────────────────
+
+let currentUser = null;
+let allRows = [];
+let filteredRows = [];
+let costPerM2 = 0;
+
+// ── SHA-256 helper ──
+async function sha256(msg) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// ── LOGIN ──
+async function doLogin() {
+  const username = document.getElementById("inp-user").value.trim();
+  const password = document.getElementById("inp-pass").value;
+  if (!username || !password) return;
+
+  const hash = await sha256(password);
+
+  const url = `${SUPABASE_URL}/rest/v1/machine_users?username=eq.${encodeURIComponent(username)}&password=eq.${hash}&select=*`;
+  const resp = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+  const data = await resp.json();
+
+  if (!data || data.length === 0) {
+    document.getElementById("login-error").style.display = "block";
+    return;
+  }
+
+  currentUser = data[0];
+  sessionStorage.setItem("orimak_user", JSON.stringify(currentUser));
+  showDashboard();
+}
+
+function logout() {
+  sessionStorage.removeItem("orimak_user");
+  currentUser = null;
+  document.getElementById("login-screen").style.display = "flex";
+  document.getElementById("dashboard").style.display = "none";
+}
+
+function showDashboard() {
+  document.getElementById("login-screen").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+  document.getElementById("header-machine").textContent =
+    currentUser.is_admin ? "ADMİN — TÜM MAKİNELER" : currentUser.machine_name;
+
+  if (currentUser.is_admin) {
+    document.getElementById("admin-bar").classList.add("visible");
+    loadMachineList();
+  }
+  loadData();
+}
+
+// ── MAKİNE LİSTESİ (admin) ──
+async function loadMachineList() {
+  const url = `${SUPABASE_URL}/rest/v1/machine_reports?select=machine_name&order=machine_name`;
+  const resp = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+  const data = await resp.json();
+  const machines = [...new Set(data.map(r => r.machine_name))];
+  const sel = document.getElementById("admin-machine-select");
+  machines.forEach(m => {
+    const opt = document.createElement("option");
+    opt.value = m; opt.textContent = m;
+    sel.appendChild(opt);
+  });
+}
+
+// ── VERİ YÜKLEme ──
+async function loadData() {
+  document.getElementById("loading").style.display = "block";
+  document.getElementById("data-table").style.display = "none";
+  document.getElementById("empty-state").style.display = "none";
+
+  let machine = currentUser.machine_name;
+  if (currentUser.is_admin) {
+    const sel = document.getElementById("admin-machine-select").value;
+    machine = sel;
+  }
+
+  let url = `${SUPABASE_URL}/rest/v1/machine_reports?select=*&order=cut_date.desc`;
+  if (machine !== "ALL") {
+    url += `&machine_name=eq.${encodeURIComponent(machine)}`;
+  }
+
+  const resp = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+  allRows = await resp.json();
+  filteredRows = [...allRows];
+
+  // Maliyet yükle
+  loadSavedCost(machine);
+
+  // Ürün filtresi doldur
+  populateProductFilter();
+  renderTable();
+  renderStats();
+
+  // Ürün filtresi
+  document.getElementById("loading").style.display = "none";
+}
+
+function loadSavedCost(machine) {
+  const key = `orimak_cost_${machine}`;
+  const saved = localStorage.getItem(key);
+  if (saved) {
+    document.getElementById("cost-per-m2").value = saved;
+    costPerM2 = parseFloat(saved);
+    updateCostColumn();
+  }
+}
+
+function populateProductFilter() {
+  const products = [...new Set(allRows.map(r => r.product).filter(Boolean))].sort();
+  const sel = document.getElementById("filter-product");
+  sel.innerHTML = '<option value="">Tüm Ürünler</option>';
+  products.forEach(p => {
+    const opt = document.createElement("option");
+    opt.value = p; opt.textContent = p;
+    sel.appendChild(opt);
+  });
+}
+
+// ── FİLTRE ──
+function applyFilter() {
+  const start = document.getElementById("filter-start").value;
+  const end   = document.getElementById("filter-end").value;
+  const prod  = document.getElementById("filter-product").value;
+
+  filteredRows = allRows.filter(r => {
+    const d = r.cut_date ? new Date(r.cut_date) : null;
+    if (start && d && d < new Date(start)) return false;
+    if (end   && d && d > new Date(end + "T23:59:59")) return false;
+    if (prod  && r.product !== prod) return false;
+    return true;
+  });
+  renderTable();
+  renderStats();
+}
+
+function clearFilter() {
+  document.getElementById("filter-start").value = "";
+  document.getElementById("filter-end").value = "";
+  document.getElementById("filter-product").value = "";
+  filteredRows = [...allRows];
+  renderTable();
+  renderStats();
+}
+
+// ── MALİYET HESAPLA ──
+function calcCost() {
+  costPerM2 = parseFloat(document.getElementById("cost-per-m2").value) || 0;
+
+  // Kaydet
+  const machine = currentUser.is_admin
+    ? document.getElementById("admin-machine-select").value
+    : currentUser.machine_name;
+  localStorage.setItem(`orimak_cost_${machine}`, costPerM2);
+
+  updateCostColumn();
+}
+
+function updateCostColumn() {
+  const totalFireM2 = filteredRows.reduce((sum, r) => {
+    const area   = parseFloat(r.t_square) || 0;
+    const waste  = parseFloat(r.waste_rate) || 0;
+    return sum + (area * waste / 100);
+  }, 0);
+
+  const totalCost = totalFireM2 * costPerM2;
+  document.getElementById("total-cost").textContent =
+    totalCost > 0 ? totalCost.toLocaleString("tr-TR", { minimumFractionDigits: 2 }) + " TL" : "— TL";
+
+  // Güncelle tablo
+  renderTable();
+}
+
+// ── İSTATİSTİKLER ──
+function renderStats() {
+  const n = filteredRows.length;
+  const totalArea  = filteredRows.reduce((s, r) => s + (parseFloat(r.t_square) || 0), 0);
+  const totalBoxes = filteredRows.reduce((s, r) => s + (parseInt(r.made_box) || 0), 0);
+  const avgWaste   = n > 0
+    ? filteredRows.reduce((s, r) => s + (parseFloat(r.waste_rate) || 0), 0) / n
+    : 0;
+
+  document.getElementById("stat-cuts").textContent  = n.toLocaleString("tr-TR");
+  document.getElementById("stat-area").textContent  = totalArea.toLocaleString("tr-TR", { maximumFractionDigits: 1 });
+  document.getElementById("stat-waste").textContent = avgWaste.toFixed(2) + "%";
+  document.getElementById("stat-boxes").textContent = totalBoxes.toLocaleString("tr-TR");
+}
+
+// ── TABLO ──
+function renderTable() {
+  const tbody = document.getElementById("data-body");
+  tbody.innerHTML = "";
+
+  document.getElementById("table-count").textContent = filteredRows.length + " kayıt";
+
+  if (filteredRows.length === 0) {
+    document.getElementById("data-table").style.display = "none";
+    document.getElementById("empty-state").style.display = "block";
+    return;
+  }
+
+  document.getElementById("data-table").style.display = "table";
+  document.getElementById("empty-state").style.display = "none";
+
+  filteredRows.forEach(r => {
+    const area     = parseFloat(r.t_square) || 0;
+    const waste    = parseFloat(r.waste_rate) || 0;
+    const fireM2   = area * waste / 100;
+    const fireCost = fireM2 * costPerM2;
+
+    const wasteClass = waste <= 3 ? "low" : waste <= 7 ? "mid" : "high";
+    const dur = `${r.t_hour || 0}s ${r.t_minute || 0}d ${r.t_second || 0}sn`;
+
+    const date = r.cut_date
+      ? new Date(r.cut_date).toLocaleString("tr-TR", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" })
+      : "—";
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${date}</td>
+      <td>${r.machine_name || "—"}</td>
+      <td class="product">${r.product || "—"}</td>
+      <td>${r.made_box || 0}</td>
+      <td>${dur}</td>
+      <td>${area.toFixed(3)}</td>
+      <td>${r.t_width ? r.t_width + " mm" : "—"}</td>
+      <td class="waste ${wasteClass}">%${waste.toFixed(2)}</td>
+      <td>${fireM2.toFixed(3)} m²</td>
+      <td class="cost">${costPerM2 > 0 ? fireCost.toLocaleString("tr-TR", { minimumFractionDigits: 2 }) + " TL" : "—"}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── INIT ──
+const saved = sessionStorage.getItem("orimak_user");
+if (saved) {
+  currentUser = JSON.parse(saved);
+  showDashboard();
+} else {
+  document.getElementById("login-screen").style.display = "flex";
+}
+</script>
+</body>
+</html>
