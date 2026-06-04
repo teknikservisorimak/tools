@@ -513,7 +513,7 @@ tbody td.cost        { color: var(--red); font-weight: 600; font-family: 'Rajdha
 // SUPABASE CONFIG — BURAYA DOLDURUN
 // ─────────────────────────────────────────
 const SUPABASE_URL = "https://xixbpjxxlbdiofulmfoy.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpeGJweHhsYmRpb2Z1bG1mb3kiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4MDU5NDY0NywiZXhwIjoyMDk2MTcwNjQ3fQ.Kv9PpKSvMDZf2W8N5XmH0HLRSmd6zWJqW-qtv9YWD-k";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpeGJwanh4bGJkaW9mdWxtZm95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1OTQ2NDcsImV4cCI6MjA5NjE3MDY0N30.Kv9PpKSvMDZf2W8N5XmH0HLRSmd6zWJqW-qtv9YWD-k";
 // ─────────────────────────────────────────
 
 let currentUser = null;
@@ -539,8 +539,12 @@ async function doLogin() {
   const resp = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
   const data = await resp.json();
 
-  if (!data || data.length === 0) {
-    document.getElementById("login-error").style.display = "block";
+  if (!resp.ok || !Array.isArray(data) || data.length === 0) {
+    const err = document.getElementById("login-error");
+    err.textContent = (data && data.message)
+      ? "Sunucu hatası: " + data.message
+      : "Kullanıcı adı veya şifre hatalı";
+    err.style.display = "block";
     return;
   }
 
@@ -574,6 +578,7 @@ async function loadMachineList() {
   const url = `${SUPABASE_URL}/rest/v1/machine_reports?select=machine_name&order=machine_name`;
   const resp = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
   const data = await resp.json();
+  if (!Array.isArray(data)) return;
   const machines = [...new Set(data.map(r => r.machine_name))];
   const sel = document.getElementById("admin-machine-select");
   machines.forEach(m => {
@@ -600,19 +605,35 @@ async function loadData() {
     url += `&machine_name=eq.${encodeURIComponent(machine)}`;
   }
 
-  const resp = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
-  allRows = await resp.json();
-  filteredRows = [...allRows];
+  try {
+    const resp = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+    const data = await resp.json();
 
-  // Maliyet yükle
-  loadSavedCost(machine);
+    // Supabase hata döndürdüyse data bir dizi değil, hata nesnesidir.
+    if (!resp.ok || !Array.isArray(data)) {
+      const msg = (data && (data.message || data.hint || data.error)) || `HTTP ${resp.status}`;
+      document.getElementById("loading").innerHTML =
+        "❌ Veri alınamadı: " + msg +
+        "<br><span style='font-size:12px;color:var(--text3)'>(API anahtarı / tablo adını kontrol edin)</span>";
+      return;
+    }
 
-  // Ürün filtresi doldur
-  populateProductFilter();
-  renderTable();
-  renderStats();
+    allRows = data;
+    filteredRows = [...allRows];
 
-  // Ürün filtresi
+    // Maliyet yükle
+    loadSavedCost(machine);
+
+    // Ürün filtresi doldur
+    populateProductFilter();
+    renderTable();
+    renderStats();
+  } catch (e) {
+    document.getElementById("loading").innerHTML =
+      "❌ Bağlantı hatası: " + e.message;
+    return;
+  }
+
   document.getElementById("loading").style.display = "none";
 }
 
