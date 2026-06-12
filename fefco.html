@@ -701,7 +701,7 @@ footer{
         3) "Kalibre Et" butonuna basın — sistem verilerinize en uygun fire katsayılarını öğrenir.<br>
         4) Sonra yeni ölçüler girdiğinizde öğrenilen formülle fire tahmini yapılır.<br>
         <br>
-        <strong>Not:</strong> Kalibrasyon her FEFCO tipi için ayrı yapılır ve kaydedilir. Tablolardaki fire hesaplaması da kalibre edilmiş katsayıları kullanır.
+        <strong>Not:</strong> Kalibrasyon her FEFCO tipi için ayrı yapılır ve kaydedilir. Buradaki <strong>gerçek fire yüzdesi yalnızca işleme firesi</strong> (kenar/trim + kulak/slot) olmalıdır; piyasa eni firesi (geniş rulodan kesilen şerit) sisteme ayrıca ve otomatik eklenir. Tablodaki Fire% sütunu = <strong>işleme firesi + piyasa eni firesi</strong>.
       </div>
 
       <!-- FEFCO Tipi Seçimi -->
@@ -924,8 +924,14 @@ function compileFormulas(ft){
 // Track which formula panels are open
 const formulaOpen={};
 
-const PIYASA=[800,900,1000,1050,1100,1150,1200,1250,1300,1350,1400,1450,1500,1550,1600,1650,1700,1800,1900,2000,2100,2200,2300,2400,2500];
-const nearPiyasa=en=>PIYASA.find(p=>p>=en)||Math.max(...PIYASA);
+// Piyasa karton enleri 100'ün katlarıdır (1050 gibi 50'lik enler piyasada yoktur).
+// Hesaplanan en daima bir ÜST 100 katına yuvarlanır: 1038 -> 1100, 1101 -> 1200, 1200 -> 1200.
+const PIYASA=[800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500];
+const nearPiyasa=en=>{
+  if(!(en>0)) return 0;
+  const v=Math.ceil(en/100)*100;   // bir üst 100 katı
+  return v<800?800:v;              // en küçük piyasa eni 800 mm
+};
 
 const DATA={};
 
@@ -1162,16 +1168,41 @@ function hesapla(ft,r){
   const m2A=(en/1000)*(boy/1000);
   const H=parseFloat(r.H)||0;
   const T=parseFloat(r.T)||3;
-  const slot=4*H*T/1e6,trim=0.04*m2A,totFire=slot+trim;
+  const piyasa=nearPiyasa(en);
+
+  // ---- FIRE: iki bileşen ----
+  // 1) İŞLEME firesi (trim + slot, ya da kalibre edilmişse α/β). Piyasa eni HARİÇ.
+  //    Kalibrasyon yapılırken girilen "gerçek fire %" de yalnızca işleme firesi olmalıdır;
+  //    piyasa eni firesi aşağıda ayrıca ve kesin olarak eklenir.
+  let fireIsleme;
+  const kal=(typeof KALIB_RESULT!=='undefined')?KALIB_RESULT[ft.id]:null;
+  if(kal&&m2A>0){
+    fireIsleme=kal.alpha*(H*T/m2A)+kal.beta;   // %
+    if(fireIsleme<0)fireIsleme=0;
+  }else{
+    const slot=4*H*T/1e6,trim=0.04*m2A;
+    fireIsleme=m2A>0?((slot+trim)/m2A)*100:0;  // %
+  }
+  const islemeM2=fireIsleme/100*m2A;            // m²/adet
+
+  // 2) PİYASA ENİ firesi: hesaplanan en (ör. 1050) için bir üst piyasa eni (1100) alınır;
+  //    aradaki şerit ((piyasa-en) × boy) tüm boy boyunca fire olur.
+  const firePiyasa=en>0?((piyasa-en)/en)*100:0; // %
+  const piyasaM2=(piyasa-en)>0?((piyasa-en)*boy)/1e6:0; // m²/adet
+
+  // 3) TOPLAM fire = işleme + piyasa eni
+  const fireOran=fireIsleme+firePiyasa;          // %
+  const totFire=islemeM2+piyasaM2;               // m²/adet
+
   const adet=r.adet||0,fi=parseFloat(r.fiyat)||gF(ft.id);
   const totM2=m2A*adet,totFireM2=totFire*adet;
   return{en,boy,m2A,totM2,totFireM2,totTL:totM2*fi,
-    fireOran:m2A>0?(totFire/m2A)*100:0,fireTL:totFireM2*fi,
+    fireOran,fireIsleme,firePiyasa,fireTL:totFireM2*fi,
     rulo:en>0?totM2/(en/1000):0,
-    piyasa:nearPiyasa(en),
+    piyasa,
     // Piyasa eni ile hesaplanan en arasındaki fark
-    piyasaFark: nearPiyasa(en)-en,
-    piyasaFireEk: en>0?((nearPiyasa(en)-en)/en)*100:0
+    piyasaFark: piyasa-en,
+    piyasaFireEk: en>0?((piyasa-en)/en)*100:0
   };
 }
 
@@ -1212,6 +1243,137 @@ function buildCols(ft){
   return [...FIXED_COLS_HEAD,...varCols,...tail];
 }
 
+// Hesaplanan hücre formatlayıcı (modül seviyesi)
+function cvCell(v,cls,dec){
+  cls=cls||''; dec=dec||0;
+  if(v===null||v===undefined||(v===0&&dec===0&&cls!=='cv-m2'))return`<span class="cv cv-zero">—</span>`;
+  const s=Number(v).toLocaleString('tr-TR',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+  return`<span class="cv ${cls}">${s}</span>`;
+}
+
+// Hesaplanan (salt-okunur) hücrelerin iç HTML'ini üretir. Hem ilk çizimde hem de
+// satır tazelemede aynı fonksiyon kullanılır.
+function calcCellsHtml(h){
+  const cv=cvCell;
+  let fireHtml;
+  if(h){
+    const fc=h.fireOran<=5?'ok':h.fireOran<=12?'warn':'bad';
+    fireHtml=`<div class="fire-cell" title="İşleme: ${h.fireIsleme.toFixed(1)}% + Piyasa eni: ${h.firePiyasa.toFixed(1)}% = Toplam ${h.fireOran.toFixed(1)}%"><span class="fire-cell-pct ${fc}">${h.fireOran.toFixed(1)}%</span><div class="fire-cell-bar ${fc}" style="width:${Math.min(h.fireOran*4,100)}%"></div></div>`;
+  }else fireHtml=cv(null);
+  return {
+    en:   h?cv(h.en,'cv-eni'):cv(null),
+    pi:   h?cv(h.piyasa,'cv-piyasa'):cv(null),
+    boy:  h?cv(h.boy,'',0):cv(null),
+    m2:   h?cv(h.m2A,'cv-m2',4):cv(null),
+    tm2:  h?cv(h.totM2,'cv-m2',2):cv(null),
+    tl:   h?cv(h.totTL,'cv-tl',2):cv(null),
+    fire: fireHtml,
+    fm2:  h?cv(h.totFireM2,'cv-fire',3):cv(null),
+    ftl:  h?cv(h.fireTL,'cv-fire',2):cv(null),
+    rulo: h?cv(h.rulo,'cv-rulo',1):cv(null)
+  };
+}
+
+// Tek bir satırın iç hücrelerini (<td>...</td>) üretir. Hesaplanan hücrelere ID verilir
+// ki refreshRow yalnızca onları güncelleyebilsin (giriş hücreleri/focus korunur).
+function rowInner(ftId,i){
+  const ft=FEFCO_TYPES.find(f=>f.id===ftId);
+  const row=DATA[ftId]&&DATA[ftId][i];
+  if(!ft||!row)return '';
+  const vars=ft._vars||[];
+  const isOzel=ft.isOzel;
+  const h=hesapla(ft,row);
+  const cc=calcCellsHtml(h);
+  const fi=parseFloat(row.fiyat)||gF(ftId);
+  const fiyatManuel=row._fiyatManuel||false;
+  const P=ftId+'_'+i;
+
+  const varCells=vars.map(v=>{
+    const defVal=VAR_DEFAULTS[v]!==undefined?VAR_DEFAULTS[v]:0;
+    const curVal=row[v]!==undefined&&row[v]!==''?row[v]:defVal;
+    const ph=v==='K'?'K mm':v==='K1'?'K1 mm':v==='K2'?'K2 mm':`${v}`;
+    const step=(v==='T'||v==='K'||v==='K1'||v==='K2')?'0.5':'1';
+    return `<td><input type="number" value="${curVal||''}" placeholder="${ph}" min="0" step="${step}"
+      onchange="editCell('${ftId}',${i},'${v}',+this.value)"></td>`;
+  }).join('');
+
+  return `<td><input type="text" class="kutu-adi" value="${esc(row.ad)}" placeholder="kutu adı..."
+  onchange="editText('${ftId}',${i},'ad',this.value)"></td>
+${varCells}
+<td><select class="yon-sel" onchange="editCell('${ftId}',${i},'yon',this.value)">
+  <option${row.yon==='DİKEY'?' selected':''}>DİKEY</option>
+  <option${row.yon==='YATAY'?' selected':''}>YATAY</option>
+</select></td>
+<td id="cEn_${P}">${cc.en}</td>
+<td id="cPi_${P}">${cc.pi}</td>
+<td id="cBoy_${P}">${cc.boy}</td>
+<td id="cM2_${P}">${cc.m2}</td>
+<td><input type="number" value="${row.adet||''}" placeholder="adet" min="0"
+  onchange="editCell('${ftId}',${i},'adet',+this.value)"></td>
+<td id="cTM2_${P}">${cc.tm2}</td>
+<td><input type="number" id="pPrice_${P}" class="row-price${fiyatManuel?' row-price-manual':''}" value="${fi}" step="0.1" min="0"
+  title="${fiyatManuel?'Manuel fiyat — sekme fiyatından etkilenmez':'Sekme varsayılan fiyatı'}"
+  onchange="editPrice('${ftId}',${i},+this.value)"></td>
+<td id="cTL_${P}">${cc.tl}</td>
+<td id="cFire_${P}">${cc.fire}</td>
+<td id="cFM2_${P}">${cc.fm2}</td>
+<td id="cFTL_${P}">${cc.ftl}</td>
+<td id="cRulo_${P}">${cc.rulo}</td>
+${isOzel?`<td><input type="number" value="${row.ozelEn||''}" placeholder="mm" min="0"
+  onchange="editCell('${ftId}',${i},'ozelEn',+this.value)"></td>
+<td><input type="number" value="${row.ozelBoy||''}" placeholder="mm" min="0"
+  onchange="editCell('${ftId}',${i},'ozelBoy',+this.value)"></td>`:''}
+<td><input type="text" value="${esc(row.notlar||'')}" placeholder="not..."
+  onchange="editText('${ftId}',${i},'notlar',this.value)"></td>
+<td><button class="del-btn" onclick="delRow('${ftId}',${i})">✕</button></td>`;
+}
+
+// SADECE düzenlenen satırın hesaplanan hücrelerini günceller. Giriş kutuları ve
+// odak (focus) korunur — bu sayede hücreler arası Tab ile hızlı veri girişi bozulmaz.
+function refreshRow(ftId,i){
+  const ft=FEFCO_TYPES.find(f=>f.id===ftId);
+  const row=DATA[ftId]&&DATA[ftId][i];
+  if(!ft||!row)return;
+  const cc=calcCellsHtml(hesapla(ft,row));
+  const P=ftId+'_'+i;
+  const set=(pre,html)=>{const el=document.getElementById(pre+P);if(el)el.innerHTML=html;};
+  set('cEn_',cc.en); set('cPi_',cc.pi); set('cBoy_',cc.boy); set('cM2_',cc.m2);
+  set('cTM2_',cc.tm2); set('cTL_',cc.tl); set('cFire_',cc.fire);
+  set('cFM2_',cc.fm2); set('cFTL_',cc.ftl); set('cRulo_',cc.rulo);
+}
+
+// Hücre düzenleme: değeri yaz, sadece o satırın hesap hücrelerini tazele, özetleri ertele.
+function editCell(ftId,i,k,v){
+  if(!DATA[ftId]||!DATA[ftId][i])return;
+  DATA[ftId][i][k]=v;
+  refreshRow(ftId,i);
+  scheduleSummary();
+}
+function editPrice(ftId,i,v){
+  const r=DATA[ftId]&&DATA[ftId][i]; if(!r)return;
+  r.fiyat=v; r._fiyatManuel=true;
+  const inp=document.getElementById('pPrice_'+ftId+'_'+i);
+  if(inp){inp.classList.add('row-price-manual');inp.title='Manuel fiyat — sekme fiyatından etkilenmez';}
+  refreshRow(ftId,i);
+  scheduleSummary();
+}
+// Sadece metin (ad / notlar) — satır hesabını etkilemez.
+function editText(ftId,i,k,v){
+  if(!DATA[ftId]||!DATA[ftId][i])return;
+  DATA[ftId][i][k]=v;
+  scheduleSummary();
+}
+
+// Özet panelleri + localStorage kaydını, düzenleme bittikten ~300ms sonra topluca çalıştırır.
+function scheduleSummary(){
+  clearTimeout(scheduleSummary._t);
+  scheduleSummary._t=setTimeout(()=>{
+    updateAll();
+    try{saveToLocal();}catch(e){}
+    try{yedekSayacArtir();}catch(e){}
+  },300);
+}
+
 function renderTable(ftId){
   const ft=FEFCO_TYPES.find(f=>f.id===ftId);
   if(!ft) return;
@@ -1226,66 +1388,17 @@ function renderTable(ftId){
   const colGroupHtml=cols.map(col=>`<col style="width:${col.w}px;min-width:${col.w}px;">`).join('');
   const thHtml=cols.map(col=>`<th>${col.lbl}</th>`).join('');
 
-  const cv=(v,cls='',dec=0)=>{
-    if(v===null||v===undefined||(v===0&&dec===0&&cls!=='cv-m2'))return`<span class="cv cv-zero">—</span>`;
-    const s=Number(v).toLocaleString('tr-TR',{minimumFractionDigits:dec,maximumFractionDigits:dec});
-    return`<span class="cv ${cls}">${s}</span>`;
-  };
-
   const aramaQ=getAramaQuery();
 
   let tbHtml='';
   rows.forEach((row,i)=>{
-    const h=hesapla(ft,row);
-    const fi=parseFloat(row.fiyat)||gF(ftId);
-    const fiyatManuel=row._fiyatManuel||false;
     let rowVisible=true;
     if(aramaQ){
       const ad=(row.ad||'').toLowerCase();
       const notlar=(row.notlar||'').toLowerCase();
       rowVisible=ad.includes(aramaQ)||notlar.includes(aramaQ);
     }
-
-    const varCells=vars.map(v=>{
-      const defVal=VAR_DEFAULTS[v]!==undefined?VAR_DEFAULTS[v]:0;
-      const curVal=row[v]!==undefined&&row[v]!==''?row[v]:defVal;
-      const ph=v==='K'?'K mm':v==='K1'?'K1 mm':v==='K2'?'K2 mm':`${v}`;
-      const step=(v==='T'||v==='K'||v==='K1'||v==='K2')?'0.5':'1';
-      return `<td><input type="number" value="${curVal||''}" placeholder="${ph}" min="0" step="${step}"
-        onchange="setV('${ftId}',${i},'${v}',+this.value);recalcAll()"></td>`;
-    }).join('');
-
-    tbHtml+=`<tr style="${rowVisible?'':'display:none'}">
-<td><input type="text" class="kutu-adi" value="${esc(row.ad)}" placeholder="kutu adı..."
-  onchange="setV('${ftId}',${i},'ad',this.value)"></td>
-${varCells}
-<td><select class="yon-sel" onchange="setV('${ftId}',${i},'yon',this.value);recalcAll()">
-  <option${row.yon==='DİKEY'?' selected':''}>DİKEY</option>
-  <option${row.yon==='YATAY'?' selected':''}>YATAY</option>
-</select></td>
-<td>${h?cv(h.en,'cv-eni'):cv(null)}</td>
-<td>${h?cv(h.piyasa,'cv-piyasa'):cv(null)}</td>
-<td>${h?cv(h.boy,'',0):cv(null)}</td>
-<td>${h?cv(h.m2A,'cv-m2',4):cv(null)}</td>
-<td><input type="number" value="${row.adet||''}" placeholder="adet" min="0"
-  onchange="setV('${ftId}',${i},'adet',+this.value);recalcAll()"></td>
-<td>${h?cv(h.totM2,'cv-m2',2):cv(null)}</td>
-<td><input type="number" class="row-price${fiyatManuel?' row-price-manual':''}" value="${fi}" step="0.1" min="0"
-  title="${fiyatManuel?'Manuel fiyat — sekme fiyatından etkilenmez':'Sekme varsayılan fiyatı'}"
-  onchange="setV('${ftId}',${i},'fiyat',+this.value);setV('${ftId}',${i},'_fiyatManuel',true);recalcAll()"></td>
-<td>${h?cv(h.totTL,'cv-tl',2):cv(null)}</td>
-<td>${h?(()=>{const fc=h.fireOran<=5?'ok':h.fireOran<=12?'warn':'bad';return`<div class="fire-cell"><span class="fire-cell-pct ${fc}">${h.fireOran.toFixed(1)}%</span><div class="fire-cell-bar ${fc}" style="width:${Math.min(h.fireOran*4,100)}%"></div></div>`;})():cv(null)}</td>
-<td>${h?cv(h.totFireM2,'cv-fire',3):cv(null)}</td>
-<td>${h?cv(h.fireTL,'cv-fire',2):cv(null)}</td>
-<td>${h?cv(h.rulo,'cv-rulo',1):cv(null)}</td>
-${isOzel?`<td><input type="number" value="${row.ozelEn||''}" placeholder="mm" min="0"
-  onchange="setV('${ftId}',${i},'ozelEn',+this.value);recalcAll()"></td>
-<td><input type="number" value="${row.ozelBoy||''}" placeholder="mm" min="0"
-  onchange="setV('${ftId}',${i},'ozelBoy',+this.value);recalcAll()"></td>`:''}
-<td><input type="text" value="${esc(row.notlar||'')}" placeholder="not..."
-  onchange="setV('${ftId}',${i},'notlar',this.value)"></td>
-<td><button class="del-btn" onclick="delRow('${ftId}',${i})">✕</button></td>
-</tr>`;
+    tbHtml+=`<tr id="row-${ftId}-${i}" style="${rowVisible?'':'display:none'}">${rowInner(ftId,i)}</tr>`;
   });
 
   // Formula bar — tüm tipler için mevcut
@@ -1335,7 +1448,7 @@ ${isOzel?`<td><input type="number" value="${row.ozelEn||''}" placeholder="mm" mi
   <div class="price-row">
     <label>BİRİM FİYAT (TL/m²)</label>
     <input type="number" class="price-inp" id="fp_${ftId}" value="${gF(ftId)}" step="0.1" min="0"
-      onchange="setDefaultFiyat('${ftId}',+this.value);recalcAll()">
+      onchange="setDefaultFiyat('${ftId}',+this.value);renderTable('${ftId}');scheduleSummary()">
     <span class="price-hint">← manuel değiştirilmemiş satırları günceller</span>
   </div>
   <div class="tbl-outer">
@@ -1393,9 +1506,9 @@ function applyFormula(ftId){
 function addRow(ftId){
   const ft=FEFCO_TYPES.find(f=>f.id===ftId);
   DATA[ftId].push(emptyRow(ft));
-  renderTable(ftId);updateAll();
+  renderTable(ftId);scheduleSummary();
 }
-function delRow(ftId,i){DATA[ftId].splice(i,1);renderTable(ftId);updateAll();}
+function delRow(ftId,i){DATA[ftId].splice(i,1);renderTable(ftId);scheduleSummary();}
 function setV(ftId,i,k,v){DATA[ftId][i][k]=v;}
 function setDefaultFiyat(ftId,v){
   // Sadece manuel değiştirilmemiş satırları güncelle
@@ -1460,6 +1573,11 @@ function updateFire(){
     <span>Piyasa: <b>${h.piyasa} mm</b></span>
     <span>Boy: <b>${h.boy} mm</b></span>
     <span>m²/adet: <b>${h.m2A.toFixed(4)}</b></span>
+  </div>
+  <div class="fire-detail">
+    <span>İşleme firesi: <b>${h.fireIsleme.toFixed(1)}%</b></span>
+    <span>Piyasa eni firesi: <b>${h.firePiyasa.toFixed(1)}%</b></span>
+    <span style="color:var(--orange)">Toplam: <b style="color:var(--orange)">${h.fireOran.toFixed(1)}%</b></span>
   </div>
   <div class="fire-piyasa-box ${pFark===0?'ok':pfc}">
     <div class="fire-piyasa-txt">${piyasaMesaj}</div>
@@ -2047,6 +2165,8 @@ function kalibClear(){
   document.getElementById('kalibResults').style.display='none';
   document.getElementById('kalibPredict').style.display='none';
   document.getElementById('kalibStatus').textContent='Temizlendi.';
+  // Kalibrasyon kalktı; tablolar varsayılan fire formülüne geri dönsün
+  recalcAll();
 }
 
 function kalibRun(){
@@ -2112,6 +2232,8 @@ function kalibRun(){
 
   document.getElementById('kalibStatus').textContent=`✓ ${valid.length} veri ile kalibre edildi (R²=${r2.toFixed(3)})`;
   kalibShowResults(ft.id);
+  // Öğrenilen katsayılar tablolara/fire analizine hemen yansısın
+  recalcAll();
 }
 
 function kalibShowResults(ftId){
@@ -2693,6 +2815,8 @@ function kalibPredCalc(){
   const piyasaEn=nearPiyasa(calc.en);
   const pFark=piyasaEn-calc.en;
   const pEk=calc.en>0?(pFark/calc.en)*100:0;
+  const toplamPct=firePct+pEk;                 // işleme + piyasa eni firesi
+  const tc=toplamPct<=5?'ok':toplamPct<=12?'warn':'bad';
   const fc=firePct<=5?'ok':firePct<=12?'warn':'bad';
   const fcColors={ok:'#4ade80',warn:'#facc15',bad:'#f87171'};
 
@@ -2701,11 +2825,11 @@ function kalibPredCalc(){
       <div class="kalib-pred-item"><div class="pv" style="color:var(--green)">${calc.en} mm</div><div class="pl">Karton Eni</div></div>
       <div class="kalib-pred-item"><div class="pv" style="color:var(--green)">${calc.boy} mm</div><div class="pl">Karton Boy</div></div>
       <div class="kalib-pred-item"><div class="pv" style="color:var(--green)">${calc.m2A.toFixed(4)}</div><div class="pl">m²/Adet</div></div>
-      <div class="kalib-pred-item"><div class="pv" style="color:${fcColors[fc]}">${firePct.toFixed(1)}%</div><div class="pl">Tahmini Fire</div></div>
-      <div class="kalib-pred-item"><div class="pv" style="color:${fcColors[fc]}">${(fireM2*10000).toFixed(1)} cm²</div><div class="pl">Fire Alanı</div></div>
+      <div class="kalib-pred-item"><div class="pv" style="color:${fcColors[fc]}">${firePct.toFixed(1)}%</div><div class="pl">İşleme Firesi</div></div>
       <div class="kalib-pred-item"><div class="pv" style="color:#60a5fa">${piyasaEn} mm</div><div class="pl">Piyasa Eni</div></div>
-      <div class="kalib-pred-item"><div class="pv" style="color:${pEk>12?'#f87171':pEk>5?'#facc15':'#4ade80'}">${pFark>0?'+':''}${pFark} mm</div><div class="pl">Piyasa Farkı</div></div>
-      <div class="kalib-pred-item"><div class="pv" style="color:${pEk>12?'#f87171':pEk>5?'#facc15':'#4ade80'}">${pEk>0?'+':''}${pEk.toFixed(1)}%</div><div class="pl">Ek Fire</div></div>
+      <div class="kalib-pred-item"><div class="pv" style="color:${pEk>12?'#f87171':pEk>5?'#facc15':'#4ade80'}">${pEk>0?'+':''}${pEk.toFixed(1)}%</div><div class="pl">Piyasa Eni Firesi</div></div>
+      <div class="kalib-pred-item" style="border:1px solid var(--orange-border);background:var(--orange-dim);"><div class="pv" style="color:${fcColors[tc]}">${toplamPct.toFixed(1)}%</div><div class="pl">TOPLAM FİRE</div></div>
+      <div class="kalib-pred-item"><div class="pv" style="color:${fcColors[fc]}">${(fireM2*10000).toFixed(1)} cm²</div><div class="pl">İşleme Fire Alanı</div></div>
     </div>
   `;
 }
