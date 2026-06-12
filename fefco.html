@@ -701,7 +701,7 @@ footer{
         3) "Kalibre Et" butonuna basın — sistem verilerinize en uygun fire katsayılarını öğrenir.<br>
         4) Sonra yeni ölçüler girdiğinizde öğrenilen formülle fire tahmini yapılır.<br>
         <br>
-        <strong>Not:</strong> Kalibrasyon her FEFCO tipi için ayrı yapılır ve kaydedilir. Buradaki <strong>gerçek fire yüzdesi yalnızca işleme firesi</strong> (kenar/trim + kulak/slot) olmalıdır; piyasa eni firesi (geniş rulodan kesilen şerit) sisteme ayrıca ve otomatik eklenir. Tablodaki Fire% sütunu = <strong>işleme firesi + piyasa eni firesi</strong>.
+        <strong>Not:</strong> Kalibrasyon her FEFCO tipi için ayrı yapılır ve kaydedilir. Buraya ölçtüğün <strong>gerçek TOPLAM fire yüzdesini</strong> gir (piyasa eni firesi dahil — yani üretimde gördüğün gerçek fire). Sistem her örnek için piyasa eni payını otomatik düşüp işleme firesini öğrenir, tahminde tekrar ekler; böylece çift sayım olmaz ve sonuç senin girdiğin gerçek toplamla örtüşür.
       </div>
 
       <!-- FEFCO Tipi Seçimi -->
@@ -2174,13 +2174,19 @@ function kalibRun(){
   if(!ft){alert('Önce FEFCO tipi seçin.');return;}
   const rows=KALIB_DATA[ft.id]||[];
 
-  // Geçerli satırları topla
+  // Geçerli satırları topla. Girilen "gerçek fire %" TOPLAM fire kabul edilir
+  // (piyasa eni firesini de içerir). Öğrenmeden önce piyasa eni payı düşülür,
+  // tahminde tekrar eklenir — böylece çift sayım olmaz.
   const valid=[];
   rows.forEach(r=>{
     const calc=kalibCalcRow(ft,r);
     const fy=parseFloat(r.fireYuzde);
     if(calc&&!isNaN(fy)&&fy>=0){
-      valid.push({...calc, fireYuzde:fy, H:parseFloat(r.H)||0, T:parseFloat(r.T)||3, m2A:calc.m2A});
+      const piyasa=nearPiyasa(calc.en);
+      const firePiyasa=calc.en>0?((piyasa-calc.en)/calc.en)*100:0; // bu örneğin piyasa eni firesi
+      const fireIsleme=Math.max(0, fy-firePiyasa);                 // öğrenilecek işleme firesi
+      valid.push({...calc, fireYuzde:fy, fireIsleme, firePiyasa, piyasa,
+                  H:parseFloat(r.H)||0, T:parseFloat(r.T)||3, m2A:calc.m2A});
     }
   });
 
@@ -2189,20 +2195,13 @@ function kalibRun(){
     return;
   }
 
-  // Regresyon: fire% = a * (H*T / m2A) + b
-  // Burada (H*T/m2A) slot-benzeri bileşen, b trim-benzeri sabit oran
-  // fire_m2 = fire% * m2A / 100
-  // fire_m2 = a * H*T + b * m2A   (birim dönüşümleri dahil)
-  // fire% = a * (4*H*T) / (m2A * 1e6) * 100 + b * 100
-  // Basitleştirme: fire% = alpha * (H*T / m2A) + beta
-  // alpha = slot katsayısı, beta = trim sabiti
-
-  // En küçük kareler (least squares) ile alpha ve beta bul
+  // En küçük kareler (least squares): işleme_fire% = alpha * (H*T / m2A) + beta
+  // (Piyasa eni firesi ayrıca, geometriden deterministik olarak eklenir.)
   const n=valid.length;
   let sumX=0,sumY=0,sumXX=0,sumXY=0;
   valid.forEach(v=>{
     const x=v.m2A>0?(v.H*v.T/v.m2A):0;  // H*T / m2A
-    const y=v.fireYuzde;
+    const y=v.fireIsleme;               // sadece işleme firesi öğrenilir
     sumX+=x; sumY+=y; sumXX+=x*x; sumXY+=x*y;
   });
 
@@ -2215,14 +2214,14 @@ function kalibRun(){
     beta=sumY/n;
   }
 
-  // R² hesapla
-  const meanY=sumY/n;
+  // R² — kullanıcının girdiği TOPLAM fire üzerinden (işleme tahmini + piyasa eni firesi)
+  const meanTot=valid.reduce((s,v)=>s+v.fireYuzde,0)/n;
   let ssTot=0,ssRes=0;
   valid.forEach(v=>{
     const x=v.m2A>0?(v.H*v.T/v.m2A):0;
-    const pred=alpha*x+beta;
-    ssTot+=(v.fireYuzde-meanY)**2;
-    ssRes+=(v.fireYuzde-pred)**2;
+    const predTotal=(alpha*x+beta)+v.firePiyasa;   // işleme tahmini + piyasa eni firesi
+    ssTot+=(v.fireYuzde-meanTot)**2;
+    ssRes+=(v.fireYuzde-predTotal)**2;
   });
   const r2=ssTot>0?1-(ssRes/ssTot):0;
 
@@ -2262,12 +2261,14 @@ function kalibShowResults(ftId){
   let accHtml='<table style="width:100%;font-size:12px;margin-top:8px;"><thead><tr><th>#</th><th>Eni</th><th>Boyu</th><th>m²</th><th>Gerçek Fire%</th><th>Tahmin Fire%</th><th>Fark</th></tr></thead><tbody>';
   (res.valid||[]).forEach((v,i)=>{
     const x=v.m2A>0?(v.H*v.T/v.m2A):0;
-    const pred=res.alpha*x+res.beta;
-    const diff=Math.abs(pred-v.fireYuzde);
+    const fp=v.firePiyasa!==undefined?v.firePiyasa:(v.en>0?((nearPiyasa(v.en)-v.en)/v.en)*100:0);
+    const predIsleme=Math.max(0,res.alpha*x+res.beta);
+    const predTotal=predIsleme+fp;                 // tahmin = işleme + piyasa eni
+    const diff=Math.abs(predTotal-v.fireYuzde);     // gerçek girilen TOPLAM ile karşılaştır
     const cls=diff<1?'good':diff<3?'mid':'poor';
     accHtml+=`<tr><td>${i+1}</td><td>${v.en}mm</td><td>${v.boy}mm</td><td>${v.m2A.toFixed(4)}</td>
       <td style="color:#f87171;font-weight:700">${v.fireYuzde.toFixed(1)}%</td>
-      <td style="color:#4ade80;font-weight:700">${pred.toFixed(1)}%</td>
+      <td style="color:#4ade80;font-weight:700">${predTotal.toFixed(1)}%</td>
       <td><span class="kalib-stat ${cls}">${diff<0.1?'✓':diff.toFixed(1)+'%'}</span></td></tr>`;
   });
   accHtml+='</tbody></table>';
