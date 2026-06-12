@@ -890,6 +890,9 @@ const DEFAULT_FEFCO_TYPES=[
   {id:'f0410',kod:'FEFCO 0410',ad:'Wrap-Around / Sarma Kutu',
    dikeyEn:'2*L+2*B+K+K+P', dikeyBoy:'2*H+L+B+K+K+P',
    yatayEn:'2*B+2*L+K+K+P', yatayBoy:'2*H+B+L+K+K+P'},
+  {id:'f0411',kod:'FEFCO 0411',ad:'Katlanır / Sarma Kutu (0411)',
+   dikeyEn:'2*L+2*B+K+K+P', dikeyBoy:'2*H+L+B+K+K+P',
+   yatayEn:'2*B+2*L+K+K+P', yatayBoy:'2*H+B+L+K+K+P'},
   {id:'f0420',kod:'FEFCO 0420',ad:'Kilitli Tava Kutu',
    dikeyEn:'2*L+2*B+K+K+P', dikeyBoy:'H+L/2+B/2+K+K+P',
    yatayEn:'2*B+2*L+K+K+P', yatayBoy:'H+B/2+L/2+K+K+P'},
@@ -926,11 +929,11 @@ const formulaOpen={};
 
 // Piyasa karton enleri 100'ün katlarıdır (1050 gibi 50'lik enler piyasada yoktur).
 // Hesaplanan en daima bir ÜST 100 katına yuvarlanır: 1038 -> 1100, 1101 -> 1200, 1200 -> 1200.
-const PIYASA=[800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500];
+const PIYASA=[400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500];
 const nearPiyasa=en=>{
   if(!(en>0)) return 0;
   const v=Math.ceil(en/100)*100;   // bir üst 100 katı
-  return v<800?800:v;              // en küçük piyasa eni 800 mm
+  return v<400?400:v;              // en küçük piyasa eni 400 mm
 };
 
 const DATA={};
@@ -1924,6 +1927,26 @@ window.addEventListener('DOMContentLoaded',()=>{
       for(let i=0;i<5;i++)DATA[ft.id].push(emptyRow(ft));
     });
   }
+
+  // --- Tek seferlik geçiş: FEFCO 0411 varsayılan sekmesini bir kez ekle ---
+  // (Eklendikten sonra kullanıcı silebilir; bayrak yüzünden geri gelmez.)
+  (function ensure0411(){
+    const MIG='orimak_fefco_0411_eklendi';
+    if(localStorage.getItem(MIG)) return;
+    if(!FEFCO_TYPES.find(f=>f.id==='f0411')){
+      const def=DEFAULT_FEFCO_TYPES.find(f=>f.id==='f0411');
+      if(def){
+        const ft={...def};
+        if(!DATA[ft.id])DATA[ft.id]=[];
+        compileFormulas(ft);
+        for(let i=0;i<5;i++)DATA[ft.id].push(emptyRow(ft));
+        const idx=FEFCO_TYPES.findIndex(f=>f.id==='f0410');
+        if(idx>=0)FEFCO_TYPES.splice(idx+1,0,ft); else FEFCO_TYPES.push(ft);
+      }
+    }
+    localStorage.setItem(MIG,'1');
+    try{saveToLocal();}catch(e){}
+  })();
   buildDynamicDOM();
   FEFCO_TYPES.forEach(ft=>renderTable(ft.id));
   updateAll();
@@ -2629,9 +2652,17 @@ function colLetter(i){
   return s;
 }
 
-function convBuildMapGrid(){
+function convValueVars(){
+  // Eşlenebilir/aktarılabilir ölçü değişkenleri. T (kalınlık) formülde geçmese bile
+  // fire hesabında kullanıldığı için her zaman listeye eklenir.
   const ft=FEFCO_TYPES.find(f=>f.id===activeTabId);
   const vars=ft?ft._vars||extractAllVars(ft):['L','B','H'];
+  return vars.includes('T')?vars.slice():[...vars,'T'];
+}
+
+function convBuildMapGrid(){
+  const ft=FEFCO_TYPES.find(f=>f.id===activeTabId);
+  const vars=convValueVars();
 
   // Tanımlanacak alanlar
   const fields=[
@@ -2668,7 +2699,9 @@ function convBuildMapGrid(){
   convHeader.forEach(col=>{
     const lc=col.label.toLowerCase().trim().replace(/\s*\(mm\)/,'');
     for(const [k,pats] of Object.entries(autoPatterns)){
-      if(pats.some(p=>lc===p||lc.startsWith(p))){
+      // Tek harfli kalıplar (L,B,H,T,K,P) yalnızca birebir eşleşir; daha uzun
+      // kelimeler (kalınlık, thickness...) startsWith ile eşleşebilir.
+      if(pats.some(p=> p.length===1 ? lc===p : (lc===p||lc.startsWith(p)) )){
         if(!autoMap[k]) autoMap[k]=col.idx;
       }
     }
@@ -2691,7 +2724,7 @@ function convBuildMapGrid(){
 
 function convGetMapping(){
   const ft=FEFCO_TYPES.find(f=>f.id===activeTabId);
-  const vars=ft?ft._vars||extractAllVars(ft):['L','B','H'];
+  const vars=convValueVars();
   const keys=['ad',...vars,'adet','fiyat','yon','notlar'];
   const map={};
   keys.forEach(k=>{
@@ -2703,7 +2736,7 @@ function convGetMapping(){
 
 function convBuildRows(map){
   const ft=FEFCO_TYPES.find(f=>f.id===activeTabId);
-  const vars=ft?ft._vars||extractAllVars(ft):['L','B','H'];
+  const vars=convValueVars();
   return convRows
     .filter(r=>!r.every(c=>c===''||c===null||c===undefined))
     .map(r=>{
@@ -2729,7 +2762,7 @@ function convBuildRows(map){
 function convUpdatePreview(){
   const map=convGetMapping();
   const ft=FEFCO_TYPES.find(f=>f.id===activeTabId);
-  const vars=ft?ft._vars||extractAllVars(ft):['L','B','H'];
+  const vars=convValueVars();
   const rows=convBuildRows(map);
   const hasData=rows.length>0;
 
