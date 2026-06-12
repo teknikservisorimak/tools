@@ -435,6 +435,37 @@ td select.yon-sel:focus{border-color:var(--orange);}
 .extra-ok{color:#4ade80;font-weight:700;}
 .extra-warn{color:#facc15;font-weight:700;}
 .fire-empty{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--muted);padding:40px;text-align:center;letter-spacing:1px;}
+/* ORTALAMA ÖZET SATIRI */
+.fire-avg{
+  padding:11px 16px;background:rgba(245,166,35,.07);
+  border-top:2px solid var(--orange-border);
+  display:flex;align-items:center;gap:0;flex-wrap:wrap;
+}
+.fire-avg-label{
+  font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--orange);
+  margin-right:12px;white-space:nowrap;
+}
+.fire-avg-chips{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.fire-avg-chip{
+  display:flex;flex-direction:column;align-items:center;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:7px;padding:5px 12px;min-width:80px;
+}
+.fire-avg-chip.highlight{border-color:var(--orange-border);background:var(--orange-dim);}
+.fire-avg-chip .av{
+  font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;
+}
+.fire-avg-chip .av.ok{color:#4ade80;}.fire-avg-chip .av.warn{color:#facc15;}.fire-avg-chip .av.bad{color:#f87171;}
+.fire-avg-chip .av.orange{color:var(--orange);}
+.fire-avg-chip .al{
+  font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--muted);margin-top:1px;
+}
+.fire-avg-adet{
+  font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--muted);
+  margin-left:auto;letter-spacing:1px;white-space:nowrap;
+}
 /* KALİBRASYON */
 .kalib-inp{background:var(--bg);border:1px solid var(--dim);border-radius:5px;color:var(--text);font-family:'Barlow Condensed',sans-serif;font-size:13px;padding:5px 8px;outline:none;width:80px;text-align:center;transition:border-color .2s;}
 .kalib-inp:focus{border-color:var(--orange);}
@@ -1538,56 +1569,64 @@ function updateFire(){
     if(!rows.length)return;
     anyData=true;
 
+    // ---- Tipe ait toplam hesapla ----
+    let sumFireM2=0,sumFireTL=0,sumFireIsleme=0,sumFirePiyasa=0,sumFireOran=0,totalAdet=0;
+    rows.forEach(r=>{
+      const h=hesapla(ft,r);
+      if(!h)return;
+      const adet=r.adet||1;
+      sumFireM2     += h.totFireM2;
+      sumFireTL     += h.fireTL;
+      sumFireIsleme += h.fireIsleme * adet;
+      sumFirePiyasa += h.firePiyasa * adet;
+      sumFireOran   += h.fireOran   * adet;
+      totalAdet     += adet;
+    });
+
+    const avgFirePct    = totalAdet>0 ? sumFireOran   / totalAdet : 0;
+    const avgFireIsleme = totalAdet>0 ? sumFireIsleme / totalAdet : 0;
+    const avgFirePiyasa = totalAdet>0 ? sumFirePiyasa / totalAdet : 0;
+    const avgFireM2     = totalAdet>0 ? sumFireM2     / totalAdet : 0;
+    const avgFireTL     = totalAdet>0 ? sumFireTL     / totalAdet : 0;
+    const afc=fireClass(avgFirePct);
+    const barW=Math.min(avgFirePct*4,100);
+
     html+=`<div class="fire-card">
   <div class="fire-card-head">
     <span class="fire-card-tag">${ft.kod}</span>
     <span class="fire-card-name">${ft.ad}</span>
-  </div>`;
-
-    rows.forEach(r=>{
-      const h=hesapla(ft,r);
-      if(!h)return;
-      const fc=fireClass(h.fireOran);
-      const barW=Math.min(h.fireOran*4,100);
-
-      // Piyasa eni farkı açıklaması
-      const pFark=h.piyasaFark;
-      const pEk=h.piyasaFireEk;
-      const pfc=fireClass(pEk);
-      let piyasaMesaj='';
-      if(pFark===0){
-        piyasaMesaj=`<span class="extra-ok">✓ Hesaplanan en (${h.en} mm) piyasa boyuyla tam örtüşüyor.</span> Fire minimum seviyede.`;
-      }else{
-        piyasaMesaj=`Hesaplanan karton eni <b>${h.en} mm</b> — piyasada mevcut en yakın boy <b>${h.piyasa} mm</b>.<br>
-        Aradaki fark <b>${pFark} mm</b> (<span class="extra-${pfc}">+${pEk.toFixed(1)}% ek fire</span>).<br>
-        ${pEk>12?`<span class="extra-bad">⚠️ Yüksek fire! ${h.piyasa} mm yerine ${h.en} mm özel sipariş değerlendirilmeli.</span>`:
-          pEk>5?`<span class="extra-warn">Dikkat: Bu fark toplam maliyete yansıyacak.</span>`:
-          `<span class="extra-ok">✓ Fark kabul edilebilir seviyede.</span>`}`;
-      }
-
-      html+=`<div class="fire-row">
-  <div class="fire-row-name">${r.ad||'(isimsiz kutu)'}</div>
-  <div class="fire-bar-wrap">
-    <div class="fire-bar-bg"><div class="fire-bar-fill ${fc}" style="width:${barW}%"></div></div>
-    <span class="fire-pct ${fc}">${h.fireOran.toFixed(1)}%</span>
+    <span style="margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--muted);letter-spacing:1px;">${rows.length} tip · ${fmt(totalAdet,0)} adet</span>
   </div>
-  <div class="fire-detail">
-    <span>Karton Eni: <b>${h.en} mm</b></span>
-    <span>Piyasa: <b>${h.piyasa} mm</b></span>
-    <span>Boy: <b>${h.boy} mm</b></span>
-    <span>m²/adet: <b>${h.m2A.toFixed(4)}</b></span>
-  </div>
-  <div class="fire-detail">
-    <span>İşleme firesi: <b>${h.fireIsleme.toFixed(1)}%</b></span>
-    <span>Piyasa eni firesi: <b>${h.firePiyasa.toFixed(1)}%</b></span>
-    <span style="color:var(--orange)">Toplam: <b style="color:var(--orange)">${h.fireOran.toFixed(1)}%</b></span>
-  </div>
-  <div class="fire-piyasa-box ${pFark===0?'ok':pfc}">
-    <div class="fire-piyasa-txt">${piyasaMesaj}</div>
+  <div class="fire-row">
+    <div class="fire-bar-wrap" style="margin-bottom:8px;">
+      <div class="fire-bar-bg" style="height:10px;"><div class="fire-bar-fill ${afc}" style="width:${barW}%"></div></div>
+      <span class="fire-pct ${afc}" style="font-size:16px;width:56px;">${avgFirePct.toFixed(1)}%</span>
+    </div>
+    <div class="fire-detail" style="margin-bottom:8px;">
+      <span>İşleme firesi ort.: <b>${avgFireIsleme.toFixed(1)}%</b></span>
+      <span>Piyasa eni firesi ort.: <b>${avgFirePiyasa.toFixed(1)}%</b></span>
+      <span style="color:var(--orange)">Toplam ort.: <b style="color:var(--orange)">${avgFirePct.toFixed(1)}%</b></span>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div class="fire-avg-chip">
+        <span class="av orange">${avgFireM2.toFixed(4)} m²</span>
+        <span class="al">Ort. Fire m²/adet</span>
+      </div>
+      <div class="fire-avg-chip">
+        <span class="av orange">${fmt(avgFireTL,2)} TL</span>
+        <span class="al">Ort. Fire TL/adet</span>
+      </div>
+      <div class="fire-avg-chip">
+        <span class="av" style="color:var(--muted)">${fmt(sumFireM2,2)} m²</span>
+        <span class="al">Toplam Fire m²</span>
+      </div>
+      <div class="fire-avg-chip">
+        <span class="av" style="color:var(--muted)">${fmt(sumFireTL,2)} TL</span>
+        <span class="al">Toplam Fire TL</span>
+      </div>
+    </div>
   </div>
 </div>`;
-    });
-    html+='</div>';
   });
 
   if(!anyData){
