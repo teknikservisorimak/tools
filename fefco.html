@@ -272,6 +272,7 @@ td select.yon-sel:focus{border-color:var(--orange);}
 .cv-fire{color:#ef4444;}
 .cv-rulo{color:#60a5fa;}
 .cv-zero{color:var(--dim);}
+.ikili-badge{display:inline-block;margin-left:4px;font-size:9px;font-weight:700;letter-spacing:.5px;color:var(--bg);background:var(--orange);border-radius:3px;padding:0 4px;vertical-align:middle;}
 
 /* Add row btn */
 .add-row-btn{
@@ -964,12 +965,23 @@ const formulaOpen={};
 
 // Piyasa karton enleri 100'ün katlarıdır (1050 gibi 50'lik enler piyasada yoktur).
 // Hesaplanan en daima bir ÜST 100 katına yuvarlanır: 1038 -> 1100, 1101 -> 1200, 1200 -> 1200.
-const PIYASA=[400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500];
+const PIYASA=[100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500];
 const nearPiyasa=en=>{
   if(!(en>0)) return 0;
   const v=Math.ceil(en/100)*100;   // bir üst 100 katı
-  return v<400?400:v;              // en küçük piyasa eni 400 mm
+  return v<100?100:v;              // en küçük piyasa eni 100 mm
 };
+
+// Dışarıdan (Excel) gelen yön/kesim metnini standart değere çevirir:
+//  "YATAY" / "DİKEY" temel yön + "İKİLİ" (çift / 2 / double) ek ifadesi.
+function parseYon(s){
+  s=String(s||'').toLocaleUpperCase('tr-TR');
+  const yatay=s.indexOf('YATAY')>=0;
+  const ikili=s.indexOf('İKİLİ')>=0||s.indexOf('IKILI')>=0||
+              s.indexOf('ÇİFT')>=0||s.indexOf('CIFT')>=0||
+              s.indexOf('DOUBLE')>=0||/(^|\D)2(\D|$)/.test(s);
+  return (yatay?'YATAY':'DİKEY')+(ikili?' İKİLİ':'');
+}
 
 const DATA={};
 
@@ -1183,11 +1195,16 @@ function hesapla(ft,r){
     return val!==undefined&&val!==''&&val!==null ? (parseFloat(val)||0) : def;
   });
 
+  // Yön + Kesim çözümle: "YATAY" / "DİKEY" temel yönü, "İKİLİ" ise çift kesim demektir.
+  const yonStr=(r.yon||'DİKEY');
+  const isYatay=yonStr.indexOf('YATAY')>=0;
+  const ikili=yonStr.indexOf('İKİLİ')>=0;
+
   let en=0,boy=0;
   const hasDims=args.some((v,i)=>!['T','P','K','K1','K2'].includes(vars[i])&&v>0);
   if(hasDims&&c){
     try{
-      if(r.yon==='YATAY'){
+      if(isYatay){
         en = c.yatayEn ? Math.round(c.yatayEn(...args)) : 0;
         boy = c.yatayBoy ? Math.round(c.yatayBoy(...args)) : 0;
       }else{
@@ -1203,10 +1220,17 @@ function hesapla(ft,r){
 
   if(en<=0||boy<=0) return null;
 
-  const m2A=(en/1000)*(boy/1000);
+  const m2A=(en/1000)*(boy/1000);               // tek kutu net alanı (değişmez)
   const H=parseFloat(r.H)||0;
   const T=parseFloat(r.T)||3;
-  const piyasa=nearPiyasa(en);
+
+  // ---- İKİLİ KESİM ----
+  // İkili kesimde aynı tipten iki kutu yan yana dizilir; kesilecek karton eni 2× olur.
+  // Piyasa eni bu çift genişliğe göre yuvarlanır, böylece tek kesimde yukarı yuvarlanan
+  // awkward enler (ör. 550 -> 600) ikili kesimde tam boya oturabilir (1100 -> 1100).
+  const enKesim = ikili ? en*2 : en;            // tabloda gösterilecek "Karton Eni"
+  const piyasa  = nearPiyasa(enKesim);          // kesimin piyasa eni
+  const piyasaPerBox = ikili ? piyasa/2 : piyasa; // kutu başına düşen piyasa eni payı
 
   // ---- FIRE: iki bileşen ----
   // 1) İŞLEME firesi (trim + slot, ya da kalibre edilmişse α/β). Piyasa eni HARİÇ.
@@ -1223,10 +1247,10 @@ function hesapla(ft,r){
   }
   const islemeM2=fireIsleme/100*m2A;            // m²/adet
 
-  // 2) PİYASA ENİ firesi: hesaplanan en (ör. 1050) için bir üst piyasa eni (1100) alınır;
-  //    aradaki şerit ((piyasa-en) × boy) tüm boy boyunca fire olur.
-  const firePiyasa=en>0?((piyasa-en)/en)*100:0; // %
-  const piyasaM2=(piyasa-en)>0?((piyasa-en)*boy)/1e6:0; // m²/adet
+  // 2) PİYASA ENİ firesi: kutu başına düşen piyasa eni payı ile tek kutu eni arasındaki şerit.
+  //    İkili kesimde piyasaPerBox = piyasa/2 olduğundan fire önemli ölçüde düşebilir.
+  const firePiyasa=en>0?((piyasaPerBox-en)/en)*100:0; // %
+  const piyasaM2=(piyasaPerBox-en)>0?((piyasaPerBox-en)*boy)/1e6:0; // m²/adet
 
   // 3) TOPLAM fire = işleme + piyasa eni
   const fireOran=fireIsleme+firePiyasa;          // %
@@ -1234,13 +1258,13 @@ function hesapla(ft,r){
 
   const adet=r.adet||0,fi=parseFloat(r.fiyat)||gF(ft.id);
   const totM2=m2A*adet,totFireM2=totFire*adet;
-  return{en,boy,m2A,totM2,totFireM2,totTL:totM2*fi,
+  return{en:enKesim,enTek:en,ikili,boy,m2A,totM2,totFireM2,totTL:totM2*fi,
     fireOran,fireIsleme,firePiyasa,fireTL:totFireM2*fi,
-    rulo:en>0?totM2/(en/1000):0,
+    rulo:enKesim>0?totM2/(enKesim/1000):0,
     piyasa,
-    // Piyasa eni ile hesaplanan en arasındaki fark
-    piyasaFark: piyasa-en,
-    piyasaFireEk: en>0?((piyasa-en)/en)*100:0
+    // Piyasa eni ile kesim eni arasındaki fark
+    piyasaFark: piyasa-enKesim,
+    piyasaFireEk: firePiyasa
   };
 }
 
@@ -1248,7 +1272,7 @@ function hesapla(ft,r){
 const FIXED_COLS_HEAD=[{w:150,lbl:'Kutu Adı',key:'_ad'}];
 // Sabit hesap sütunları
 const FIXED_COLS_TAIL=[
-  {w:82,lbl:'Yön',key:'_yon'},
+  {w:120,lbl:'Yön / Kesim',key:'_yon'},
   {w:84,lbl:'Karton Eni',key:'_en'},{w:84,lbl:'Piyasa Eni',key:'_piyasa'},
   {w:84,lbl:'Karton Boy',key:'_boy'},
   {w:80,lbl:'m²/Adet',key:'_m2a'},{w:66,lbl:'Adet',key:'_adet'},
@@ -1299,7 +1323,9 @@ function calcCellsHtml(h){
     fireHtml=`<div class="fire-cell" title="İşleme: ${h.fireIsleme.toFixed(1)}% + Piyasa eni: ${h.firePiyasa.toFixed(1)}% = Toplam ${h.fireOran.toFixed(1)}%"><span class="fire-cell-pct ${fc}">${h.fireOran.toFixed(1)}%</span><div class="fire-cell-bar ${fc}" style="width:${Math.min(h.fireOran*4,100)}%"></div></div>`;
   }else fireHtml=cv(null);
   return {
-    en:   h?cv(h.en,'cv-eni'):cv(null),
+    en:   h?(h.ikili
+            ?`<span class="cv cv-eni" title="İkili kesim: 2 × ${h.enTek} mm yan yana = ${h.en} mm">${Number(h.en).toLocaleString('tr-TR')}<span class="ikili-badge">2×</span></span>`
+            :cv(h.en,'cv-eni')):cv(null),
     pi:   h?cv(h.piyasa,'cv-piyasa'):cv(null),
     boy:  h?cv(h.boy,'',0):cv(null),
     m2:   h?cv(h.m2A,'cv-m2',4):cv(null),
@@ -1341,6 +1367,8 @@ ${varCells}
 <td><select class="yon-sel" onchange="editCell('${ftId}',${i},'yon',this.value)">
   <option${row.yon==='DİKEY'?' selected':''}>DİKEY</option>
   <option${row.yon==='YATAY'?' selected':''}>YATAY</option>
+  <option${row.yon==='DİKEY İKİLİ'?' selected':''}>DİKEY İKİLİ</option>
+  <option${row.yon==='YATAY İKİLİ'?' selected':''}>YATAY İKİLİ</option>
 </select></td>
 <td id="cEn_${P}">${cc.en}</td>
 <td id="cPi_${P}">${cc.pi}</td>
@@ -2545,7 +2573,7 @@ function importExcel(){
             const r=emptyRow(ft);
 
             if(ciAd>=0)   r.ad=String(row[ciAd]||'');
-            if(ciYon>=0)  r.yon=String(row[ciYon]||'DİKEY').toUpperCase().includes('YATAY')?'YATAY':'DİKEY';
+            if(ciYon>=0)  r.yon=parseYon(row[ciYon]);
             if(ciAdet>=0) r.adet=parseFloat(row[ciAdet])||0;
             if(ciFiyat>=0 && row[ciFiyat]!==''){
               r.fiyat=parseFloat(row[ciFiyat])||gF(ft.id);
@@ -2785,7 +2813,7 @@ function convBuildRows(map){
     .map(r=>{
       const row=emptyRow(ft);
       if(map.ad!==undefined)     row.ad=String(r[map.ad]||'');
-      if(map.yon!==undefined)    row.yon=String(r[map.yon]||'').toUpperCase().includes('YATAY')?'YATAY':'DİKEY';
+      if(map.yon!==undefined)    row.yon=parseYon(r[map.yon]);
       if(map.adet!==undefined)   row.adet=parseFloat(r[map.adet])||0;
       if(map.fiyat!==undefined && r[map.fiyat]!==''){
         row.fiyat=parseFloat(r[map.fiyat])||gF(ft?ft.id:null);
