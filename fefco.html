@@ -60,7 +60,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 }
 
 /* LAYOUT */
-.wrap{max-width:1600px;margin:0 auto;padding:22px 18px;}
+.wrap{max-width:100%;margin:0 auto;padding:22px 18px;}
 
 /* GLOBAL BAR */
 .global-bar{
@@ -220,7 +220,7 @@ thead tr th{
   color:#aaa;
   font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
   letter-spacing:1.2px;text-transform:uppercase;
-  padding:9px 7px;
+  padding:9px 4px;
   border-bottom:2px solid var(--orange);
   border-right:1px solid var(--border);
   text-align:center;
@@ -235,7 +235,7 @@ tbody tr:hover td{background:rgba(255,255,255,.025);}
 tbody tr:nth-child(even) td{background:rgba(255,255,255,.012);}
 
 tbody tr td{
-  padding:6px 7px;
+  padding:6px 4px;
   border-bottom:1px solid rgba(255,255,255,.04);
   border-right:1px solid rgba(255,255,255,.03);
   text-align:center;vertical-align:middle;color:#aaa;
@@ -243,6 +243,20 @@ tbody tr td{
 }
 tbody tr td:first-child{text-align:left;padding-left:12px;}
 tbody tr td:last-child{border-right:none;}
+
+/* SAĞDA SABİT AKSİYON SÜTUNLARI: Notlar + Sil (✕) — yatay kaydırma olmadan hep erişilebilir */
+.tbl-outer tbody td:last-child,
+.tbl-outer tbody td:nth-last-child(2){
+  position:sticky;z-index:15;background:#181818;
+}
+.tbl-outer tbody td:last-child{right:0;}
+.tbl-outer tbody td:nth-last-child(2){right:34px;box-shadow:-9px 0 11px -9px rgba(0,0,0,.75);}
+.tbl-outer tbody tr:hover td:last-child,
+.tbl-outer tbody tr:hover td:nth-last-child(2){background:#1f1f1f;}
+.tbl-outer thead th:last-child,
+.tbl-outer thead th:nth-last-child(2){z-index:45;background:var(--dark);}
+.tbl-outer thead th:last-child{right:0;}
+.tbl-outer thead th:nth-last-child(2){right:34px;box-shadow:-9px 0 11px -9px rgba(0,0,0,.75);}
 
 /* Cell inputs */
 td input[type="text"],td input[type="number"]{
@@ -273,6 +287,7 @@ td select.yon-sel:focus{border-color:var(--orange);}
 .cv-rulo{color:#60a5fa;}
 .cv-zero{color:var(--dim);}
 .ikili-badge{display:inline-block;margin-left:4px;font-size:9px;font-weight:700;letter-spacing:.5px;color:var(--bg);background:var(--orange);border-radius:3px;padding:0 4px;vertical-align:middle;}
+.kal-dot{display:inline-block;margin-left:3px;font-size:8px;color:var(--green);vertical-align:middle;}
 
 /* Add row btn */
 .add-row-btn{
@@ -1184,6 +1199,21 @@ function switchTabById(id){
   switchTab(id,btn);
 }
 
+// Bu ölçü, ilgili tipin kalibrasyon tablosunda BİREBİR var mı?
+// Varsa o satırın öğrenilen gerçek işleme firesini taşıyan satırı döndürür.
+function findKalibMatch(ft,r,vars){
+  if(typeof KALIB_DATA==='undefined'||!KALIB_DATA[ft.id])return null;
+  const dimVars=(vars||[]).filter(v=>!['T','P','K','K1','K2'].includes(v));
+  if(!dimVars.length)return null;
+  return KALIB_DATA[ft.id].find(kr=>{
+    if(!kr||kr._fireIsleme===undefined)return false;
+    return dimVars.every(v=>{
+      const a=parseFloat(r[v])||0, b=parseFloat(kr[v])||0;
+      return a>0 && Math.abs(a-b)<0.5;   // 0.5 mm tolerans
+    });
+  })||null;
+}
+
 function hesapla(ft,r){
   const c=COMPILED[ft.id];
   const vars=c?c.vars:(ft._vars||[]);
@@ -1237,13 +1267,20 @@ function hesapla(ft,r){
   //    Kalibrasyon yapılırken girilen "gerçek fire %" de yalnızca işleme firesi olmalıdır;
   //    piyasa eni firesi aşağıda ayrıca ve kesin olarak eklenir.
   let fireIsleme;
+  // 0) BİREBİR KALİBRASYON: Bu ölçü kalibrasyon tablosunda aynen girildiyse,
+  //    regresyon tahmini yerine o satırın GERÇEK işleme firesini doğrudan kullan.
+  //    Böylece kalibre edilen kutu, girdiğin gerçek fire ile birebir görünür.
+  const kalibTam=findKalibMatch(ft,r,vars);
   const kal=(typeof KALIB_RESULT!=='undefined')?KALIB_RESULT[ft.id]:null;
-  if(kal&&m2A>0){
-    fireIsleme=kal.alpha*(H*T/m2A)+kal.beta;   // %
+  if(kalibTam&&kalibTam._fireIsleme!==undefined){
+    fireIsleme=kalibTam._fireIsleme;             // gerçek (girilen) işleme firesi
+    if(fireIsleme<0)fireIsleme=0;
+  }else if(kal&&m2A>0){
+    fireIsleme=kal.alpha*(H*T/m2A)+kal.beta;     // öğrenilen regresyon tahmini
     if(fireIsleme<0)fireIsleme=0;
   }else{
     const slot=4*H*T/1e6,trim=0.04*m2A;
-    fireIsleme=m2A>0?((slot+trim)/m2A)*100:0;  // %
+    fireIsleme=m2A>0?((slot+trim)/m2A)*100:0;    // varsayılan formül
   }
   const islemeM2=fireIsleme/100*m2A;            // m²/adet
 
@@ -1260,6 +1297,7 @@ function hesapla(ft,r){
   const totM2=m2A*adet,totFireM2=totFire*adet;
   return{en:enKesim,enTek:en,ikili,boy,m2A,totM2,totFireM2,totTL:totM2*fi,
     fireOran,fireIsleme,firePiyasa,fireTL:totFireM2*fi,
+    kalibExact:!!(kalibTam&&kalibTam._fireIsleme!==undefined),
     rulo:enKesim>0?totM2/(enKesim/1000):0,
     piyasa,
     // Piyasa eni ile kesim eni arasındaki fark
@@ -1269,17 +1307,17 @@ function hesapla(ft,r){
 }
 
 // Sabit ölçü sütunları
-const FIXED_COLS_HEAD=[{w:150,lbl:'Kutu Adı',key:'_ad'}];
+const FIXED_COLS_HEAD=[{w:128,lbl:'Kutu Adı',key:'_ad'}];
 // Sabit hesap sütunları
 const FIXED_COLS_TAIL=[
-  {w:120,lbl:'Yön / Kesim',key:'_yon'},
-  {w:84,lbl:'Karton Eni',key:'_en'},{w:84,lbl:'Piyasa Eni',key:'_piyasa'},
-  {w:84,lbl:'Karton Boy',key:'_boy'},
-  {w:80,lbl:'m²/Adet',key:'_m2a'},{w:66,lbl:'Adet',key:'_adet'},
-  {w:88,lbl:'Toplam m²',key:'_totm2'},
-  {w:76,lbl:'Birim TL',key:'_fiyat'},{w:96,lbl:'Toplam TL',key:'_tottl'},
-  {w:60,lbl:'Fire %',key:'_fire'},{w:76,lbl:'Fire m²',key:'_firem2'},{w:84,lbl:'Fire TL',key:'_firetl'},
-  {w:76,lbl:'Rulo (m)',key:'_rulo'},
+  {w:104,lbl:'Yön / Kesim',key:'_yon'},
+  {w:74,lbl:'Karton Eni',key:'_en'},{w:74,lbl:'Piyasa Eni',key:'_piyasa'},
+  {w:74,lbl:'Karton Boy',key:'_boy'},
+  {w:72,lbl:'m²/Adet',key:'_m2a'},{w:56,lbl:'Adet',key:'_adet'},
+  {w:78,lbl:'Toplam m²',key:'_totm2'},
+  {w:66,lbl:'Birim TL',key:'_fiyat'},{w:84,lbl:'Toplam TL',key:'_tottl'},
+  {w:56,lbl:'Fire %',key:'_fire'},{w:66,lbl:'Fire m²',key:'_firem2'},{w:74,lbl:'Fire TL',key:'_firetl'},
+  {w:64,lbl:'Rulo (m)',key:'_rulo'},
 ];
 
 // ft için dinamik sütun listesi oluştur
@@ -1292,16 +1330,16 @@ function buildCols(ft){
     else if(v==='K2') lbl='K2 Kulak';
     else if(v==='T') lbl='T Kalınlık';
     else if(v==='P') lbl='P Pay';
-    const w=(v==='K'||v==='K1'||v==='K2')?76:(v==='T'||v==='P')?68:76;
+    const w=(v==='K'||v==='K1'||v==='K2')?64:(v==='T'||v==='P')?58:64;
     return {w, lbl, key:v};
   });
   const tail=[...FIXED_COLS_TAIL];
   if(ft.isOzel){
-    tail.push({w:80,lbl:'Özel En',key:'_ozelEn'});
-    tail.push({w:80,lbl:'Özel Boy',key:'_ozelBoy'});
+    tail.push({w:70,lbl:'Özel En',key:'_ozelEn'});
+    tail.push({w:70,lbl:'Özel Boy',key:'_ozelBoy'});
   }
-  tail.push({w:110,lbl:'Notlar',key:'_notlar'});
-  tail.push({w:36,lbl:'',key:'_del'});
+  tail.push({w:92,lbl:'Notlar',key:'_notlar'});
+  tail.push({w:34,lbl:'',key:'_del'});
   return [...FIXED_COLS_HEAD,...varCols,...tail];
 }
 
@@ -1320,7 +1358,8 @@ function calcCellsHtml(h){
   let fireHtml;
   if(h){
     const fc=h.fireOran<=5?'ok':h.fireOran<=12?'warn':'bad';
-    fireHtml=`<div class="fire-cell" title="İşleme: ${h.fireIsleme.toFixed(1)}% + Piyasa eni: ${h.firePiyasa.toFixed(1)}% = Toplam ${h.fireOran.toFixed(1)}%"><span class="fire-cell-pct ${fc}">${h.fireOran.toFixed(1)}%</span><div class="fire-cell-bar ${fc}" style="width:${Math.min(h.fireOran*4,100)}%"></div></div>`;
+    const kalNot=h.kalibExact?' ✓kalibre (birebir ölçü)':'';
+    fireHtml=`<div class="fire-cell" title="İşleme: ${h.fireIsleme.toFixed(1)}% + Piyasa eni: ${h.firePiyasa.toFixed(1)}% = Toplam ${h.fireOran.toFixed(1)}%${kalNot}"><span class="fire-cell-pct ${fc}">${h.fireOran.toFixed(1)}%${h.kalibExact?'<span class="kal-dot" title="Kalibrasyondan birebir">●</span>':''}</span><div class="fire-cell-bar ${fc}" style="width:${Math.min(h.fireOran*4,100)}%"></div></div>`;
   }else fireHtml=cv(null);
   return {
     en:   h?(h.ikili
@@ -2019,9 +2058,9 @@ window.addEventListener('DOMContentLoaded',()=>{
     try{saveToLocal();}catch(e){}
   })();
   buildDynamicDOM();
-  FEFCO_TYPES.forEach(ft=>renderTable(ft.id));
+  kalibInit();                 // önce kaydedilen kalibrasyonu yükle (öğrenilen formül + birebir veriler)
+  FEFCO_TYPES.forEach(ft=>renderTable(ft.id));   // render artık kalibrasyonu görüyor
   updateAll();
-  kalibInit();
   yedekZamanGuncelle();
 });
 
@@ -2213,7 +2252,10 @@ function kalibCellBlur(el){
   const val=el.value.replace(',','.').trim();
   if(!KALIB_DATA[ft.id][row])return;
   KALIB_DATA[ft.id][row][v]=val===''?'':parseFloat(val)||0;
+  // Ölçü/fire değişti → eski birebir eşleşme geçersiz; yeniden "Kalibre Et" gerekir
+  if(KALIB_DATA[ft.id][row]._fireIsleme!==undefined)delete KALIB_DATA[ft.id][row]._fireIsleme;
   kalibSave();
+  recalcAll();
 }
 
 function kalibCalcRow(ft,r){
@@ -2279,8 +2321,13 @@ function kalibRun(){
       const piyasa=nearPiyasa(calc.en);
       const firePiyasa=calc.en>0?((piyasa-calc.en)/calc.en)*100:0; // bu örneğin piyasa eni firesi
       const fireIsleme=Math.max(0, fy-firePiyasa);                 // öğrenilecek işleme firesi
+      // Bu satırın GERÇEK işleme firesini sakla → ana tabloda birebir ölçü için kullanılır
+      r._fireIsleme=fireIsleme;
       valid.push({...calc, fireYuzde:fy, fireIsleme, firePiyasa, piyasa,
                   H:parseFloat(r.H)||0, T:parseFloat(r.T)||3, m2A:calc.m2A});
+    }else{
+      // Geçersiz/eksik satırda birebir eşleşme tetiklenmesin
+      if(r&&r._fireIsleme!==undefined)delete r._fireIsleme;
     }
   });
 
