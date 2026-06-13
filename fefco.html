@@ -674,7 +674,7 @@ footer{
       <button class="save-btn" onclick="exportJSON()" title="Tüm veriyi JSON dosyası olarak kaydet">💾 JSON Olarak Kaydet</button>
       <button class="save-btn" onclick="importJSON()" title="Daha önce kaydedilen JSON dosyasını aç">📂 JSON'dan Aç</button>
       <button class="save-btn" onclick="openPdfMenu()" title="Kurumsal PDF raporları" style="background:rgba(245,166,35,.14);border-color:rgba(245,166,35,.45);color:var(--orange);font-weight:700;">📄 PDF Rapor</button>
-      <button class="save-btn del" onclick="clearAllData()" title="Tüm veriyi sıfırla">🗑️ Temizle</button>
+      <button class="save-btn del" onclick="clearDataModal()" title="Veri temizle (tümü veya tek tip)">🗑️ Temizle</button>
       <span id="saveMsg" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--green);opacity:0;transition:opacity .3s;white-space:nowrap;">💾 Kaydedildi!</span>
     </div>
   </div>
@@ -1898,6 +1898,54 @@ function importJSON(){
     reader.readAsText(file);
   };
   inp.click();
+}
+
+// "Temizle" → iki seçenekli diyalog: tümünü sil veya yalnızca seçilen tipin ölçülerini sil
+function clearDataModal(){
+  const bg=document.createElement('div');
+  bg.className='modal-bg';
+  const cur=(typeof activeTabId!=='undefined')?activeTabId:'';
+  const opts=FEFCO_TYPES.map(ft=>`<option value="${ft.id}"${ft.id===cur?' selected':''}>${esc(ft.kod)}${ft.ad?' – '+esc(ft.ad.split('(')[0].trim()):''}</option>`).join('');
+  bg.innerHTML=`
+    <div class="modal-box">
+      <h3>🗑️ Veri Temizle</h3>
+      <div class="modal-field">
+        <label>Sadece bir kutu tipinin girilen ölçülerini sil</label>
+        <select id="clr-type" class="gb-inp" style="width:100%;">${opts||'<option value="">— Tip yok —</option>'}</select>
+        <div class="modal-hint">Seçilen sekmedeki tüm satırlar/ölçüler temizlenir; sekme, formül ve diğer tipler korunur.</div>
+      </div>
+      <div class="modal-btns" style="justify-content:flex-start;">
+        <button class="modal-btn" id="clr-one" style="background:var(--orange-dim);border-color:var(--orange-border);color:var(--orange);">Seçili Tipin Ölçülerini Sil</button>
+      </div>
+      <div class="modal-field" style="border-top:1px solid var(--border);padding-top:14px;margin-top:6px;">
+        <label style="color:#f87171;">Tehlikeli alan</label>
+        <div class="modal-hint">Aşağıdaki seçenek <b>bütün</b> sekmelerdeki tüm verileri siler ve uygulamayı varsayılana döndürür.</div>
+      </div>
+      <div class="modal-btns" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <button class="modal-btn" id="clr-all" style="background:rgba(192,0,0,.15);border-color:rgba(192,0,0,.4);color:#f87171;">⚠️ TÜM Verileri Sil</button>
+        <button class="modal-btn cancel" id="clr-cancel">İptal</button>
+      </div>
+    </div>`;
+  document.body.appendChild(bg);
+  const close=()=>{if(bg.parentNode)document.body.removeChild(bg);};
+  bg.onclick=(e)=>{if(e.target===bg)close();};
+  document.getElementById('clr-cancel').onclick=close;
+  document.getElementById('clr-all').onclick=()=>{ close(); clearAllData(); };
+  document.getElementById('clr-one').onclick=()=>{
+    const id=document.getElementById('clr-type').value;
+    const ft=FEFCO_TYPES.find(f=>f.id===id);
+    if(!ft){close();return;}
+    const dolu=(DATA[id]||[]).some(r=>r.ad||r.L||r.B||r.H||r.adet);
+    if(!confirm(`"${ft.kod} – ${ft.ad}" sekmesindeki girilen tüm ölçüler silinecek.${dolu?'':'\n\n(Bu sekmede zaten dolu veri görünmüyor.)'}\n\nDevam edilsin mi?`))return;
+    DATA[id]=[];
+    for(let i=0;i<5;i++)DATA[id].push(emptyRow(ft));
+    renderTable(id);
+    updateAll();
+    saveToLocal();
+    close();
+    switchTabById(id);
+    showSaveMsg(`🗑️ "${ft.kod}" ölçüleri temizlendi`);
+  };
 }
 
 function clearAllData(){
