@@ -998,6 +998,14 @@ function parseYon(s){
   return (yatay?'YATAY':'DİKEY')+(ikili?' İKİLİ':'');
 }
 
+// Bir tipin İÇE/DIŞA aktarılabilir ölçü değişkenleri.
+// T (kalınlık) formülde geçmese bile fire hesabında kullanıldığından HER ZAMAN dahil edilir;
+// böylece Excel'e aktarma / Excel'den alma turunda T değeri kaybolmaz.
+function ioVars(ft){
+  const vars=(ft&&(ft._vars||extractAllVars(ft)))||['L','B','H'];
+  return vars.includes('T')?vars.slice():[...vars,'T'];
+}
+
 const DATA={};
 
 // Sekmenin birim fiyatını döner (price-row inputundan)
@@ -2482,7 +2490,7 @@ function exportExcel(){
   loadSheetJS(()=>{
     const wb=XLSX.utils.book_new();
     FEFCO_TYPES.forEach(ft=>{
-      const vars=ft._vars||extractAllVars(ft);
+      const vars=ioVars(ft);
       // Başlık satırı
       const header=['Kutu Adı',...vars.map(v=>{
         if(v==='K')return 'K Kulak (mm)';
@@ -2574,7 +2582,7 @@ function importExcel(){
           if(rows.length<2){showSaveMsg('⚠️ Dosya boş','#facc15');return;}
 
           const rawHeader=rows[0].map(h=>String(h||'').trim());
-          const vars=ft._vars||extractAllVars(ft);
+          const vars=ioVars(ft);
 
           // Başlık → sütun index eşlemesi (esnek: büyük/küçük harf, mm eki fark etmez)
           function colIdx(names){
@@ -2773,9 +2781,7 @@ function colLetter(i){
 function convValueVars(){
   // Eşlenebilir/aktarılabilir ölçü değişkenleri. T (kalınlık) formülde geçmese bile
   // fire hesabında kullanıldığı için her zaman listeye eklenir.
-  const ft=FEFCO_TYPES.find(f=>f.id===activeTabId);
-  const vars=ft?ft._vars||extractAllVars(ft):['L','B','H'];
-  return vars.includes('T')?vars.slice():[...vars,'T'];
+  return ioVars(FEFCO_TYPES.find(f=>f.id===activeTabId));
 }
 
 function convBuildMapGrid(){
@@ -2919,7 +2925,7 @@ function convDoExcel(){
   if(!newRows.length){showSaveMsg('⚠️ Dönüştürülecek satır yok','#facc15');return;}
 
   loadSheetJS(()=>{
-    const vars=ft?ft._vars||extractAllVars(ft):['L','B','H'];
+    const vars=ft?ioVars(ft):['L','B','H','T'];
     const header=['Kutu Adı',...vars.map(v=>v==='K'?'K Kulak (mm)':v==='T'?'T Kalınlık (mm)':v==='P'?'P Pay (mm)':v+' (mm)'),'Yön','Adet','Birim TL','Notlar'];
     const dataRows=newRows.map(r=>[
       r.ad||'',
