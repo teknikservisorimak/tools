@@ -250,13 +250,13 @@ tbody tr td:last-child{border-right:none;}
   position:sticky;z-index:15;background:#181818;
 }
 .tbl-outer tbody td:last-child{right:0;}
-.tbl-outer tbody td:nth-last-child(2){right:34px;box-shadow:-9px 0 11px -9px rgba(0,0,0,.75);}
+.tbl-outer tbody td:nth-last-child(2){right:40px;box-shadow:-9px 0 11px -9px rgba(0,0,0,.75);}
 .tbl-outer tbody tr:hover td:last-child,
 .tbl-outer tbody tr:hover td:nth-last-child(2){background:#1f1f1f;}
 .tbl-outer thead th:last-child,
 .tbl-outer thead th:nth-last-child(2){z-index:45;background:var(--dark);}
 .tbl-outer thead th:last-child{right:0;}
-.tbl-outer thead th:nth-last-child(2){right:34px;box-shadow:-9px 0 11px -9px rgba(0,0,0,.75);}
+.tbl-outer thead th:nth-last-child(2){right:40px;box-shadow:-9px 0 11px -9px rgba(0,0,0,.75);}
 
 /* Cell inputs */
 td input[type="text"],td input[type="number"]{
@@ -299,6 +299,18 @@ td select.yon-sel:focus{border-color:var(--orange);}
   display:inline-flex;align-items:center;gap:6px;
 }
 .add-row-btn:hover{background:rgba(245,166,35,.22);}
+
+/* Piyasa eni filtre çubuğu (kutu tipi tablosunda, çoklu seçim) */
+.pf-bar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:8px 14px 2px;}
+.pf-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--orange);text-transform:uppercase;margin-right:2px;}
+.pf-chip{
+  background:var(--surface);border:1px solid var(--border);color:var(--muted);
+  font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.5px;
+  padding:3px 11px;border-radius:14px;cursor:pointer;transition:all .12s;
+}
+.pf-chip:hover{border-color:var(--orange-border);color:var(--text);}
+.pf-chip.on{background:var(--orange);border-color:var(--orange);color:var(--bg);}
+.pf-info{font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--muted);margin-left:4px;letter-spacing:1px;}
 
 /* Del btn */
 .del-btn{
@@ -709,6 +721,12 @@ footer{
     <div class="piyasa-wrap">
       <h2>📦 Piyasa Karton Eni → Kutu Eşleşmesi Özeti</h2>
       <div class="piyasa-hint">⚠️ Kutulara L, B, H bilgisi girdikçe otomatik güncellenir. Sadece dolu kutular listelenir.</div>
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;color:var(--orange);text-transform:uppercase;">Piyasa eni filtresi:</span>
+        <select id="piyasaFilter" class="gb-inp" style="width:240px;" onchange="piyasaSetFilter(this.value)"></select>
+        <button class="save-btn" onclick="piyasaSetFilter('')" title="Filtreyi kaldır" style="background:var(--orange-dim);border-color:var(--orange-border);color:var(--orange);">Tümünü Göster</button>
+        <span id="piyasaFilterInfo" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--muted);"></span>
+      </div>
       <div class="tbl-outer">
         <table style="table-layout:auto;">
           <thead><tr>
@@ -1346,8 +1364,8 @@ function buildCols(ft){
     tail.push({w:70,lbl:'Özel En',key:'_ozelEn'});
     tail.push({w:70,lbl:'Özel Boy',key:'_ozelBoy'});
   }
-  tail.push({w:92,lbl:'Notlar',key:'_notlar'});
-  tail.push({w:34,lbl:'',key:'_del'});
+  tail.push({w:120,lbl:'Notlar',key:'_notlar'});
+  tail.push({w:40,lbl:'',key:'_del'});
   return [...FIXED_COLS_HEAD,...varCols,...tail];
 }
 
@@ -1487,6 +1505,20 @@ function scheduleSummary(){
   },300);
 }
 
+// Her kutu tipi için seçili piyasa eni filtresi (çoklu seçim). Boş = tümü.
+const piyasaFilterSel={};
+function piyasaChip(ftId,w){
+  if(w===null||w===undefined){
+    piyasaFilterSel[ftId]=[];
+  }else{
+    const arr=piyasaFilterSel[ftId]?piyasaFilterSel[ftId].slice():[];
+    const i=arr.indexOf(w);
+    if(i>=0) arr.splice(i,1); else arr.push(w);
+    piyasaFilterSel[ftId]=arr;
+  }
+  renderTable(ftId);
+}
+
 function renderTable(ftId){
   const ft=FEFCO_TYPES.find(f=>f.id===ftId);
   if(!ft) return;
@@ -1503,16 +1535,42 @@ function renderTable(ftId){
 
   const aramaQ=getAramaQuery();
 
-  let tbHtml='';
+  // Bu tipe ait piyasa eni filtresi (çoklu seçim)
+  const selArr=piyasaFilterSel[ftId]||[];
+  const piyasaSet=new Set();
+  rows.forEach(r=>{const h=hesapla(ft,r);if(h&&h.piyasa)piyasaSet.add(h.piyasa);});
+  const piyasaWidths=[...piyasaSet].sort((a,b)=>a-b);
+  // Seçili filtrede artık bulunmayan enleri ayıkla
+  if(selArr.length){
+    const kept=selArr.filter(w=>piyasaSet.has(w));
+    if(kept.length!==selArr.length) piyasaFilterSel[ftId]=kept;
+  }
+  const sel=piyasaFilterSel[ftId]||[];
+
+  let tbHtml='', gorunen=0;
   rows.forEach((row,i)=>{
     let rowVisible=true;
-    if(aramaQ){
+    const h=hesapla(ft,row);
+    if(sel.length){                       // piyasa eni filtresi aktifse
+      rowVisible = !!(h && sel.includes(h.piyasa));
+    }
+    if(rowVisible && aramaQ){
       const ad=(row.ad||'').toLowerCase();
       const notlar=(row.notlar||'').toLowerCase();
       rowVisible=ad.includes(aramaQ)||notlar.includes(aramaQ);
     }
+    if(rowVisible) gorunen++;
     tbHtml+=`<tr id="row-${ftId}-${i}" style="${rowVisible?'':'display:none'}">${rowInner(ftId,i)}</tr>`;
   });
+
+  // Filtre çubuğu (chip'ler) — sadece birden fazla piyasa eni varsa anlamlı
+  const pfBar = piyasaWidths.length ? `
+    <div class="pf-bar">
+      <span class="pf-lbl">📦 Piyasa Eni Filtresi</span>
+      <button class="pf-chip ${sel.length===0?'on':''}" onclick="piyasaChip('${ftId}',null)">Tümü</button>
+      ${piyasaWidths.map(w=>`<button class="pf-chip ${sel.includes(w)?'on':''}" onclick="piyasaChip('${ftId}',${w})">${w} mm</button>`).join('')}
+      ${sel.length?`<span class="pf-info">${gorunen} kutu gösteriliyor</span>`:''}
+    </div>` : '';
 
   // Formula bar — tüm tipler için mevcut
   const fOpen=formulaOpen[ftId]||false;
@@ -1564,8 +1622,9 @@ function renderTable(ftId){
       onchange="setDefaultFiyat('${ftId}',+this.value);renderTable('${ftId}');scheduleSummary()">
     <span class="price-hint">← manuel değiştirilmemiş satırları günceller</span>
   </div>
+  ${pfBar}
   <div class="tbl-outer">
-    <table style="width:${Math.max(totalW,900)}px;table-layout:fixed;">
+    <table style="width:100%;min-width:${totalW}px;table-layout:fixed;">
       <colgroup>${colGroupHtml}</colgroup>
       <thead><tr>${thHtml}</tr></thead>
       <tbody>${tbHtml}</tbody>
@@ -1733,15 +1792,46 @@ function updateOzet(){
   document.getElementById('ozetRulo').textContent=fmt(tRulo,1)+' m';
 }
 
+let _piyasaFilter='';   // '' = tüm piyasa enleri
+function piyasaSetFilter(v){ _piyasaFilter=v||''; updatePiyasa(); }
+
 function updatePiyasa(){
   const tb=document.getElementById('piyasaBody');if(!tb)return;
-  let html='';
+
+  // 1) Dolu tüm kutuları topla
+  const items=[];
   FEFCO_TYPES.forEach(ft=>{
-    let grp='';
-    DATA[ft.id].forEach(r=>{
+    (DATA[ft.id]||[]).forEach(r=>{
       const h=hesapla(ft,r);if(!h)return;
-      grp+=`<tr>
-        <td><span class="cv cv-piyasa">${h.piyasa}</span></td>
+      items.push({ft,r,h});
+    });
+  });
+
+  // 2) PİYASA ENİNE göre grupla
+  const groups={};
+  items.forEach(it=>{ (groups[it.h.piyasa]=groups[it.h.piyasa]||[]).push(it); });
+  const widths=Object.keys(groups).map(Number).sort((a,b)=>a-b);
+
+  // 3) Filtre açılır menüsünü güncelle
+  const sel=document.getElementById('piyasaFilter');
+  if(_piyasaFilter && !widths.includes(Number(_piyasaFilter))) _piyasaFilter=''; // artık yoksa sıfırla
+  if(sel){
+    sel.innerHTML='<option value="">Tüm piyasa enleri ('+items.length+' kutu)</option>'+
+      widths.map(w=>`<option value="${w}"${String(w)===String(_piyasaFilter)?' selected':''}>${w} mm — ${groups[w].length} kutu</option>`).join('');
+    sel.value=_piyasaFilter;
+  }
+
+  // 4) Tabloyu kur (gruplu + filtreli)
+  let html='', gosterilen=0;
+  widths.forEach(w=>{
+    if(_piyasaFilter && String(w)!==String(_piyasaFilter)) return;
+    const list=groups[w];
+    let tM2=0; list.forEach(it=>tM2+=it.h.totM2);
+    gosterilen+=list.length;
+    html+=`<tr><td colspan="8" style="background:var(--surface2);color:var(--orange);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;padding:8px 14px;border-top:2px solid var(--orange-border);">📦 ${w} mm piyasa eni &nbsp;·&nbsp; ${list.length} kutu &nbsp;·&nbsp; toplam ${fmt(tM2,2)} m²</td></tr>`;
+    list.forEach(({ft,r,h})=>{
+      html+=`<tr>
+        <td><span class="cv cv-piyasa">${h.piyasa}</span>${h.ikili?'<span class="ikili-badge">2×</span>':''}</td>
         <td><span class="cv cv-eni">${h.en}</span></td>
         <td><span class="cv cv-piyasa">${h.piyasa}</span></td>
         <td><span class="fefco-tag" style="font-size:9px;">${ft.kod}</span></td>
@@ -1751,11 +1841,12 @@ function updatePiyasa(){
         <td style="font-size:11px;color:var(--muted);">${esc(r.notlar||'')}</td>
       </tr>`;
     });
-    if(grp){
-      html+=`<tr><td colspan="8" style="background:var(--surface2);color:var(--orange);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;padding:7px 14px;border-top:1px solid var(--border);">${ft.kod} – ${ft.ad}</td></tr>${grp}`;
-    }
   });
-  tb.innerHTML=html||`<tr><td colspan="8" style="text-align:center;color:var(--dim);padding:24px;font-family:'Barlow Condensed',sans-serif;font-size:12px;">Henüz veri girilmedi.</td></tr>`;
+
+  const info=document.getElementById('piyasaFilterInfo');
+  if(info) info.textContent=_piyasaFilter?`${gosterilen} kutu gösteriliyor (${_piyasaFilter} mm)`:`${widths.length} farklı piyasa eni`;
+
+  tb.innerHTML=html||`<tr><td colspan="8" style="text-align:center;color:var(--dim);padding:24px;font-family:'Barlow Condensed',sans-serif;font-size:12px;">${_piyasaFilter?'Bu piyasa eninde kutu yok.':'Henüz veri girilmedi.'}</td></tr>`;
 }
 
 function updateHeader(){
