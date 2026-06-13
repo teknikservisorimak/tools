@@ -588,6 +588,9 @@ footer{
 .save-btn:hover{border-color:var(--orange);color:var(--orange);background:var(--orange-dim);}
 .save-btn.del{color:#f87171;border-color:rgba(192,0,0,.25);}
 .save-btn.del:hover{background:rgba(192,0,0,.12);border-color:#f87171;}
+.pdf-opt{text-align:left;padding:12px 14px;display:flex;flex-direction:column;gap:3px;line-height:1.3;}
+.pdf-opt span{color:var(--muted);font-size:11px;font-weight:400;}
+.pdf-opt:hover span{color:var(--text);}
 /* Yedek pill renk durumları */
 #yedekPill.fresh  {border-color:rgba(146,208,80,.4);}
 #yedekPill.fresh  .sv{color:#92D050;}
@@ -654,6 +657,7 @@ footer{
       <button class="save-btn" onclick="importExcel()" title="Excel'den ölçü yükle" style="background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.35);color:#60a5fa;">📂 Excel'den Al</button>
       <button class="save-btn" onclick="exportJSON()" title="Tüm veriyi JSON dosyası olarak kaydet">💾 JSON Olarak Kaydet</button>
       <button class="save-btn" onclick="importJSON()" title="Daha önce kaydedilen JSON dosyasını aç">📂 JSON'dan Aç</button>
+      <button class="save-btn" onclick="openPdfMenu()" title="Kurumsal PDF raporları" style="background:rgba(245,166,35,.14);border-color:rgba(245,166,35,.45);color:var(--orange);font-weight:700;">📄 PDF Rapor</button>
       <button class="save-btn del" onclick="clearAllData()" title="Tüm veriyi sıfırla">🗑️ Temizle</button>
       <span id="saveMsg" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--green);opacity:0;transition:opacity .3s;white-space:nowrap;">💾 Kaydedildi!</span>
     </div>
@@ -2906,6 +2910,382 @@ function kalibPredCalc(){
     </div>
   `;
 }
+
+// ============================================================
+// PDF / KURUMSAL RAPOR ÇIKTILARI
+// Yazdır → "PDF olarak kaydet" ile kurumsal PDF üretir.
+// Türkçe karakterler tarayıcı fontuyla render edildiği için sorunsuzdur.
+// ============================================================
+
+function _logoSrc(){ const img=document.querySelector('.hdr-logo'); return img?img.src:''; }
+
+function _trDate(){
+  const d=new Date();
+  return d.toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric'})
+       +' · '+d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+}
+
+function _n(v,dec){
+  if(v===''||v===null||v===undefined||isNaN(v)) v=0;
+  return Number(v).toLocaleString('tr-TR',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+}
+
+function _fireCls(p){ return p<=5?'fb-ok':p<=12?'fb-warn':'fb-bad'; }
+function _varLbl(v){ return v; }
+
+// Bir kutu tipi için tüm hesap toplamlarını derler
+function _typeStats(ft){
+  const vars = ft._vars || extractAllVars(ft);
+  const out  = {vars, rows:[], tM2:0, tTL:0, tFireM2:0, tFireTL:0, tAdet:0,
+                islM2:0, piyM2:0, tRulo:0};
+  (DATA[ft.id]||[]).forEach(r=>{
+    const h=hesapla(ft,r); if(!h||!(h.en>0)) return;
+    const fi=parseFloat(r.fiyat)||gF(ft.id);
+    const adet=r.adet||0;
+    const varVals=vars.map(v=>{
+      const def=VAR_DEFAULTS[v]!==undefined?VAR_DEFAULTS[v]:0;
+      const val=r[v];
+      return val!==undefined&&val!==''&&val!==null?(parseFloat(val)||0):def;
+    });
+    out.rows.push({r,h,fi,adet,varVals});
+    out.tM2     += h.totM2;
+    out.tTL     += h.totTL;
+    out.tFireM2 += h.totFireM2;
+    out.tFireTL += h.fireTL;
+    out.tAdet   += adet;
+    out.tRulo   += h.rulo;
+    out.islM2   += (h.fireIsleme/100)*h.m2A*adet;
+    out.piyM2   += (h.firePiyasa/100)*h.m2A*adet;
+  });
+  out.firePct = out.tM2>0 ? out.tFireM2/out.tM2*100 : 0;
+  out.islPct  = out.tM2>0 ? out.islM2/out.tM2*100   : 0;
+  out.piyPct  = out.tM2>0 ? out.piyM2/out.tM2*100   : 0;
+  return out;
+}
+
+// Hangi piyasa karton eninden kaç ölçü / kaç adet kullanılıyor
+function _piyasaUsage(types){
+  const map={};
+  types.forEach(ft=>{
+    (DATA[ft.id]||[]).forEach(r=>{
+      const h=hesapla(ft,r); if(!h||!(h.en>0)) return;
+      const p=h.piyasa;
+      if(!map[p]) map[p]={piyasa:p,olcu:0,adet:0,m2:0,fireM2:0,fireTL:0};
+      map[p].olcu  += 1;
+      map[p].adet  += (r.adet||0);
+      map[p].m2    += h.totM2;
+      map[p].fireM2+= h.totFireM2;
+      map[p].fireTL+= h.fireTL;
+    });
+  });
+  return Object.values(map).sort((a,b)=>a.piyasa-b.piyasa);
+}
+
+function _typesWithData(){
+  return FEFCO_TYPES.filter(ft=>(DATA[ft.id]||[]).some(r=>{const h=hesapla(ft,r);return h&&h.en>0;}));
+}
+
+// Rapor başlık bloğu
+function _docHeader(title,subtitle){
+  return '<div class="doc-header">'
+    + '<img src="'+_logoSrc()+'" alt="ORİMAK">'
+    + '<div class="doc-title"><div class="t1">ORİMAK MAKİNA</div>'
+    + '<div class="t2">'+esc(subtitle||'')+'</div></div>'
+    + '<div class="doc-meta"><div style="font-size:13px;font-weight:700;color:#1a1a1a;">'+esc(title)+'</div>'
+    + '<div>'+_trDate()+'</div></div></div>';
+}
+
+// KPI kutusu
+function _kpi(val,lbl,cls){
+  return '<div class="kpi"><div class="v '+(cls||'')+'">'+val+'</div><div class="l">'+esc(lbl)+'</div></div>';
+}
+
+// Yazdırma penceresini açar
+function _openReport(title, bodyHTML, landscape){
+  const w=window.open('','_blank');
+  if(!w){ alert('Açılır pencere engellendi. Lütfen bu sayfa için pop-up iznini açın.'); return; }
+  const css = ''
+   + '@page{size:A4 '+(landscape?'landscape':'portrait')+';margin:11mm 9mm 15mm 9mm;}'
+   + '*{box-sizing:border-box;}'
+   + "body{font-family:'Barlow',Arial,sans-serif;color:#1a1a1a;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}"
+   + '.doc-header{display:flex;align-items:center;gap:14px;border-bottom:3px solid #F5A623;padding-bottom:9px;margin-bottom:14px;}'
+   + '.doc-header img{height:44px;border-radius:4px;}'
+   + ".doc-title{font-family:'Barlow Condensed',Arial,sans-serif;line-height:1.15;}"
+   + '.doc-title .t1{font-size:21px;font-weight:900;letter-spacing:1px;}'
+   + '.doc-title .t2{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#F5A623;font-weight:700;}'
+   + ".doc-meta{margin-left:auto;text-align:right;font-family:'Barlow Condensed',Arial,sans-serif;font-size:10px;color:#666;line-height:1.5;}"
+   + '.sec-title{font-family:"Barlow Condensed",Arial,sans-serif;font-size:14px;font-weight:700;background:#fbf2df;border-left:4px solid #F5A623;padding:6px 10px;margin:14px 0 7px;letter-spacing:.5px;}'
+   + '.sec-title .kod{color:#e08600;font-weight:900;}'
+   + '.formula{font-family:"Barlow Condensed",Arial,sans-serif;font-size:9px;color:#888;margin:-3px 0 8px 14px;}'
+   + '.kpi-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;}'
+   + '.kpi{border:1px solid #e6e6e6;border-top:2px solid #F5A623;border-radius:6px;padding:6px 12px;min-width:120px;flex:1;}'
+   + '.kpi .v{font-family:"Barlow Condensed",Arial,sans-serif;font-size:17px;font-weight:900;color:#1a1a1a;}'
+   + '.kpi .v.green{color:#2e7d32;}.kpi .v.orange{color:#e08600;}.kpi .v.red{color:#c00000;}.kpi .v.blue{color:#1565c0;}'
+   + '.kpi .l{font-family:"Barlow Condensed",Arial,sans-serif;font-size:8.5px;letter-spacing:1px;text-transform:uppercase;color:#999;margin-top:1px;}'
+   + 'table{width:100%;border-collapse:collapse;font-size:9.5px;margin-bottom:8px;}'
+   + 'thead th{background:#1A1A1A;color:#F5A623;font-family:"Barlow Condensed",Arial,sans-serif;font-weight:700;letter-spacing:.4px;padding:5px 5px;text-align:right;border:.5px solid #333;text-transform:uppercase;font-size:8.5px;}'
+   + 'th.l,td.l{text-align:left;}th.c,td.c{text-align:center;}'
+   + 'tbody td{padding:3.5px 5px;border:.5px solid #e0e0e0;text-align:right;}'
+   + 'tbody tr:nth-child(even){background:#faf6ee;}'
+   + 'tfoot td{background:#F5A623;color:#1a1a1a;font-weight:800;border:.5px solid #d98c00;padding:4px 5px;font-family:"Barlow Condensed",Arial,sans-serif;}'
+   + '.fire-badge{display:inline-block;padding:1px 7px;border-radius:4px;font-weight:700;font-size:9px;font-family:"Barlow Condensed",Arial,sans-serif;}'
+   + '.fb-ok{background:#e6f4ea;color:#1e7e34;}.fb-warn{background:#fff4dd;color:#a9760a;}.fb-bad{background:#fde9e9;color:#c00000;}'
+   + '.page-break{page-break-before:always;}'
+   + '.note{font-family:"Barlow Condensed",Arial,sans-serif;font-size:9px;color:#999;margin:6px 0 0;line-height:1.5;}'
+   + '.doc-footer{position:fixed;bottom:0;left:0;right:0;border-top:1px solid #ddd;padding:3px 6px;font-family:"Barlow Condensed",Arial,sans-serif;font-size:8px;color:#aaa;display:flex;justify-content:space-between;letter-spacing:1px;}'
+   + '.no-print{background:#1A1A1A;color:#eee;padding:10px 16px;display:flex;align-items:center;gap:12px;font-family:"Barlow Condensed",Arial,sans-serif;font-size:13px;position:sticky;top:0;z-index:10;}'
+   + '.no-print button{font-family:"Barlow Condensed",Arial,sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;padding:8px 18px;border-radius:6px;cursor:pointer;border:none;}'
+   + '.no-print .pr{background:#F5A623;color:#1a1a1a;}.no-print .cl{background:#333;color:#ccc;}'
+   + '.no-print .hint{color:#888;font-size:11px;margin-left:auto;}'
+   + '@media screen{body{background:#525659;}.sheet{background:#fff;max-width:'+(landscape?'1180px':'880px')+';margin:18px auto;padding:26px 30px 40px;box-shadow:0 0 24px rgba(0,0,0,.45);}.doc-footer{position:static;border:none;color:#bbb;margin-top:24px;}}'
+   + '@media print{.no-print{display:none;}.sheet{padding:0;}}';
+
+  const html = '<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>'+esc(title)+'</title>'
+   + '<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">'
+   + '<style>'+css+'</style></head><body>'
+   + '<div class="no-print"><button class="pr" onclick="window.print()">🖨️ Yazdır / PDF Kaydet</button>'
+   + '<button class="cl" onclick="window.close()">Kapat</button>'
+   + '<span class="hint">İpucu: Açılan pencerede <b>Hedef → "PDF olarak kaydet"</b> seçin. Renkli arka plan için <b>"Arka plan grafikleri"</b> işaretli olsun.</span></div>'
+   + '<div class="sheet">'+bodyHTML+'</div>'
+   + '<div class="doc-footer"><span>ORİMAK MAKİNA · FEFCO Karton Eni Hesaplama Sistemi</span><span>'+_trDate()+'</span></div>'
+   + '<script>window.addEventListener("load",function(){setTimeout(function(){try{window.print();}catch(e){}},450);});<\/script>'
+   + '</body></html>';
+
+  w.document.open(); w.document.write(html); w.document.close();
+}
+
+// ---------- 1) KUTU TİPİ DETAY RAPORU ----------
+function pdfKutuDetay(){
+  const types=_typesWithData();
+  if(!types.length){ alert('Önce en az bir kutuya L, B, H ölçüsü girin.'); return; }
+
+  let body=_docHeader('Kutu Tipi Detay Raporu','Her Kutu Tipi · Ölçü · Maliyet · Fire Dökümü');
+
+  types.forEach((ft,idx)=>{
+    const st=_typeStats(ft);
+    const vars=st.vars;
+    const dikey=(ft.dikeyEn||'')+' × '+(ft.dikeyBoy||'');
+
+    body+='<div class="'+(idx>0?'page-break':'')+'">';
+    body+='<div class="sec-title"><span class="kod">'+esc(ft.kod)+'</span> — '+esc(ft.ad)+'</div>';
+    body+='<div class="formula">Formül (En × Boy): '+esc(dikey)+'</div>';
+
+    // KPI
+    body+='<div class="kpi-row">'
+      + _kpi(_n(st.tAdet,0),'Toplam Adet','blue')
+      + _kpi(_n(st.tM2,2)+' m²','Toplam Üretim','green')
+      + _kpi(_n(st.tTL,2)+' TL','Toplam Maliyet','orange')
+      + _kpi(_n(st.firePct,1)+' %','Ort. Fire', st.firePct<=5?'green':st.firePct<=12?'orange':'red')
+      + _kpi(_n(st.tFireM2,2)+' m²','Toplam Fire','red')
+      + _kpi(_n(st.tFireTL,2)+' TL','Fire Maliyeti','red')
+      + '</div>';
+
+    // Tablo başlığı
+    let head='<thead><tr><th class="l">Kutu Adı</th>';
+    vars.forEach(v=>head+='<th>'+esc(_varLbl(v))+'</th>');
+    head+='<th class="c">Yön</th><th>Adet</th><th>K.Eni</th><th>Piyasa Eni</th><th>K.Boy</th>'
+        +'<th>m²/Ad</th><th>Top. m²</th><th>Br.TL</th><th>Top. TL</th>'
+        +'<th>Fire %</th><th>Fire m²</th><th>Fire TL</th><th>Rulo m</th></tr></thead>';
+
+    let rowsHtml='';
+    st.rows.forEach(x=>{
+      const h=x.h, cls=_fireCls(h.fireOran);
+      rowsHtml+='<tr><td class="l">'+(esc(x.r.ad)||'—')+'</td>';
+      x.varVals.forEach(vv=>rowsHtml+='<td>'+_n(vv,0)+'</td>');
+      rowsHtml+='<td class="c">'+esc(x.r.yon||'DİKEY')+'</td>'
+        +'<td>'+_n(x.adet,0)+'</td>'
+        +'<td>'+_n(h.en,0)+'</td>'
+        +'<td><b>'+_n(h.piyasa,0)+'</b></td>'
+        +'<td>'+_n(h.boy,0)+'</td>'
+        +'<td>'+_n(h.m2A,4)+'</td>'
+        +'<td>'+_n(h.totM2,2)+'</td>'
+        +'<td>'+_n(x.fi,2)+'</td>'
+        +'<td>'+_n(h.totTL,2)+'</td>'
+        +'<td><span class="fire-badge '+cls+'">'+_n(h.fireOran,1)+'%</span></td>'
+        +'<td>'+_n(h.totFireM2,3)+'</td>'
+        +'<td>'+_n(h.fireTL,2)+'</td>'
+        +'<td>'+_n(h.rulo,2)+'</td></tr>';
+    });
+
+    const colspanVars=vars.length;
+    let foot='<tfoot><tr><td class="l">TOPLAM ('+st.rows.length+' ölçü)</td>'
+      + '<td colspan="'+(colspanVars+1)+'"></td>'
+      + '<td>'+_n(st.tAdet,0)+'</td>'
+      + '<td colspan="4"></td>'
+      + '<td>'+_n(st.tM2,2)+'</td>'
+      + '<td></td>'
+      + '<td>'+_n(st.tTL,2)+'</td>'
+      + '<td>'+_n(st.firePct,1)+'%</td>'
+      + '<td>'+_n(st.tFireM2,3)+'</td>'
+      + '<td>'+_n(st.tFireTL,2)+'</td>'
+      + '<td>'+_n(st.tRulo,2)+'</td></tr></tfoot>';
+
+    body+='<table>'+head+'<tbody>'+rowsHtml+'</tbody>'+foot+'</table>';
+
+    // Bu tipe ait piyasa karton eni kullanımı
+    const usage=_piyasaUsage([ft]);
+    body+='<div class="sec-title" style="font-size:12px;margin-top:10px;">Piyasa Karton Eni Kullanımı — '+esc(ft.kod)+'</div>';
+    let uHead='<thead><tr><th>Piyasa Karton Eni (mm)</th><th>Kullanılan Ölçü</th><th>Toplam Adet</th><th>Toplam m²</th><th>Fire m²</th><th>Fire TL</th></tr></thead>';
+    let uRows='';
+    usage.forEach(u=>{
+      uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' ölçü</td><td>'+_n(u.adet,0)+'</td><td>'+_n(u.m2,2)+'</td><td>'+_n(u.fireM2,3)+'</td><td>'+_n(u.fireTL,2)+'</td></tr>';
+    });
+    body+='<table>'+uHead+'<tbody>'+uRows+'</tbody></table>';
+    body+='</div>';
+  });
+
+  _openReport('ORİMAK · Kutu Tipi Detay Raporu', body, true);
+}
+
+// ---------- 2) FİRE ANALİZİ RAPORU ----------
+function pdfFire(){
+  const types=_typesWithData();
+  if(!types.length){ alert('Önce en az bir kutuya L, B, H ölçüsü girin.'); return; }
+
+  let gM2=0,gTL=0,gFireM2=0,gFireTL=0;
+  const statList=types.map(ft=>{ const st=_typeStats(ft); gM2+=st.tM2;gTL+=st.tTL;gFireM2+=st.tFireM2;gFireTL+=st.tFireTL; return {ft,st}; });
+  const gFirePct = gM2>0 ? gFireM2/gM2*100 : 0;
+
+  let body=_docHeader('Fire Analizi Raporu','İşleme + Piyasa Eni Firesi · Fire Maliyeti');
+
+  body+='<div class="kpi-row">'
+    + _kpi(_n(gM2,2)+' m²','Toplam Üretim','green')
+    + _kpi(_n(gFireM2,2)+' m²','Toplam Fire','red')
+    + _kpi(_n(gFirePct,1)+' %','Genel Fire Oranı', gFirePct<=5?'green':gFirePct<=12?'orange':'red')
+    + _kpi(_n(gFireTL,2)+' TL','Toplam Fire Maliyeti','red')
+    + _kpi(_n(gTL,2)+' TL','Toplam Maliyet','orange')
+    + '</div>';
+
+  // Tip bazında fire
+  body+='<div class="sec-title">Kutu Tipi Bazında Fire Dökümü</div>';
+  let head='<thead><tr><th class="l">FEFCO Tipi</th><th class="l">Ad</th><th>Ölçü</th><th>Adet</th>'
+    +'<th>İşleme Fire %</th><th>Piyasa Eni Fire %</th><th>Toplam Fire %</th><th>Fire m²</th><th>Fire TL</th></tr></thead>';
+  let rows='';
+  statList.forEach(({ft,st})=>{
+    const cls=_fireCls(st.firePct);
+    rows+='<tr><td class="l"><b>'+esc(ft.kod)+'</b></td><td class="l">'+esc(ft.ad)+'</td>'
+      +'<td>'+_n(st.rows.length,0)+'</td>'
+      +'<td>'+_n(st.tAdet,0)+'</td>'
+      +'<td>'+_n(st.islPct,1)+'%</td>'
+      +'<td>'+_n(st.piyPct,1)+'%</td>'
+      +'<td><span class="fire-badge '+cls+'">'+_n(st.firePct,1)+'%</span></td>'
+      +'<td>'+_n(st.tFireM2,3)+'</td>'
+      +'<td>'+_n(st.tFireTL,2)+'</td></tr>';
+  });
+  let foot='<tfoot><tr><td class="l" colspan="2">GENEL TOPLAM</td><td></td><td></td><td></td><td></td>'
+    +'<td>'+_n(gFirePct,1)+'%</td><td>'+_n(gFireM2,3)+'</td><td>'+_n(gFireTL,2)+'</td></tr></tfoot>';
+  body+='<table>'+head+'<tbody>'+rows+'</tbody>'+foot+'</table>';
+
+  // Piyasa eni bazında fire
+  const usage=_piyasaUsage(types);
+  body+='<div class="sec-title">Piyasa Karton Eni Bazında Fire Dağılımı</div>';
+  let uHead='<thead><tr><th>Piyasa Karton Eni (mm)</th><th>Kullanılan Ölçü</th><th>Toplam Adet</th><th>Toplam m²</th><th>Fire m²</th><th>Fire %</th><th>Fire Maliyeti TL</th></tr></thead>';
+  let uRows=''; let uM2=0,uFireM2=0,uFireTL=0,uAdet=0,uOlcu=0;
+  usage.forEach(u=>{
+    const p=u.m2>0?u.fireM2/u.m2*100:0;
+    uM2+=u.m2;uFireM2+=u.fireM2;uFireTL+=u.fireTL;uAdet+=u.adet;uOlcu+=u.olcu;
+    uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' ölçü</td><td>'+_n(u.adet,0)+'</td><td>'+_n(u.m2,2)+'</td><td>'+_n(u.fireM2,3)+'</td>'
+      +'<td><span class="fire-badge '+_fireCls(p)+'">'+_n(p,1)+'%</span></td><td>'+_n(u.fireTL,2)+'</td></tr>';
+  });
+  let uFoot='<tfoot><tr><td>TOPLAM</td><td>'+_n(uOlcu,0)+' ölçü</td><td>'+_n(uAdet,0)+'</td><td>'+_n(uM2,2)+'</td><td>'+_n(uFireM2,3)+'</td><td>'+_n(uM2>0?uFireM2/uM2*100:0,1)+'%</td><td>'+_n(uFireTL,2)+'</td></tr></tfoot>';
+  body+='<table>'+uHead+'<tbody>'+uRows+'</tbody>'+uFoot+'</table>';
+
+  body+='<p class="note">Fire = İşleme firesi (kesim/slot ağzı kaybı) + Piyasa eni firesi (hesaplanan en ile bir üst piyasa karton eni arasındaki şerit kaybı). '
+    +'Fire oranı ≤ %5 düşük, %5–12 orta, &gt; %12 yüksek olarak değerlendirilir.</p>';
+
+  _openReport('ORİMAK · Fire Analizi Raporu', body, false);
+}
+
+// ---------- 3) KURUMSAL GENEL RAPOR ----------
+function pdfKurumsal(){
+  const types=_typesWithData();
+  if(!types.length){ alert('Önce en az bir kutuya L, B, H ölçüsü girin.'); return; }
+
+  let gM2=0,gTL=0,gRulo=0,gFireM2=0,gFireTL=0,gAdet=0;
+  const statList=types.map(ft=>{
+    const st=_typeStats(ft);
+    gM2+=st.tM2;gTL+=st.tTL;gRulo+=st.tRulo;gFireM2+=st.tFireM2;gFireTL+=st.tFireTL;gAdet+=st.tAdet;
+    return {ft,st};
+  });
+  const gFirePct=gM2>0?gFireM2/gM2*100:0;
+
+  let body=_docHeader('Kurumsal Üretim & Maliyet Raporu','Genel Özet · Üretim · Maliyet · Fire · Karton Eni');
+
+  body+='<div class="kpi-row">'
+    + _kpi(_n(gAdet,0),'Toplam Adet','blue')
+    + _kpi(_n(gM2,2)+' m²','Toplam Üretim','green')
+    + _kpi(_n(gTL,2)+' TL','Toplam Maliyet','orange')
+    + _kpi(_n(gRulo,1)+' m','Toplam Rulo','blue')
+    + '</div>';
+  body+='<div class="kpi-row">'
+    + _kpi(_n(gFireM2,2)+' m²','Toplam Fire','red')
+    + _kpi(_n(gFireTL,2)+' TL','Toplam Fire Maliyeti','red')
+    + _kpi(_n(gFirePct,1)+' %','Genel Fire Oranı', gFirePct<=5?'green':gFirePct<=12?'orange':'red')
+    + _kpi(_n(gTL>0?(gFireTL/gTL*100):0,1)+' %','Maliyette Fire Payı','red')
+    + '</div>';
+
+  // Kutu tipi bazında özet
+  body+='<div class="sec-title">Kutu Tipi Bazında Özet</div>';
+  let head='<thead><tr><th class="l">FEFCO Tipi</th><th class="l">Ad</th><th>Adet</th><th>Toplam m²</th>'
+    +'<th>Maliyet TL</th><th>Fire %</th><th>Fire m²</th><th>Fire TL</th><th>Rulo m</th></tr></thead>';
+  let rows='';
+  statList.forEach(({ft,st})=>{
+    rows+='<tr><td class="l"><b>'+esc(ft.kod)+'</b></td><td class="l">'+esc(ft.ad)+'</td>'
+      +'<td>'+_n(st.tAdet,0)+'</td>'
+      +'<td>'+_n(st.tM2,2)+'</td>'
+      +'<td>'+_n(st.tTL,2)+'</td>'
+      +'<td><span class="fire-badge '+_fireCls(st.firePct)+'">'+_n(st.firePct,1)+'%</span></td>'
+      +'<td>'+_n(st.tFireM2,3)+'</td>'
+      +'<td>'+_n(st.tFireTL,2)+'</td>'
+      +'<td>'+_n(st.tRulo,1)+'</td></tr>';
+  });
+  let foot='<tfoot><tr><td class="l" colspan="2">GENEL TOPLAM</td>'
+    +'<td>'+_n(gAdet,0)+'</td><td>'+_n(gM2,2)+'</td><td>'+_n(gTL,2)+'</td>'
+    +'<td>'+_n(gFirePct,1)+'%</td><td>'+_n(gFireM2,3)+'</td><td>'+_n(gFireTL,2)+'</td><td>'+_n(gRulo,1)+'</td></tr></tfoot>';
+  body+='<table>'+head+'<tbody>'+rows+'</tbody>'+foot+'</table>';
+
+  // Piyasa karton eni kullanım dağılımı
+  const usage=_piyasaUsage(types);
+  body+='<div class="sec-title">Piyasa Karton Eni Kullanım Dağılımı</div>';
+  body+='<div class="formula" style="margin-left:0;">Hangi piyasa karton eninden kaç farklı ölçü ve kaç adet kutu üretiliyor:</div>';
+  let uHead='<thead><tr><th>Piyasa Karton Eni (mm)</th><th>Kullanılan Ölçü Sayısı</th><th>Toplam Adet</th><th>Toplam m²</th><th>Fire m²</th><th>Tahmini Fire Maliyeti TL</th></tr></thead>';
+  let uRows=''; let uM2=0,uFireM2=0,uFireTL=0,uAdet=0,uOlcu=0;
+  usage.forEach(u=>{
+    uM2+=u.m2;uFireM2+=u.fireM2;uFireTL+=u.fireTL;uAdet+=u.adet;uOlcu+=u.olcu;
+    uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' ölçü</td><td>'+_n(u.adet,0)+'</td><td>'+_n(u.m2,2)+'</td><td>'+_n(u.fireM2,3)+'</td><td>'+_n(u.fireTL,2)+'</td></tr>';
+  });
+  let uFoot='<tfoot><tr><td>TOPLAM</td><td>'+_n(uOlcu,0)+' ölçü</td><td>'+_n(uAdet,0)+'</td><td>'+_n(uM2,2)+'</td><td>'+_n(uFireM2,3)+'</td><td>'+_n(uFireTL,2)+'</td></tr></tfoot>';
+  body+='<table>'+uHead+'<tbody>'+uRows+'</tbody>'+uFoot+'</table>';
+
+  body+='<p class="note">Bu rapor mevcut girilen tüm kutu ölçüleri üzerinden otomatik hesaplanmıştır. '
+    +'Maliyet = Toplam m² × birim TL. Fire maliyeti, fire m² × ilgili kutu birim TL toplamıdır.</p>';
+
+  _openReport('ORİMAK · Kurumsal Genel Rapor', body, false);
+}
+
+// ---------- PDF MENÜSÜ ----------
+function openPdfMenu(){
+  const bg=document.createElement('div');
+  bg.className='modal-bg';
+  bg.innerHTML=
+    '<div class="modal-box" style="min-width:440px;max-width:520px;">'
+    + '<h3>📄 PDF Rapor Çıktısı</h3>'
+    + '<p style="font-family:\'Barlow Condensed\',sans-serif;font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6;">'
+    + 'Rapor türünü seçin. Açılan önizleme penceresinde <b style="color:var(--orange)">Yazdır → Hedef: "PDF olarak kaydet"</b> ile dosyayı indirin.</p>'
+    + '<div style="display:flex;flex-direction:column;gap:10px;">'
+    + '<button class="save-btn pdf-opt" onclick="this.closest(\'.modal-bg\').remove();pdfKutuDetay();">📦 Kutu Tipi Detay Raporu'
+    + '<span>Her kutu tipi ayrı sayfada · tüm ölçüler, maliyet, fire ve karton eni kullanımı</span></button>'
+    + '<button class="save-btn pdf-opt" onclick="this.closest(\'.modal-bg\').remove();pdfFire();">🔥 Fire Analizi Raporu'
+    + '<span>İşleme + piyasa eni firesi, fire maliyeti, karton eni bazında fire dağılımı</span></button>'
+    + '<button class="save-btn pdf-opt" onclick="this.closest(\'.modal-bg\').remove();pdfKurumsal();">🏭 Kurumsal Genel Rapor'
+    + '<span>Kapsamlı: üretim, maliyet, fire, fire maliyeti ve karton eni kullanım dağılımı</span></button>'
+    + '</div>'
+    + '<div class="modal-btns"><button class="modal-btn cancel" onclick="this.closest(\'.modal-bg\').remove();">Kapat</button></div>'
+    + '</div>';
+  bg.addEventListener('click',e=>{ if(e.target===bg) bg.remove(); });
+  document.body.appendChild(bg);
+}
+
 </script>
 </body>
 </html>
