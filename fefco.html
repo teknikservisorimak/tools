@@ -1312,7 +1312,7 @@ function hesapla(ft,r){
 
   // 2) PİYASA ENİ firesi: kutu başına düşen piyasa eni payı ile tek kutu eni arasındaki şerit.
   //    İkili kesimde piyasaPerBox = piyasa/2 olduğundan fire önemli ölçüde düşebilir.
-  const firePiyasa=en>0?((piyasaPerBox-en)/en)*100:0; // %
+  const firePiyasa=piyasaPerBox>0?((piyasaPerBox-en)/piyasaPerBox)*100:0; // % (atılan/brüt)
   const piyasaM2=(piyasaPerBox-en)>0?((piyasaPerBox-en)*boy)/1e6:0; // m²/adet
 
   // 3) TOPLAM fire = işleme + piyasa eni
@@ -1385,7 +1385,7 @@ function calcCellsHtml(h){
   if(h){
     const fc=h.fireOran<=5?'ok':h.fireOran<=12?'warn':'bad';
     const kalNot=h.kalibExact?' ✓kalibre (birebir ölçü)':'';
-    fireHtml=`<div class="fire-cell" title="İşleme: ${h.fireIsleme.toFixed(1)}% + Piyasa eni: ${h.firePiyasa.toFixed(1)}% = Toplam ${h.fireOran.toFixed(1)}%${kalNot}"><span class="fire-cell-pct ${fc}">${h.fireOran.toFixed(1)}%${h.kalibExact?'<span class="kal-dot" title="Kalibrasyondan birebir">●</span>':''}</span><div class="fire-cell-bar ${fc}" style="width:${Math.min(h.fireOran*4,100)}%"></div></div>`;
+    fireHtml=`<div class="fire-cell" title="İşleme: ${h.fireIsleme.toFixed(2)}% + Piyasa eni: ${h.firePiyasa.toFixed(2)}% = Toplam ${h.fireOran.toFixed(2)}%${kalNot}"><span class="fire-cell-pct ${fc}">${h.fireOran.toFixed(2)}%${h.kalibExact?'<span class="kal-dot" title="Kalibrasyondan birebir">●</span>':''}</span><div class="fire-cell-bar ${fc}" style="width:${Math.min(h.fireOran*4,100)}%"></div></div>`;
   }else fireHtml=cv(null);
   return {
     en:   h?(h.ikili
@@ -1738,12 +1738,12 @@ function updateFire(){
   <div class="fire-row">
     <div class="fire-bar-wrap" style="margin-bottom:8px;">
       <div class="fire-bar-bg" style="height:10px;"><div class="fire-bar-fill ${afc}" style="width:${barW}%"></div></div>
-      <span class="fire-pct ${afc}" style="font-size:16px;width:56px;">${avgFirePct.toFixed(1)}%</span>
+      <span class="fire-pct ${afc}" style="font-size:16px;width:56px;">${avgFirePct.toFixed(2)}%</span>
     </div>
     <div class="fire-detail" style="margin-bottom:8px;">
-      <span>İşleme firesi ort.: <b>${avgFireIsleme.toFixed(1)}%</b></span>
-      <span>Piyasa eni firesi ort.: <b>${avgFirePiyasa.toFixed(1)}%</b></span>
-      <span style="color:var(--orange)">Toplam ort.: <b style="color:var(--orange)">${avgFirePct.toFixed(1)}%</b></span>
+      <span>İşleme firesi ort.: <b>${avgFireIsleme.toFixed(2)}%</b></span>
+      <span>Piyasa eni firesi ort.: <b>${avgFirePiyasa.toFixed(2)}%</b></span>
+      <span style="color:var(--orange)">Toplam ort.: <b style="color:var(--orange)">${avgFirePct.toFixed(2)}%</b></span>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
       <div class="fire-avg-chip">
@@ -2466,7 +2466,7 @@ function kalibRun(){
     const fy=parseFloat(r.fireYuzde);
     if(calc&&!isNaN(fy)&&fy>=0){
       const piyasa=nearPiyasa(calc.en);
-      const firePiyasa=calc.en>0?((piyasa-calc.en)/calc.en)*100:0; // bu örneğin piyasa eni firesi
+      const firePiyasa=piyasa>0?((piyasa-calc.en)/piyasa)*100:0; // bu örneğin piyasa eni firesi (atılan/brüt)
       const fireIsleme=Math.max(0, fy-firePiyasa);                 // öğrenilecek işleme firesi
       // Bu satırın GERÇEK işleme firesini sakla → ana tabloda birebir ölçü için kullanılır
       r._fireIsleme=fireIsleme;
@@ -2549,14 +2549,14 @@ function kalibShowResults(ftId){
   let accHtml='<table style="width:100%;font-size:12px;margin-top:8px;"><thead><tr><th>#</th><th>Eni</th><th>Boyu</th><th>m²</th><th>Gerçek Fire%</th><th>Tahmin Fire%</th><th>Fark</th></tr></thead><tbody>';
   (res.valid||[]).forEach((v,i)=>{
     const x=v.m2A>0?(v.H*v.T/v.m2A):0;
-    const fp=v.firePiyasa!==undefined?v.firePiyasa:(v.en>0?((nearPiyasa(v.en)-v.en)/v.en)*100:0);
+    const fp=v.firePiyasa!==undefined?v.firePiyasa:(nearPiyasa(v.en)>0?((nearPiyasa(v.en)-v.en)/nearPiyasa(v.en))*100:0);
     const predIsleme=Math.max(0,res.alpha*x+res.beta);
     const predTotal=predIsleme+fp;                 // tahmin = işleme + piyasa eni
     const diff=Math.abs(predTotal-v.fireYuzde);     // gerçek girilen TOPLAM ile karşılaştır
     const cls=diff<1?'good':diff<3?'mid':'poor';
     accHtml+=`<tr><td>${i+1}</td><td>${v.en}mm</td><td>${v.boy}mm</td><td>${v.m2A.toFixed(4)}</td>
-      <td style="color:#f87171;font-weight:700">${v.fireYuzde.toFixed(1)}%</td>
-      <td style="color:#4ade80;font-weight:700">${predTotal.toFixed(1)}%</td>
+      <td style="color:#f87171;font-weight:700">${v.fireYuzde.toFixed(2)}%</td>
+      <td style="color:#4ade80;font-weight:700">${predTotal.toFixed(2)}%</td>
       <td><span class="kalib-stat ${cls}">${diff<0.1?'✓':diff.toFixed(1)+'%'}</span></td></tr>`;
   });
   accHtml+='</tbody></table>';
@@ -3111,7 +3111,7 @@ function kalibPredCalc(){
   const fireM2=firePct/100*calc.m2A;
   const piyasaEn=nearPiyasa(calc.en);
   const pFark=piyasaEn-calc.en;
-  const pEk=calc.en>0?(pFark/calc.en)*100:0;
+  const pEk=piyasaEn>0?(pFark/piyasaEn)*100:0;
   const toplamPct=firePct+pEk;                 // işleme + piyasa eni firesi
   const tc=toplamPct<=5?'ok':toplamPct<=12?'warn':'bad';
   const fc=firePct<=5?'ok':firePct<=12?'warn':'bad';
@@ -3122,10 +3122,10 @@ function kalibPredCalc(){
       <div class="kalib-pred-item"><div class="pv" style="color:var(--green)">${calc.en} mm</div><div class="pl">Karton Eni</div></div>
       <div class="kalib-pred-item"><div class="pv" style="color:var(--green)">${calc.boy} mm</div><div class="pl">Karton Boy</div></div>
       <div class="kalib-pred-item"><div class="pv" style="color:var(--green)">${calc.m2A.toFixed(4)}</div><div class="pl">m²/Adet</div></div>
-      <div class="kalib-pred-item"><div class="pv" style="color:${fcColors[fc]}">${firePct.toFixed(1)}%</div><div class="pl">İşleme Firesi</div></div>
+      <div class="kalib-pred-item"><div class="pv" style="color:${fcColors[fc]}">${firePct.toFixed(2)}%</div><div class="pl">İşleme Firesi</div></div>
       <div class="kalib-pred-item"><div class="pv" style="color:#60a5fa">${piyasaEn} mm</div><div class="pl">Piyasa Eni</div></div>
-      <div class="kalib-pred-item"><div class="pv" style="color:${pEk>12?'#f87171':pEk>5?'#facc15':'#4ade80'}">${pEk>0?'+':''}${pEk.toFixed(1)}%</div><div class="pl">Piyasa Eni Firesi</div></div>
-      <div class="kalib-pred-item" style="border:1px solid var(--orange-border);background:var(--orange-dim);"><div class="pv" style="color:${fcColors[tc]}">${toplamPct.toFixed(1)}%</div><div class="pl">TOPLAM FİRE</div></div>
+      <div class="kalib-pred-item"><div class="pv" style="color:${pEk>12?'#f87171':pEk>5?'#facc15':'#4ade80'}">${pEk>0?'+':''}${pEk.toFixed(2)}%</div><div class="pl">Piyasa Eni Firesi</div></div>
+      <div class="kalib-pred-item" style="border:1px solid var(--orange-border);background:var(--orange-dim);"><div class="pv" style="color:${fcColors[tc]}">${toplamPct.toFixed(2)}%</div><div class="pl">TOPLAM FİRE</div></div>
       <div class="kalib-pred-item"><div class="pv" style="color:${fcColors[fc]}">${(fireM2*10000).toFixed(1)} cm²</div><div class="pl">İşleme Fire Alanı</div></div>
     </div>
   `;
@@ -3321,7 +3321,7 @@ function pdfKutuDetay(){
         +'<td>'+_n(h.totM2,2)+'</td>'
         +'<td>'+_n(x.fi,2)+'</td>'
         +'<td>'+_n(h.totTL,2)+'</td>'
-        +'<td><span class="fire-badge '+cls+'">'+_n(h.fireOran,1)+'%</span></td>'
+        +'<td><span class="fire-badge '+cls+'">'+_n(h.fireOran,2)+'%</span></td>'
         +'<td>'+_n(h.totFireM2,3)+'</td>'
         +'<td>'+_n(h.fireTL,2)+'</td>'
         +'<td>'+_n(h.rulo,2)+'</td></tr>';
