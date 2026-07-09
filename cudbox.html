@@ -3065,28 +3065,176 @@ function handleDatUpload(file) {
   reader.readAsArrayBuffer(file);
 }
 
+let datRawRows = [];   // ham satırlar (sütun dizileri)
+let datFileName = '';
+let datMapping = { name: -1, B: -1, L: -1, H: -1, T: -1, K1: -1 };
+
 function parseDatData(text, fileName) {
   const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
-  datOrders = [];
+  datRawRows = [];
+  datFileName = fileName;
 
   for (let i = 0; i < lines.length; i++) {
-    const cols = lines[i].split('\t');
-    if (cols.length < 9) continue;
+    const cols = lines[i].split('\t').map(c => c.trim());
+    if (cols.length < 2) continue;
+    datRawRows.push(cols);
+  }
 
-    // Sütunlar (0-indexed):
-    // 0: tarih, 1: ms, 2: tarih tekrar, 3: boş
-    // 4: Genişlik (B), 5: Kalınlık (T), 6: Ürün Adı
-    // 7: Uzunluk (L), 8: Yükseklik (H)
+  if (datRawRows.length === 0) {
+    alert('DAT dosyasında okunabilir satır bulunamadı.');
+    return;
+  }
 
-    const B = parseFloat(cols[4]) || 0;
-    const T = parseFloat(cols[5]) || 0;
-    const productName = (cols[6] || '').trim();
-    const L = parseFloat(cols[7]) || 0;
-    const H = parseFloat(cols[8]) || 0;
+  autoDetectDatMapping();
+  renderDatMappingUI();
+  applyDatMapping();
+}
+
+// Sütunları otomatik tahmin et
+function autoDetectDatMapping() {
+  const colCount = Math.max(...datRawRows.map(r => r.length));
+  const sample = datRawRows.slice(0, Math.min(20, datRawRows.length));
+
+  // Her sütun için: sayısal mı, metin mi, tarih mi?
+  const isNumericCol = [];
+  const isTextCol = [];
+  for (let c = 0; c < colCount; c++) {
+    let num = 0, txt = 0, filled = 0;
+    sample.forEach(r => {
+      const v = (r[c] || '').trim();
+      if (v === '') return;
+      filled++;
+      // tarih formatını dışla (2021/05/17 gibi)
+      if (/^\d{4}[\/.-]\d{1,2}[\/.-]\d{1,2}/.test(v)) return;
+      if (/^-?\d+([.,]\d+)?$/.test(v)) num++;
+      else txt++;
+    });
+    isNumericCol[c] = filled > 0 && num >= filled * 0.8;
+    isTextCol[c] = filled > 0 && txt >= filled * 0.5;
+  }
+
+  // Metin sütunu = Ürün Adı (ilk bulunan)
+  let nameCol = -1;
+  for (let c = 0; c < colCount; c++) {
+    if (isTextCol[c]) { nameCol = c; break; }
+  }
+
+  // Sayısal sütunları topla
+  const numCols = [];
+  for (let c = 0; c < colCount; c++) {
+    if (isNumericCol[c]) numCols.push(c);
+  }
+
+  // Standart makine formatı: ... B, T, K1, İSİM, L, H
+  // İsim sütunundan önceki 3 sayısal: B, T, K1 — sonraki 2 sayısal: L, H
+  const before = numCols.filter(c => c < nameCol);
+  const after = numCols.filter(c => c > nameCol);
+
+  datMapping = { name: nameCol, B: -1, L: -1, H: -1, T: -1, K1: -1 };
+
+  if (before.length >= 3 && after.length >= 2) {
+    const b3 = before.slice(-3);
+    datMapping.B = b3[0];
+    datMapping.T = b3[1];
+    datMapping.K1 = b3[2];
+    datMapping.L = after[0];
+    datMapping.H = after[1];
+  } else if (before.length >= 2 && after.length >= 2) {
+    const b2 = before.slice(-2);
+    datMapping.B = b2[0];
+    datMapping.T = b2[1];
+    datMapping.L = after[0];
+    datMapping.H = after[1];
+  } else {
+    // Genel yedek: ilk 4-5 sayısal sütunu sırayla ata
+    if (numCols[0] !== undefined) datMapping.B = numCols[0];
+    if (numCols[1] !== undefined) datMapping.T = numCols[1];
+    if (numCols[2] !== undefined) datMapping.L = numCols[2];
+    if (numCols[3] !== undefined) datMapping.H = numCols[3];
+  }
+}
+
+// Eşleştirme panelini çiz
+function renderDatMappingUI() {
+  const div = document.getElementById('datPreview');
+  div.style.display = 'block';
+  document.getElementById('btnClearDat').style.display = 'inline-flex';
+
+  const colCount = Math.max(...datRawRows.map(r => r.length));
+  const firstRow = datRawRows[0];
+
+  // Sütun seçenekleri: örnek değerle birlikte göster
+  function colOptions(selected, allowNone) {
+    let opts = allowNone ? `<option value="-1" ${selected === -1 ? 'selected' : ''}>— yok —</option>` : `<option value="-1" ${selected === -1 ? 'selected' : ''}>— seçin —</option>`;
+    for (let c = 0; c < colCount; c++) {
+      const example = (firstRow[c] || '').substring(0, 22) || '(boş)';
+      opts += `<option value="${c}" ${selected === c ? 'selected' : ''}>Sütun ${c + 1} — örn: ${example}</option>`;
+    }
+    return opts;
+  }
+
+  const fields = [
+    { key: 'name', label: '📦 Ürün Adı (dosya adı)', none: false },
+    { key: 'B',    label: 'B — Genişlik', none: false },
+    { key: 'L',    label: 'L — Uzunluk', none: false },
+    { key: 'H',    label: 'H — Yükseklik', none: false },
+    { key: 'T',    label: 'T — Kalınlık', none: true },
+    { key: 'K1',   label: 'K1', none: true },
+  ];
+
+  let mapHtml = `
+  <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px;">
+    <div style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px;">🔗 Sütun Eşleştirme</div>
+    <p style="font-size:12px; color:var(--text3); margin-bottom:12px;">Otomatik tahmin yapıldı — yanlışsa aşağıdan düzeltin. Örnek değerler ilk satırdan alınmıştır.</p>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:10px;">`;
+
+  fields.forEach(f => {
+    mapHtml += `
+      <div>
+        <label style="font-size:11px; font-weight:700; color:var(--text2); display:block; margin-bottom:4px;">${f.label}</label>
+        <select data-map-key="${f.key}" onchange="onDatMappingChange(this)" style="width:100%; font-family:var(--mono); font-size:12px; background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:6px 8px;">
+          ${colOptions(datMapping[f.key], f.none)}
+        </select>
+      </div>`;
+  });
+
+  mapHtml += `
+    </div>
+  </div>
+  <div id="datOrdersPreview"></div>`;
+
+  div.innerHTML = mapHtml;
+}
+
+function onDatMappingChange(sel) {
+  const key = sel.getAttribute('data-map-key');
+  datMapping[key] = parseInt(sel.value, 10);
+  applyDatMapping();
+}
+
+// Eşleştirmeye göre datOrders'ı oluştur ve önizlemeyi güncelle
+function applyDatMapping() {
+  datOrders = [];
+  const m = datMapping;
+
+  const getNum = (cols, idx) => {
+    if (idx < 0) return NaN;
+    const v = (cols[idx] || '').replace(',', '.');
+    return parseFloat(v);
+  };
+
+  for (let i = 0; i < datRawRows.length; i++) {
+    const cols = datRawRows[i];
+
+    const B = getNum(cols, m.B) || 0;
+    const L = getNum(cols, m.L) || 0;
+    const H = getNum(cols, m.H) || 0;
+    const T = getNum(cols, m.T);
+    const K1 = getNum(cols, m.K1);
+    const productName = m.name >= 0 ? (cols[m.name] || '').trim() : '';
 
     if (!productName && B === 0 && L === 0 && H === 0) continue;
 
-    // Dosya adını ürün adından türet — özel karakterleri temizle
     const safeName = productName
       .replace(/[\/\\:*?"<>|]/g, '_')
       .replace(/\s+/g, '_')
@@ -3095,38 +3243,35 @@ function parseDatData(text, fileName) {
 
     const order = {
       row: i + 1,
-      template: '', // şablon dropdown'dan gelecek
+      template: '',
       fileName: safeName + '.cudbox',
       productName: productName,
-      args: { B, L, H, T },
+      args: { B, L, H },
       status: 'wait',
       error: null
     };
 
-    // Eğer 9'dan fazla sütun varsa K1 olabilir
-    if (cols.length > 9) {
-      const k1 = parseFloat(cols[9]);
-      if (!isNaN(k1) && k1 > 0) order.args.K1 = k1;
-    }
+    if (!isNaN(T) && T > 0) order.args.T = T;
+    if (!isNaN(K1) && K1 > 0) order.args.K1 = K1;
 
     datOrders.push(order);
   }
 
-  renderDatPreview(fileName);
+  renderDatOrdersPreview();
   updateGenerateButton();
 }
 
-function renderDatPreview(fileName) {
-  const div = document.getElementById('datPreview');
-  div.style.display = 'block';
-  document.getElementById('btnClearDat').style.display = 'inline-flex';
+function renderDatOrdersPreview() {
+  const div = document.getElementById('datOrdersPreview');
+  if (!div) return;
 
-  let html = `<p style="font-size:13px; color:var(--text2); margin-bottom:10px;">📝 <strong>${fileName}</strong> — ${datOrders.length} kutu okundu</p>`;
+  let html = `<p style="font-size:13px; color:var(--text2); margin-bottom:10px;">📝 <strong>${datFileName}</strong> — ${datOrders.length} kutu okundu</p>`;
   html += '<div class="table-wrap" style="max-height:400px;overflow-y:auto;"><table><thead><tr>';
   html += '<th>#</th><th>Ürün Adı</th><th>B</th><th>L</th><th>H</th><th>T</th><th>K1</th><th>Dosya Adı</th>';
   html += '</tr></thead><tbody>';
 
   datOrders.forEach((o, idx) => {
+    const t = o.args.T !== undefined ? o.args.T : '—';
     const k1 = o.args.K1 !== undefined ? o.args.K1 : '—';
     html += `<tr>
       <td>${idx + 1}</td>
@@ -3134,7 +3279,7 @@ function renderDatPreview(fileName) {
       <td>${o.args.B}</td>
       <td>${o.args.L}</td>
       <td>${o.args.H}</td>
-      <td>${o.args.T}</td>
+      <td>${t}</td>
       <td>${k1}</td>
       <td style="font-size:11px;">${o.fileName}</td>
     </tr>`;
@@ -3146,6 +3291,9 @@ function renderDatPreview(fileName) {
 
 function clearDatData() {
   datOrders = [];
+  datRawRows = [];
+  datFileName = '';
+  datMapping = { name: -1, B: -1, L: -1, H: -1, T: -1, K1: -1 };
   document.getElementById('datPreview').style.display = 'none';
   document.getElementById('datPreview').innerHTML = '';
   document.getElementById('datFileInput').value = '';
