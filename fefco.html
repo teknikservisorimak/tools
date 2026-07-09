@@ -80,6 +80,67 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .gb-inp.or{border-color:var(--orange-border);color:var(--orange);}
 .gb-inp::placeholder{color:var(--dim);}
 
+/* STOK KARTON BARI */
+.stok-bar{
+  background:var(--dark);border:1px solid var(--border);
+  border-left:3px solid var(--orange);border-radius:10px;
+  padding:14px 20px;margin-bottom:18px;
+  display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;
+}
+.stok-chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-height:32px;}
+.stok-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--orange-dim);border:1px solid var(--orange-border);
+  color:var(--orange);font-family:'Barlow Condensed',sans-serif;
+  font-size:13px;font-weight:700;letter-spacing:1px;
+  padding:5px 8px 5px 12px;border-radius:16px;
+}
+.stok-chip button{
+  background:none;border:none;color:var(--orange);cursor:pointer;
+  font-size:13px;line-height:1;padding:0 2px;opacity:.7;
+}
+.stok-chip button:hover{opacity:1;color:#fff;}
+.stok-empty-hint{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--dim);letter-spacing:1px;}
+.stok-toggle{
+  display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  background:var(--surface);border:1px solid var(--dim);border-radius:8px;
+  padding:7px 14px;font-family:'Barlow Condensed',sans-serif;
+  font-size:12px;letter-spacing:1px;color:var(--muted);transition:all .2s;
+  user-select:none;
+}
+.stok-toggle.on{border-color:var(--green);color:var(--green);background:rgba(146,208,80,.08);}
+.stok-toggle .dot{width:9px;height:9px;border-radius:50%;background:var(--dim);transition:background .2s;}
+.stok-toggle.on .dot{background:var(--green);box-shadow:0 0 8px rgba(146,208,80,.6);}
+.opt-btn{
+  background:linear-gradient(135deg,#F5A623,#e08900);border:none;color:#1a1a1a;
+  font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;
+  letter-spacing:2px;padding:9px 22px;border-radius:8px;cursor:pointer;
+  transition:all .2s;box-shadow:0 2px 10px rgba(245,166,35,.25);
+}
+.opt-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(245,166,35,.4);}
+.opt-btn:active{transform:translateY(0);}
+#optSonuc{
+  display:none;background:var(--surface);border:1px solid var(--orange-border);
+  border-radius:10px;padding:14px 18px;margin:-8px 0 18px;
+}
+#optSonuc.show{display:block;}
+.opt-ozet{font-family:'Barlow Condensed',sans-serif;font-size:14px;color:var(--text);letter-spacing:.5px;line-height:1.7;}
+.opt-ozet b{color:var(--orange);}
+.opt-ozet .iyi{color:var(--green);}
+.opt-ozet .kotu{color:#ff6b6b;}
+.opt-detay{margin-top:10px;border-top:1px solid var(--border);padding-top:10px;display:none;}
+.opt-detay.show{display:block;}
+.opt-detay table{width:100%;border-collapse:collapse;font-family:'Barlow Condensed',sans-serif;font-size:12px;}
+.opt-detay th{color:var(--orange);text-align:left;padding:4px 8px;letter-spacing:1px;font-size:10px;border-bottom:1px solid var(--border);}
+.opt-detay td{padding:4px 8px;color:var(--text);border-bottom:1px solid rgba(255,255,255,.04);}
+.opt-detay-btn{
+  background:none;border:1px solid var(--dim);color:var(--muted);
+  font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1px;
+  padding:4px 10px;border-radius:5px;cursor:pointer;margin-left:12px;
+}
+.opt-detay-btn:hover{border-color:var(--orange);color:var(--orange);}
+.cv-sigmaz{color:#ff6b6b !important;font-weight:700;font-size:10px;letter-spacing:1px;}
+
 /* TABS */
 .tabs{
   display:flex;gap:2px;flex-wrap:wrap;
@@ -708,6 +769,40 @@ footer{
     </div>
   </div>
 
+  <!-- STOK KARTON ENLERİ + OPTİMİZASYON -->
+  <div class="stok-bar">
+    <div class="gb-field">
+      <div class="gb-lbl">📦 Elimdeki Karton Enleri (mm)</div>
+      <div style="display:flex;gap:6px;">
+        <input type="text" class="gb-inp" id="stokInp" placeholder="örn: 1100, 1300" style="width:160px;"
+               title="Elinizdeki karton enlerini girin. Virgül veya boşlukla ayırarak birden fazla girebilirsiniz."
+               onkeydown="if(event.key==='Enter'){stokEkle();event.preventDefault();}">
+        <button class="save-btn" onclick="stokEkle()" style="background:var(--orange-dim);border-color:var(--orange-border);color:var(--orange);">＋ Ekle</button>
+      </div>
+    </div>
+    <div class="gb-field" style="flex:1;min-width:200px;">
+      <div class="gb-lbl">Stoktaki Enler</div>
+      <div class="stok-chips" id="stokChips"><span class="stok-empty-hint">Henüz karton eni girilmedi — piyasa enleri (100'ün katları) kullanılıyor</span></div>
+    </div>
+    <div class="gb-field">
+      <div class="gb-lbl">Hesap Modu</div>
+      <div class="stok-toggle" id="stokToggle" onclick="stokToggle()"
+           title="Açıkken tüm hesaplar piyasa enleri yerine SADECE stoktaki karton enlerine göre yapılır. Sığmayan kutular kırmızı 'SIĞMAZ' olarak işaretlenir.">
+        <span class="dot"></span><span id="stokToggleLbl">PİYASA ENLERİ</span>
+      </div>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:flex-end;">
+      <button class="opt-btn" onclick="optimizeEt()"
+              title="Her kutu için 4 kesim yönünü (DİKEY / YATAY / DİKEY İKİLİ / YATAY İKİLİ) dener; en az karton tüketen (en az fire veren) yönü otomatik seçer. Stok enleri girilmişse onlara göre optimize eder.">⚡ OPTİMİZE ET</button>
+    </div>
+  </div>
+
+  <!-- Optimizasyon sonucu -->
+  <div id="optSonuc">
+    <div class="opt-ozet" id="optOzet"></div>
+    <div class="opt-detay" id="optDetay"></div>
+  </div>
+
   <div class="tabs" id="tabBar">
     <button class="tab-btn active" onclick="switchTab('ozet',this)">📊 Genel Özet</button>
     <!-- dynamic tabs injected by JS -->
@@ -1022,9 +1117,33 @@ const PIYASA=[100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,
 // üst boya çıkmak yerine o alt boydan kesilir (örn. tol=5 → 1205 piyasa eni 1200 olur).
 let PIYASA_TOLERANS=0;
 
+// ============================================================
+// STOK KARTON ENLERİ — kullanıcının elindeki gerçek karton enleri.
+// STOK_MODU aktifken nearPiyasa 100'ün katları yerine SADECE bu
+// listeden seçim yapar. Hiçbiri sığmazsa 0 döner (=SIĞMAZ).
+// ============================================================
+let STOK_ENLERI=[];        // örn [1100,1300]
+let STOK_MODU=false;
+
 const nearPiyasa=en=>{
   if(!(en>0)) return 0;
   const tol=PIYASA_TOLERANS||0;
+
+  // ---- STOK MODU: sadece eldeki karton enlerinden seç ----
+  if(STOK_MODU && STOK_ENLERI.length){
+    const sorted=[...STOK_ENLERI].sort((a,b)=>a-b);
+    // Tolerans: en, bir stok enini en fazla tol mm aşıyorsa o (daha dar) stoktan kes
+    if(tol>0){
+      let alt=0;
+      for(const s of sorted){ if(s<en && (en-s)<=tol && s>alt) alt=s; }
+      if(alt>0) return alt;
+    }
+    // Aksi halde: sığan EN KÜÇÜK stok eni (fire en az olsun)
+    const fit=sorted.find(s=>s>=en);
+    return fit||0;                 // 0 = hiçbir stok enine sığmıyor
+  }
+
+  // ---- PİYASA MODU: 100'ün katları ----
   if(tol>0){
     const lower=Math.floor(en/100)*100;     // bir alt 100 katı
     const fazla=en-lower;                    // alt boyu ne kadar aşıyor
@@ -1352,7 +1471,10 @@ function hesapla(ft,r){
 
   const adet=r.adet||0,fi=parseFloat(r.fiyat)||gF(ft.id);
   const totM2=m2A*adet,totFireM2=totFire*adet;
+  // Stok modunda hiçbir karton enine sığmayan kesim
+  const sigmaz=STOK_MODU&&STOK_ENLERI.length>0&&piyasa<=0;
   return{en:enKesim,enTek:en,ikili,boy,m2A,totM2,totFireM2,totTL:totM2*fi,
+    sigmaz,fireM2A:totFire,
     fireOran,fireIsleme,firePiyasa,fireTL:totFireM2*fi,
     kalibExact:!!(kalibTam&&kalibTam._fireIsleme!==undefined),
     rulo:enKesim>0?totM2/(enKesim/1000):0,
@@ -1416,13 +1538,17 @@ function calcCellsHtml(h){
   if(h){
     const fc=h.fireOran<=5?'ok':h.fireOran<=12?'warn':'bad';
     const kalNot=h.kalibExact?' ✓kalibre (birebir ölçü)':'';
-    fireHtml=`<div class="fire-cell" title="İşleme: ${h.fireIsleme.toFixed(2)}% + Piyasa eni: ${h.firePiyasa.toFixed(2)}% = Toplam ${h.fireOran.toFixed(2)}%${kalNot}"><span class="fire-cell-pct ${fc}">${h.fireOran.toFixed(2)}%${h.kalibExact?'<span class="kal-dot" title="Kalibrasyondan birebir">●</span>':''}</span><div class="fire-cell-bar ${fc}" style="width:${Math.min(h.fireOran*4,100)}%"></div></div>`;
+    fireHtml=h.sigmaz
+      ?`<span class="cv cv-sigmaz" title="Bu kesim eni (${h.en} mm) stoktaki hiçbir karton enine sığmıyor. Başka bir yön deneyin veya stok listesine daha geniş bir en ekleyin.">SIĞMAZ</span>`
+      :`<div class="fire-cell" title="İşleme: ${h.fireIsleme.toFixed(2)}% + Piyasa eni: ${h.firePiyasa.toFixed(2)}% = Toplam ${h.fireOran.toFixed(2)}%${kalNot}"><span class="fire-cell-pct ${fc}">${h.fireOran.toFixed(2)}%${h.kalibExact?'<span class="kal-dot" title="Kalibrasyondan birebir">●</span>':''}</span><div class="fire-cell-bar ${fc}" style="width:${Math.min(h.fireOran*4,100)}%"></div></div>`;
   }else fireHtml=cv(null);
   return {
     en:   h?(h.ikili
             ?`<span class="cv cv-eni" title="İkili kesim: 2 × ${h.enTek} mm yan yana = ${h.en} mm">${Number(h.en).toLocaleString('tr-TR')}<span class="ikili-badge">2×</span></span>`
             :cv(h.en,'cv-eni')):cv(null),
-    pi:   h?cv(h.piyasa,'cv-piyasa'):cv(null),
+    pi:   h?(h.sigmaz
+            ?`<span class="cv cv-sigmaz" title="Stoktaki karton enlerine sığmıyor">SIĞMAZ</span>`
+            :cv(h.piyasa,'cv-piyasa')):cv(null),
     boy:  h?cv(h.boy,'',0):cv(null),
     m2:   h?cv(h.m2A,'cv-m2',4):cv(null),
     tm2:  h?cv(h.totM2,'cv-m2',2):cv(null),
@@ -1768,6 +1894,223 @@ function loadPiyasaTolerans(){
 }
 
 // ============================================================
+// STOK KARTON ENLERİ — yönetim, kalıcılık ve OPTİMİZASYON
+// ============================================================
+const STOK_KEY='orimak_fefco_stok';
+
+function stokKaydet(){
+  try{localStorage.setItem(STOK_KEY,JSON.stringify({enler:STOK_ENLERI,modu:STOK_MODU}));}catch(e){}
+  try{saveToLocal();}catch(e){}
+}
+function loadStok(){
+  try{
+    const raw=localStorage.getItem(STOK_KEY);
+    if(raw){
+      const o=JSON.parse(raw);
+      if(Array.isArray(o.enler)) STOK_ENLERI=o.enler.filter(v=>isFinite(v)&&v>0);
+      STOK_MODU=!!o.modu&&STOK_ENLERI.length>0;
+    }
+  }catch(e){}
+  stokRender();
+}
+
+// "1100, 1300 1600" gibi metni sayı listesine çevirir
+function stokParse(str){
+  return String(str||'').split(/[\s,;]+/)
+    .map(s=>parseFloat(s.replace(',','.')))
+    .filter(v=>isFinite(v)&&v>=50&&v<=5000)
+    .map(v=>Math.round(v));
+}
+
+function stokEkle(){
+  const inp=document.getElementById('stokInp');
+  if(!inp)return;
+  const yeni=stokParse(inp.value);
+  if(!yeni.length){showSaveMsg('⚠️ Geçerli bir en girin (örn: 1100)','#ff6b6b');return;}
+  let eklenen=0;
+  yeni.forEach(v=>{ if(!STOK_ENLERI.includes(v)){STOK_ENLERI.push(v);eklenen++;} });
+  STOK_ENLERI.sort((a,b)=>a-b);
+  inp.value='';
+  stokRender();
+  stokKaydet();
+  if(STOK_MODU) stokRecalc();
+  showSaveMsg(eklenen>0?('📦 '+eklenen+' karton eni eklendi'):'📦 Bu enler zaten listede');
+}
+
+function stokSil(v){
+  STOK_ENLERI=STOK_ENLERI.filter(x=>x!==v);
+  if(!STOK_ENLERI.length&&STOK_MODU){STOK_MODU=false;}
+  stokRender();
+  stokKaydet();
+  stokRecalc();
+}
+
+function stokToggle(){
+  if(!STOK_MODU&&!STOK_ENLERI.length){
+    showSaveMsg('⚠️ Önce stok karton eni ekleyin','#ff6b6b');
+    return;
+  }
+  STOK_MODU=!STOK_MODU;
+  stokRender();
+  stokKaydet();
+  stokRecalc();
+  showSaveMsg(STOK_MODU?'📦 Stok moduna geçildi — hesaplar eldeki enlere göre':'📦 Piyasa moduna dönüldü');
+}
+
+function stokRender(){
+  const chips=document.getElementById('stokChips');
+  if(chips){
+    chips.innerHTML=STOK_ENLERI.length
+      ?STOK_ENLERI.map(v=>`<span class="stok-chip">${v} mm<button onclick="stokSil(${v})" title="Kaldır">✕</button></span>`).join('')
+      :'<span class="stok-empty-hint">Henüz karton eni girilmedi — piyasa enleri (100\'ün katları) kullanılıyor</span>';
+  }
+  const tg=document.getElementById('stokToggle');
+  const lbl=document.getElementById('stokToggleLbl');
+  if(tg){
+    tg.classList.toggle('on',STOK_MODU);
+    if(lbl)lbl.textContent=STOK_MODU?'STOK ENLERİ AKTİF':'PİYASA ENLERİ';
+  }
+}
+
+function stokRecalc(){
+  FEFCO_TYPES.forEach(ft=>renderTable(ft.id));
+  updateAll();
+}
+
+// Genel fire özeti (adet girilmemiş satırlar 1 adet sayılır ki karşılaştırma anlamlı olsun)
+function stokOzetHesap(){
+  let fireM2=0,netM2=0,sigmazSay=0,satir=0;
+  FEFCO_TYPES.forEach(ft=>{
+    (DATA[ft.id]||[]).forEach(r=>{
+      const h=hesapla(ft,r);
+      if(!h)return;
+      satir++;
+      const n=Math.max(1,parseFloat(r.adet)||0);
+      if(h.sigmaz){sigmazSay++;return;}
+      fireM2+=h.fireM2A*n;
+      netM2+=h.m2A*n;
+    });
+  });
+  return{fireM2,netM2,pct:netM2>0?fireM2/netM2*100:0,sigmazSay,satir};
+}
+
+// ============================================================
+// ⚡ OPTİMİZE ET — her satır için 4 kesim yönünü dener,
+// en az karton tüketen (brüt m²/adet en düşük) yönü seçer.
+// Stok enleri girilmişse otomatik stok moduna geçer ve
+// SADECE eldeki kartonlara sığan yönler arasından seçim yapar.
+// ============================================================
+function optimizeEt(){
+  // Stok eni girilmişse optimizasyon eldeki kartonlara göre yapılır
+  if(STOK_ENLERI.length&&!STOK_MODU){
+    STOK_MODU=true;
+    stokRender();
+    stokKaydet();
+  }
+
+  const YONLER=['DİKEY','YATAY','DİKEY İKİLİ','YATAY İKİLİ'];
+  const once=stokOzetHesap();
+
+  let degisen=0,incelenen=0,sigmayan=0;
+  const detay=[];
+
+  FEFCO_TYPES.forEach(ft=>{
+    (DATA[ft.id]||[]).forEach(r=>{
+      const orijYon=r.yon||'DİKEY';
+      let best=null,bestYon=orijYon,herhangiHesap=false;
+
+      YONLER.forEach(y=>{
+        r.yon=y;
+        const h=hesapla(ft,r);
+        if(!h)return;
+        herhangiHesap=true;
+        if(h.sigmaz)return;                       // stoğa sığmayan yön aday olamaz
+        // Brüt tüketim: kutu başına düşen karton şeridi alanı (en az olan kazanır)
+        const perEn=h.piyasa/(h.ikili?2:1);        // kutu başına piyasa/stok eni payı
+        const brut=(perEn*h.boy)/1e6;              // m²/adet brüt tüketim
+        if(!best
+           || brut<best.brut-1e-9
+           || (Math.abs(brut-best.brut)<1e-9&&h.fireOran<best.fire-1e-9)){
+          best={brut,fire:h.fireOran,piyasa:h.piyasa,ikili:h.ikili};
+          bestYon=y;
+        }
+      });
+
+      if(!herhangiHesap){r.yon=orijYon;return;}    // ölçü girilmemiş satır — dokunma
+      incelenen++;
+
+      if(!best){
+        // Hiçbir yön stoğa sığmıyor — orijinal yönü koru, sığmaz olarak raporla
+        r.yon=orijYon;
+        sigmayan++;
+        const h0=hesapla(ft,r);
+        detay.push({kod:ft.kod,ad:r.ad||'—',eski:orijYon,yeni:'—',fire:null,sigmaz:true,en:h0?h0.en:0});
+        return;
+      }
+
+      r.yon=bestYon;
+      if(bestYon!==orijYon){
+        degisen++;
+        detay.push({kod:ft.kod,ad:r.ad||'—',eski:orijYon,yeni:bestYon,fire:best.fire,piyasa:best.piyasa,sigmaz:false});
+      }
+    });
+  });
+
+  stokRecalc();
+  try{saveToLocal();}catch(e){}
+  try{yedekSayacArtir();}catch(e){}
+
+  const sonra=stokOzetHesap();
+  optSonucGoster(once,sonra,{degisen,incelenen,sigmayan,detay});
+}
+
+function optSonucGoster(once,sonra,st){
+  const box=document.getElementById('optSonuc');
+  const ozet=document.getElementById('optOzet');
+  const det=document.getElementById('optDetay');
+  if(!box||!ozet)return;
+
+  if(!st.incelenen){
+    ozet.innerHTML='⚠️ Optimize edilecek dolu satır bulunamadı. Önce kutu ölçülerini (L, B, H) girin.';
+    det.innerHTML='';det.classList.remove('show');
+    box.classList.add('show');
+    return;
+  }
+
+  const fark=once.fireM2-sonra.fireM2;
+  const modTxt=STOK_MODU&&STOK_ENLERI.length
+    ?`stoktaki enlere göre (<b>${STOK_ENLERI.join(', ')} mm</b>)`
+    :'piyasa enlerine (100\'ün katları) göre';
+
+  let html=`⚡ <b>${st.incelenen}</b> satır ${modTxt} incelendi · <b>${st.degisen}</b> satırın kesim yönü değiştirildi.<br>`;
+  const kurtarilan=once.sigmazSay-sonra.sigmazSay;   // önce sığmayan, artık sığan kutu sayısı
+  if(kurtarilan>0){
+    // Sığmaz kutular fire toplamına girmediği için önce/sonra karşılaştırması yanıltıcı olur
+    html+=`<span class="iyi">✓ ${kurtarilan} kutu yön değişikliğiyle stoğa sığar hale getirildi.</span> `;
+    html+=`🔥 Sığan kutuların toplam firesi: <b>${fmt(sonra.fireM2,2)} m²</b> (%${sonra.pct.toFixed(2)})`;
+  }else{
+    html+=`🔥 Toplam fire: <b>${fmt(once.fireM2,2)} m²</b> (%${once.pct.toFixed(2)}) → <b class="${fark>=-0.001?'iyi':'kotu'}">${fmt(sonra.fireM2,2)} m²</b> (%${sonra.pct.toFixed(2)})`;
+    if(fark>0.001)html+=` · <span class="iyi">✓ ${fmt(fark,2)} m² tasarruf</span>`;
+    else if(st.degisen===0)html+=` · <span class="iyi">✓ Zaten en verimli yönlerdesiniz</span>`;
+  }
+  if(st.sigmayan>0)html+=`<br><span class="kotu">⚠️ ${st.sigmayan} kutu hiçbir yönde stoktaki karton enlerine sığmıyor</span> — daha geniş bir en ekleyin veya o kutuları piyasa modunda hesaplayın.`;
+
+  if(st.detay.length){
+    html+=`<button class="opt-detay-btn" onclick="document.getElementById('optDetay').classList.toggle('show')">Detay Göster/Gizle (${st.detay.length})</button>`;
+    let rows='';
+    st.detay.forEach(d=>{
+      rows+=d.sigmaz
+        ?`<tr><td>${d.kod}</td><td>${esc(d.ad)}</td><td colspan="2" style="color:#ff6b6b;">SIĞMAZ — kesim eni ${d.en} mm</td><td>—</td></tr>`
+        :`<tr><td>${d.kod}</td><td>${esc(d.ad)}</td><td style="color:var(--muted);">${d.eski}</td><td style="color:var(--green);">→ ${d.yeni}</td><td>${d.piyasa} mm · %${d.fire.toFixed(2)}</td></tr>`;
+    });
+    det.innerHTML=`<table><thead><tr><th>Tip</th><th>Kutu</th><th>Eski Yön</th><th>Yeni Yön</th><th>En · Fire</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }else{det.innerHTML='';det.classList.remove('show');}
+
+  ozet.innerHTML=html+`<button class="opt-detay-btn" onclick="document.getElementById('optSonuc').classList.remove('show')" style="float:right;">✕ Kapat</button>`;
+  box.classList.add('show');
+}
+
+// ============================================================
 // FIRE ANALİZİ
 // ============================================================
 function fireClass(pct){return pct<=5?'ok':pct<=12?'warn':'bad';}
@@ -1780,7 +2123,7 @@ function updateFire(){
 
   FEFCO_TYPES.forEach(ft=>{
     const rows=(DATA[ft.id]||[]).filter(r=>{
-      const h=hesapla(ft,r);return h&&h.en>0;
+      const h=hesapla(ft,r);return h&&h.en>0&&!h.sigmaz;   // stoğa sığmayanlar ortalamayı bozmasın
     });
     if(!rows.length)return;
     anyData=true;
@@ -1895,7 +2238,7 @@ function updatePiyasa(){
   if(_piyasaFilter && !widths.includes(Number(_piyasaFilter))) _piyasaFilter=''; // artık yoksa sıfırla
   if(sel){
     sel.innerHTML='<option value="">Tüm piyasa enleri ('+items.length+' kutu)</option>'+
-      widths.map(w=>`<option value="${w}"${String(w)===String(_piyasaFilter)?' selected':''}>${w} mm — ${groups[w].length} kutu</option>`).join('');
+      widths.map(w=>`<option value="${w}"${String(w)===String(_piyasaFilter)?' selected':''}>${w>0?w+' mm':'⚠️ Sığmayanlar'} — ${groups[w].length} kutu</option>`).join('');
     sel.value=_piyasaFilter;
   }
 
@@ -1906,12 +2249,15 @@ function updatePiyasa(){
     const list=groups[w];
     let tM2=0; list.forEach(it=>tM2+=it.h.totM2);
     gosterilen+=list.length;
-    html+=`<tr><td colspan="8" style="background:var(--surface2);color:var(--orange);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;padding:8px 14px;border-top:2px solid var(--orange-border);">📦 ${w} mm piyasa eni &nbsp;·&nbsp; ${list.length} kutu &nbsp;·&nbsp; toplam ${fmt(tM2,2)} m²</td></tr>`;
+    const grpLbl=w>0
+      ?`📦 ${w} mm ${STOK_MODU&&STOK_ENLERI.length?'stok':'piyasa'} eni`
+      :`⚠️ STOĞA SIĞMAYAN KUTULAR`;
+    html+=`<tr><td colspan="8" style="background:var(--surface2);color:${w>0?'var(--orange)':'#ff6b6b'};font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;padding:8px 14px;border-top:2px solid ${w>0?'var(--orange-border)':'rgba(255,107,107,.4)'};">${grpLbl} &nbsp;·&nbsp; ${list.length} kutu &nbsp;·&nbsp; toplam ${fmt(tM2,2)} m²</td></tr>`;
     list.forEach(({ft,r,h})=>{
       html+=`<tr>
-        <td><span class="cv cv-piyasa">${h.piyasa}</span>${h.ikili?'<span class="ikili-badge">2×</span>':''}</td>
+        <td>${h.sigmaz?'<span class="cv cv-sigmaz">SIĞMAZ</span>':`<span class="cv cv-piyasa">${h.piyasa}</span>`}${h.ikili?'<span class="ikili-badge">2×</span>':''}</td>
         <td><span class="cv cv-eni">${h.en}</span></td>
-        <td><span class="cv cv-piyasa">${h.piyasa}</span></td>
+        <td>${h.sigmaz?'<span class="cv cv-sigmaz">—</span>':`<span class="cv cv-piyasa">${h.piyasa}</span>`}</td>
         <td><span class="fefco-tag" style="font-size:9px;">${ft.kod}</span></td>
         <td style="text-align:left;">${esc(r.ad)||'—'}</td>
         <td style="color:var(--orange);font-family:'Barlow Condensed',sans-serif;">${r.yon}</td>
@@ -1975,6 +2321,8 @@ function buildSaveObj(){
     })),
     data:JSON.parse(JSON.stringify(DATA)),
     piyasaTolerans:PIYASA_TOLERANS,
+    stokEnleri:STOK_ENLERI.slice(),
+    stokModu:STOK_MODU,
     savedAt:new Date().toISOString()
   };
 }
@@ -2026,6 +2374,13 @@ function applyLoadedData(obj){
           DATA[ft.id]=obj.data[ft.id];
         }
       });
+    }
+    // Restore stok karton enleri (varsa)
+    if(Array.isArray(obj.stokEnleri)){
+      STOK_ENLERI=obj.stokEnleri.filter(v=>isFinite(v)&&v>0);
+      STOK_MODU=!!obj.stokModu&&STOK_ENLERI.length>0;
+      try{localStorage.setItem(STOK_KEY,JSON.stringify({enler:STOK_ENLERI,modu:STOK_MODU}));}catch(e){}
+      stokRender();
     }
     // Restore piyasa eni toleransı (varsa)
     if(typeof obj.piyasaTolerans==='number'&&obj.piyasaTolerans>=0){
@@ -2291,6 +2646,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     try{saveToLocal();}catch(e){}
   })();
   buildDynamicDOM();
+  loadStok();                   // stok karton enleri + modu (render öncesi — nearPiyasa etkilenir)
   loadPiyasaTolerans();         // kaydedilen piyasa eni toleransını yükle (render öncesi)
   kalibInit();                 // önce kaydedilen kalibrasyonu yükle (öğrenilen formül + birebir veriler)
   FEFCO_TYPES.forEach(ft=>renderTable(ft.id));   // render artık kalibrasyonu görüyor
