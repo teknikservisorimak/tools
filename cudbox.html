@@ -416,6 +416,17 @@ tr:hover td { background: var(--surface2); }
   border-radius: var(--radius);
   overflow: hidden;
 }
+.canvas-wrap.fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  border-radius: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+.canvas-wrap.fullscreen canvas { flex: 1; }
 .canvas-toolbar {
   padding: 10px 16px;
   border-bottom: 1px solid var(--border);
@@ -854,6 +865,15 @@ tr:hover td { background: var(--surface2); }
 
         <div class="setup-step">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <h4 style="margin-bottom:0;">🔢 Değişkenler</h4>
+            <button class="btn btn-sm btn-primary" onclick="addVariable()" title="Değişken ekle" style="padding:3px 9px;font-size:13px;line-height:1;">+</button>
+          </div>
+          <p style="font-size:11px;color:var(--text3);margin-bottom:4px;">B, H, L, t gibi değişkenler tanımlayın; segment formüllerinde kullanın (ör: <span style="font-family:var(--mono);color:var(--accent);">B+2*t</span>)</p>
+          <div class="segment-list" id="varList"></div>
+        </div>
+
+        <div class="setup-step">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
             <h4 style="margin-bottom:0;">↔ Yatay Segmentler (B)</h4>
             <div style="display:flex;gap:4px;">
               <button class="btn btn-sm btn-primary" onclick="addSegment('x')" title="Yatay segment ekle" style="padding:3px 9px;font-size:13px;line-height:1;">+</button>
@@ -898,15 +918,25 @@ tr:hover td { background: var(--surface2); }
       <div class="canvas-wrap">
         <div class="canvas-toolbar">
           <span style="font-size:13px; font-weight:700; color:var(--text2);">Ön İzleme</span>
-          <span style="font-size:11px; color:var(--text3); margin-left:4px;">— çizgilere tıklayarak tip ata</span>
-          <div style="display:flex;gap:6px;margin-left:auto;align-items:center;">
+          <span style="font-size:11px; color:var(--text3); margin-left:4px;">— tıkla/sürükle: tip ata · boş alanda sürükle: kaydır · tekerlek: zoom</span>
+          <div style="display:flex;gap:6px;margin-left:auto;align-items:center;flex-wrap:wrap;">
+            <button onclick="rotateDesign()"  title="90° döndür"   style="font-size:12px;font-weight:700;padding:3px 9px;border-radius:4px;border:1px solid var(--border-hi);background:var(--surface2);color:var(--text2);cursor:pointer;">⟳ 90°</button>
+            <button onclick="flipDesign('h')" title="Yatay çevir (ayna)" style="font-size:12px;font-weight:700;padding:3px 9px;border-radius:4px;border:1px solid var(--border-hi);background:var(--surface2);color:var(--text2);cursor:pointer;">↔ Çevir</button>
+            <button onclick="flipDesign('v')" title="Dikey çevir (ayna)"  style="font-size:12px;font-weight:700;padding:3px 9px;border-radius:4px;border:1px solid var(--border-hi);background:var(--surface2);color:var(--text2);cursor:pointer;">↕ Çevir</button>
+            <span style="width:1px;height:18px;background:var(--border-hi);"></span>
+            <button onclick="zoomDesign(1/1.25)" title="Uzaklaş" style="font-size:13px;font-weight:700;padding:3px 9px;border-radius:4px;border:1px solid var(--border-hi);background:var(--surface2);color:var(--text2);cursor:pointer;">−</button>
+            <span id="zoomLabel" style="font-size:11px;font-family:var(--mono);color:var(--text2);min-width:38px;text-align:center;">100%</span>
+            <button onclick="zoomDesign(1.25)" title="Yakınlaş" style="font-size:13px;font-weight:700;padding:3px 9px;border-radius:4px;border:1px solid var(--border-hi);background:var(--surface2);color:var(--text2);cursor:pointer;">+</button>
+            <button onclick="resetZoom()" title="Görünümü sıfırla" style="font-size:11px;font-weight:700;padding:4px 9px;border-radius:4px;border:1px solid var(--border-hi);background:var(--surface2);color:var(--text2);cursor:pointer;">1:1</button>
+            <button id="fsBtn" onclick="toggleDesignerFullscreen()" title="Tam ekran (ESC ile çık)" style="font-size:12px;font-weight:700;padding:3px 9px;border-radius:4px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent);cursor:pointer;">⛶ Tam Ekran</button>
+            <span style="width:1px;height:18px;background:var(--border-hi);"></span>
             <span style="font-size:11px;color:var(--text3);">Mod:</span>
-            <button id="modeBtn-Cut"    onclick="setDrawMode('Cut')"    style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;border:2px solid #ef4444;background:#ef444422;color:#ef4444;cursor:pointer;">✂ Kes</button>
-            <button id="modeBtn-Crease" onclick="setDrawMode('Crease')" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;border:2px solid #3b82f6;background:#3b82f622;color:#3b82f6;cursor:pointer;">〜 Kat</button>
+            <button id="modeBtn-Cut"    onclick="setDrawMode('Cut')"    style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;border:2px solid #e5484d;background:#e5484d22;color:#e5484d;cursor:pointer;">✂ Kes</button>
+            <button id="modeBtn-Crease" onclick="setDrawMode('Crease')" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;border:2px solid #46a6de;background:#46a6de22;color:#46a6de;cursor:pointer;">〜 Kat</button>
             <button id="modeBtn-None"   onclick="setDrawMode('None')"   style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;border:2px solid #4a5260;background:#4a526022;color:#9aa0ab;cursor:pointer;">✕ Yok</button>
           </div>
         </div>
-        <canvas id="designerCanvas" height="520" style="cursor:crosshair;"></canvas>
+        <canvas id="designerCanvas" height="640" style="cursor:crosshair;display:block;"></canvas>
         <div style="padding:8px 16px; border-top:1px solid var(--border); font-size:11px; color:var(--text3); font-family:var(--mono);" id="canvasInfo">
           Segment ölçülerini giriniz...
         </div>
@@ -1298,16 +1328,93 @@ let dsnState = {
   ySegs: [],
   vLines: [],
   hLines: [],
+  vars: [],   // [{name:'B', value:200}, ...] — formüllerde kullanılan değişkenler
 };
 
 let drawMode = 'Cut'; // aktif çizim modu
+
+// ── Değişken yönetimi ────────────────────────────────────────────────────────
+function dsnVarsMap() {
+  const m = {};
+  dsnState.vars.forEach(v => { if (v.name && v.name.trim()) m[v.name.trim()] = v.value; });
+  return m;
+}
+
+// Formülü değişkenlerle çözmeyi dene; başarılıysa {ok:true, len} döner
+function resolveSegFormula(seg) {
+  const f = (seg.formula || '').trim();
+  if (!f) return { ok: false, len: seg.len };
+  try {
+    const v = evalFormula(f, dsnVarsMap());
+    if (isFinite(v) && v > 0) return { ok: true, len: Math.round(v * 100) / 100 };
+  } catch (e) { /* değişken tanımsız — manuel ölçü geçerli */ }
+  return { ok: false, len: seg.len };
+}
+
+function recalcAllSegs() {
+  [...dsnState.xSegs, ...dsnState.ySegs].forEach(seg => {
+    const r = resolveSegFormula(seg);
+    seg.resolved = r.ok;
+    if (r.ok) seg.len = r.len;
+  });
+}
+
+function renderVarInputs() {
+  const container = document.getElementById('varList');
+  if (!container) return;
+  container.innerHTML = '';
+  dsnState.vars.forEach((v, i) => {
+    const div = document.createElement('div');
+    div.className = 'seg-item';
+    div.style.cssText = 'display:flex;align-items:center;gap:4px;';
+    div.innerHTML = `
+      <input type="text" value="${v.name}" style="width:56px;font-family:var(--mono);font-size:12px;font-weight:600;padding:4px 6px;background:var(--surface2);border:1px solid var(--accent);color:var(--accent);border-radius:4px;"
+        oninput="updateVarName(${i},this.value)" title="Değişken adı" placeholder="ad">
+      <span style="font-size:11px;color:var(--text3);">=</span>
+      <input type="number" step="any" value="${v.value}" style="flex:1;min-width:60px;padding:4px 6px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;font-family:var(--mono);font-size:12px;"
+        oninput="updateVarValue(${i},this.value)" title="Değer (mm)">
+      <span style="font-size:10px;color:var(--text3);">mm</span>
+      <button onclick="removeVariable(${i})" title="Değişkeni sil" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:0 4px;line-height:1;">×</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function addVariable(name, value) {
+  dsnState.vars.push({ name: typeof name === 'string' ? name : '', value: typeof value === 'number' ? value : 100 });
+  renderVarInputs();
+}
+
+function removeVariable(i) {
+  dsnState.vars.splice(i, 1);
+  renderVarInputs();
+  recalcAllSegs();
+  renderAllInputs();
+  drawDesignerCanvas();
+}
+
+function updateVarName(i, val) {
+  dsnState.vars[i].name = val.trim();
+  recalcAllSegs();
+  refreshSegLenFields();
+  drawDesignerCanvas();
+}
+
+function updateVarValue(i, val) {
+  const v = parseFloat(val);
+  if (isNaN(v)) return;
+  dsnState.vars[i].value = v;
+  recalcAllSegs();
+  refreshSegLenFields();
+  drawDesignerCanvas();
+}
 
 function setDrawMode(mode) {
   drawMode = mode;
   ['Cut','Crease','None'].forEach(m => {
     const btn = document.getElementById('modeBtn-' + m);
     if (!btn) return;
-    const colors = { Cut: '#ef4444', Crease: '#3b82f6', None: '#4a5260' };
+    const colors = { Cut: '#e5484d', Crease: '#46a6de', None: '#4a5260' };
     const c = colors[m];
     if (m === mode) {
       btn.style.boxShadow = `0 0 0 2px ${c}`;
@@ -1351,19 +1458,31 @@ function initDesignerGrid() {
     }
   }
 
+  // Varsayılan değişkenler (henüz tanımlanmadıysa)
+  if (dsnState.vars.length === 0) {
+    dsnState.vars = [
+      { name: 'L', value: 300 },
+      { name: 'B', value: 200 },
+      { name: 'H', value: 150 },
+      { name: 't', value: 3 },
+    ];
+  }
+  recalcAllSegs();
+
+  if (dsnZoomRAF) { cancelAnimationFrame(dsnZoomRAF); dsnZoomRAF = null; }
+  dsnZoom = 1; dsnZoomTarget = 1; dsnPanX = 0; dsnPanY = 0;
+
   renderAllInputs();
   document.getElementById('designerSetupCard').style.display = 'none';
   document.getElementById('designerWorkArea').style.display = 'block';
 
-  // Canvas tıklama — ilk kez bağla
-  const canvas = document.getElementById('designerCanvas');
-  canvas.onclick = handleCanvasClick;
-
+  bindDesignerCanvas();
   setDrawMode('Cut');
   drawDesignerCanvas();
 }
 
 function renderAllInputs() {
+  renderVarInputs();
   renderSegmentInputs('x', dsnState.xSegs, document.getElementById('xSegList'));
   renderSegmentInputs('y', dsnState.ySegs, document.getElementById('ySegList'));
 }
@@ -1371,19 +1490,34 @@ function renderAllInputs() {
 function renderSegmentInputs(axis, segs, container) {
   container.innerHTML = '';
   segs.forEach((seg, i) => {
+    const resolved = !!seg.resolved;
     const div = document.createElement('div');
     div.className = 'seg-item';
     div.style.cssText = 'display:flex;align-items:center;gap:4px;flex-wrap:wrap;';
     div.innerHTML = `
       <input type="text" value="${seg.name}" style="width:50px;font-family:var(--mono);font-size:11px;padding:3px 4px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;"
         oninput="updateSegName('${axis}',${i},this.value)" title="Argüman adı">
-      <input type="number" min="1" max="9999" value="${seg.len}" style="width:60px;padding:3px 4px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;font-family:var(--mono);font-size:11px;"
-        oninput="updateSegLen('${axis}',${i},this.value)" title="Ölçü (mm)">
+      <input type="text" value="${seg.formula}" style="flex:1;min-width:60px;padding:3px 4px;background:var(--surface2);border:1px solid ${resolved ? 'var(--accent)' : 'var(--border)'};color:var(--accent);border-radius:4px;font-family:var(--mono);font-size:11px;"
+        oninput="updateSegFormula('${axis}',${i},this.value)" placeholder="Formül (ör: B+2*t)" title="Formül — değişkenlerle çözülürse ölçü otomatik hesaplanır">
+      <input type="number" min="1" max="9999" step="any" value="${seg.len}" id="segLen-${axis}-${i}" ${resolved ? 'readonly' : ''} style="width:64px;padding:3px 4px;background:${resolved ? 'var(--surface3)' : 'var(--surface2)'};border:1px solid var(--border);color:${resolved ? 'var(--green)' : 'var(--text)'};border-radius:4px;font-family:var(--mono);font-size:11px;"
+        oninput="updateSegLen('${axis}',${i},this.value)" title="${resolved ? 'Formülden otomatik hesaplandı' : 'Ölçü (mm)'}">
       <span style="font-size:10px;color:var(--text3);">mm</span>
-      <input type="text" value="${seg.formula}" style="flex:1;min-width:60px;padding:3px 4px;background:var(--surface2);border:1px solid var(--border);color:var(--accent);border-radius:4px;font-family:var(--mono);font-size:11px;"
-        oninput="updateSegFormula('${axis}',${i},this.value)" placeholder="Formül" title="Formül (varsayılan: argüman adı)">
     `;
     container.appendChild(div);
+  });
+}
+
+// Değişken değişince segment ölçü kutularını yerinde güncelle (focus kaybetmeden)
+function refreshSegLenFields() {
+  dsnState.xSegs.forEach((seg, i) => {
+    const el = document.getElementById(`segLen-x-${i}`);
+    if (el && seg.resolved) { el.value = seg.len; el.readOnly = true; el.style.color = 'var(--green)'; el.style.background = 'var(--surface3)'; }
+    else if (el) { el.readOnly = false; el.style.color = 'var(--text)'; el.style.background = 'var(--surface2)'; }
+  });
+  dsnState.ySegs.forEach((seg, i) => {
+    const el = document.getElementById(`segLen-y-${i}`);
+    if (el && seg.resolved) { el.value = seg.len; el.readOnly = true; el.style.color = 'var(--green)'; el.style.background = 'var(--surface3)'; }
+    else if (el) { el.readOnly = false; el.style.color = 'var(--text)'; el.style.background = 'var(--surface2)'; }
   });
 }
 
@@ -1404,8 +1538,12 @@ function updateSegLen(axis, idx, val) {
 }
 
 function updateSegFormula(axis, idx, val) {
-  if (axis === 'x') dsnState.xSegs[idx].formula = val.trim();
-  else dsnState.ySegs[idx].formula = val.trim();
+  const seg = axis === 'x' ? dsnState.xSegs[idx] : dsnState.ySegs[idx];
+  seg.formula = val.trim();
+  const r = resolveSegFormula(seg);
+  seg.resolved = r.ok;
+  if (r.ok) seg.len = r.len;
+  refreshSegLenFields();
   drawDesignerCanvas();
 }
 
@@ -1443,6 +1581,7 @@ function addSegment(axis) {
     const lastUY = dsnState.hLines.length - 1;
     for (let xi = 0; xi < dsnState.xSegs.length; xi++) dsnState.hLines[lastUY][xi] = 'Cut';
   }
+  recalcAllSegs();
   renderAllInputs();
   drawDesignerCanvas();
 }
@@ -1471,6 +1610,7 @@ function removeLastSegment(axis) {
     const lastUY = dsnState.hLines.length - 1;
     for (let xi = 0; xi < dsnState.xSegs.length; xi++) dsnState.hLines[lastUY][xi] = 'Cut';
   }
+  recalcAllSegs();
   renderAllInputs();
   drawDesignerCanvas();
 }
@@ -1484,6 +1624,7 @@ function resetDesigner() {
   document.getElementById('designerBadge').textContent = 'Yeni Tasarım';
   dsnState.xSegs = []; dsnState.ySegs = [];
   dsnState.vLines = []; dsnState.hLines = [];
+  dsnState.vars = [];
   const canvas = document.getElementById('designerCanvas');
   canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 }
@@ -1593,6 +1734,10 @@ function parseCudboxIntoState(xmlStr, fileName) {
   dsnState.vLines = vLines;
   dsnState.hLines = hLines;
 
+  // Dosyadaki argümanları değişken olarak yükle
+  dsnState.vars = Object.entries(argMap).map(([name, value]) => ({ name, value }));
+  recalcAllSegs();
+
   // Dosya adını kaydet alanına yaz
   const baseName = (fileName || 'Tasarim').replace(/\.cudbox$/i, '');
   document.getElementById('dsnFileName').value = baseName;
@@ -1602,81 +1747,331 @@ function parseCudboxIntoState(xmlStr, fileName) {
   document.getElementById('designerSetupCard').style.display = 'none';
   document.getElementById('designerWorkArea').style.display = 'block';
 
-  const canvas = document.getElementById('designerCanvas');
-  canvas.onclick = handleCanvasClick;
+  if (dsnZoomRAF) { cancelAnimationFrame(dsnZoomRAF); dsnZoomRAF = null; }
+  dsnZoom = 1; dsnZoomTarget = 1; dsnPanX = 0; dsnPanY = 0;
+  bindDesignerCanvas();
 
   setDrawMode('Cut');
   renderAllInputs();
   drawDesignerCanvas();
 }
 
-// Canvas'a tıklayınca en yakın çizgi segmentini bul ve drawMode uygula
-function handleCanvasClick(e) {
-  const canvas = document.getElementById('designerCanvas');
-  const rect = canvas.getBoundingClientRect();
-  const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
-  const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+// ── Canvas etkileşimi: tıkla veya sürükleyerek boya (birden fazla çizgi) ─────
+let dsnPainting = false;
+let dsnHover = null; // {kind:'v'|'h', a, b}
+let dsnZoom = 1;
+let dsnPanX = 0, dsnPanY = 0;
+let dsnPanning = false, dsnPanStart = null;
 
-  const xSegs = dsnState.xSegs;
-  const ySegs = dsnState.ySegs;
+function dsnGeom(canvas) {
+  const xSegs = dsnState.xSegs, ySegs = dsnState.ySegs;
+  const totalXmm = xSegs.reduce((s, seg) => s + seg.len, 0);
+  const totalYmm = ySegs.reduce((s, seg) => s + seg.len, 0);
+  if (totalXmm === 0 || totalYmm === 0) return null;
+  const W = canvas.width, H = canvas.height;
+  const PAD = 84;
+  const baseScale = Math.min((W - PAD * 2) / totalXmm, (H - PAD * 2) / totalYmm);
+  const scale = baseScale * dsnZoom;
+  const drawW = totalXmm * scale, drawH = totalYmm * scale;
+  const ox = (W - drawW) / 2 + dsnPanX, oy = (H - drawH) / 2 + dsnPanY;
+  const xPos = [0]; xSegs.forEach(s => xPos.push(xPos[xPos.length-1] + s.len));
+  const yPos = [0]; ySegs.forEach(s => yPos.push(yPos[yPos.length-1] + s.len));
+  return { totalXmm, totalYmm, scale, drawW, drawH, ox, oy, xPos, yPos,
+           px: i => ox + xPos[i] * scale, py: i => oy + yPos[i] * scale };
+}
 
+// ── Zoom kontrolleri ─────────────────────────────────────────────────────────
+function updateZoomLabel() {
+  const el = document.getElementById('zoomLabel');
+  if (el) el.textContent = Math.round(dsnZoom * 100) + '%';
+}
+
+// Kaydırmayı sınırla: çizimin en az 100px'i her zaman görünür kalsın
+function clampPan(canvas) {
+  const xSegs = dsnState.xSegs, ySegs = dsnState.ySegs;
   const totalXmm = xSegs.reduce((s, seg) => s + seg.len, 0);
   const totalYmm = ySegs.reduce((s, seg) => s + seg.len, 0);
   if (totalXmm === 0 || totalYmm === 0) return;
+  const W = canvas.width, H = canvas.height;
+  const PAD = 84;
+  const baseScale = Math.min((W - PAD * 2) / totalXmm, (H - PAD * 2) / totalYmm);
+  const scale = baseScale * dsnZoom;
+  const drawW = totalXmm * scale, drawH = totalYmm * scale;
+  const MARGIN = 100;
+  // ox = (W-drawW)/2 + panX; görünürlük: ox < W-MARGIN && ox+drawW > MARGIN
+  const minPX = MARGIN - (W - drawW) / 2 - drawW;
+  const maxPX = W - MARGIN - (W - drawW) / 2;
+  const minPY = MARGIN - (H - drawH) / 2 - drawH;
+  const maxPY = H - MARGIN - (H - drawH) / 2;
+  dsnPanX = Math.max(minPX, Math.min(maxPX, dsnPanX));
+  dsnPanY = Math.max(minPY, Math.min(maxPY, dsnPanY));
+}
 
-  const W = canvas.width;
-  const H = canvas.height;
-  const PAD = 56;
-  const availW = W - PAD * 2;
-  const availH = H - PAD * 2;
-  const scale = Math.min(availW / totalXmm, availH / totalYmm);
-  const drawW = totalXmm * scale;
-  const drawH = totalYmm * scale;
-  const ox = (W - drawW) / 2;
-  const oy = (H - drawH) / 2;
+// Zoom'u belirli bir mutlak değere, verilen sabit nokta (anchor) etrafında uygula
+function applyZoom(newZoom, cx, cy) {
+  const canvas = document.getElementById('designerCanvas');
+  const gOld = dsnGeom(canvas);
+  newZoom = Math.max(0.3, Math.min(8, newZoom));
+  if (!gOld) { dsnZoom = newZoom; updateZoomLabel(); drawDesignerCanvas(); return; }
 
-  const xPos = [0]; xSegs.forEach(s => xPos.push(xPos[xPos.length-1] + s.len));
-  const yPos = [0]; ySegs.forEach(s => yPos.push(yPos[yPos.length-1] + s.len));
+  const mx = cx !== undefined ? cx : canvas.width / 2;
+  const my = cy !== undefined ? cy : canvas.height / 2;
+  const worldX = (mx - gOld.ox) / gOld.scale;
+  const worldY = (my - gOld.oy) / gOld.scale;
 
-  const px = i => ox + xPos[i] * scale;
-  const py = i => oy + yPos[i] * scale;
+  dsnZoom = newZoom;
+  dsnPanX = 0; dsnPanY = 0;
+  const gBase = dsnGeom(canvas);
+  if (gBase) {
+    dsnPanX = mx - worldX * gBase.scale - gBase.ox;
+    dsnPanY = my - worldY * gBase.scale - gBase.oy;
+  }
+  clampPan(canvas);
+  // %100 ve altına inince çizimi yumuşakça ortala — "kaymış" görüntü kalmasın
+  if (dsnZoom <= 1.0001) {
+    dsnPanX *= 0.75; dsnPanY *= 0.75;
+    if (Math.abs(dsnPanX) < 0.5) dsnPanX = 0;
+    if (Math.abs(dsnPanY) < 0.5) dsnPanY = 0;
+  }
+  updateZoomLabel();
+  drawDesignerCanvas();
+}
 
-  const HIT = 10; // piksel tolerans
-  let hit = false;
+// ── Yumuşak (animasyonlu) zoom ──
+let dsnZoomTarget = 1;
+let dsnZoomAnchor = null;   // {x, y}
+let dsnZoomRAF = null;
 
-  // Dikey çizgi parçası mı? vLines[ux][yi]
-  for (let ux = 0; ux < xPos.length && !hit; ux++) {
-    const lx = px(ux);
-    if (Math.abs(mx - lx) > HIT) continue;
-    for (let yi = 0; yi < ySegs.length; yi++) {
+function animateZoomStep() {
+  const diff = dsnZoomTarget - dsnZoom;
+  if (Math.abs(diff) < 0.002) {
+    // Hedefe ulaşıldı
+    applyZoom(dsnZoomTarget, dsnZoomAnchor?.x, dsnZoomAnchor?.y);
+    dsnZoomRAF = null;
+    return;
+  }
+  // Her karede hedefe %22 yaklaş — yumuşak ama gecikmesiz his
+  applyZoom(dsnZoom + diff * 0.22, dsnZoomAnchor?.x, dsnZoomAnchor?.y);
+  dsnZoomRAF = requestAnimationFrame(animateZoomStep);
+}
+
+function smoothZoomTo(target, cx, cy) {
+  dsnZoomTarget = Math.max(0.3, Math.min(8, target));
+  dsnZoomAnchor = (cx !== undefined) ? { x: cx, y: cy } : null;
+  if (!dsnZoomRAF) dsnZoomRAF = requestAnimationFrame(animateZoomStep);
+}
+
+// Buton zoom'u: canvas merkezine doğru, yumuşak
+function zoomDesign(factor, cx, cy) {
+  smoothZoomTo((dsnZoomRAF ? dsnZoomTarget : dsnZoom) * factor, cx, cy);
+}
+
+function resetZoom() {
+  if (dsnZoomRAF) { cancelAnimationFrame(dsnZoomRAF); dsnZoomRAF = null; }
+  dsnZoom = 1; dsnZoomTarget = 1; dsnPanX = 0; dsnPanY = 0;
+  updateZoomLabel();
+  drawDesignerCanvas();
+}
+
+// ── Tam ekran ön izleme ──────────────────────────────────────────────────────
+let dsnFullscreen = false;
+
+function toggleDesignerFullscreen() {
+  const wrap = document.querySelector('#panel-designer .canvas-wrap');
+  if (!wrap) return;
+  dsnFullscreen = !dsnFullscreen;
+  wrap.classList.toggle('fullscreen', dsnFullscreen);
+  const btn = document.getElementById('fsBtn');
+  if (btn) btn.textContent = dsnFullscreen ? '✕ Kapat' : '⛶ Tam Ekran';
+  document.body.style.overflow = dsnFullscreen ? 'hidden' : '';
+  drawDesignerCanvas();
+}
+
+// ESC ile tam ekrandan çık
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && dsnFullscreen) toggleDesignerFullscreen();
+});
+
+// Pencere boyutu değişince yeniden çiz
+window.addEventListener('resize', () => {
+  if (document.getElementById('designerWorkArea')?.style.display !== 'none') drawDesignerCanvas();
+});
+
+// ── Döndürme / Çevirme ───────────────────────────────────────────────────────
+// Saat yönünde 90°: (x,y) → (Ytoplam − y, x)
+function rotateDesign() {
+  const xc = dsnState.xSegs.length, yc = dsnState.ySegs.length;
+  const oldV = dsnState.vLines, oldH = dsnState.hLines;
+
+  const newXSegs = [...dsnState.ySegs].reverse();
+  const newYSegs = [...dsnState.xSegs];
+
+  // Yeni dikey çizgiler ← eski yatay çizgiler (ters sırayla)
+  const newV = [];
+  for (let ux = 0; ux <= yc; ux++) {
+    newV[ux] = [];
+    for (let yi = 0; yi < xc; yi++) newV[ux][yi] = oldH[yc - ux][yi];
+  }
+  // Yeni yatay çizgiler ← eski dikey çizgiler (segmentler ters)
+  const newH = [];
+  for (let uy = 0; uy <= xc; uy++) {
+    newH[uy] = [];
+    for (let xi = 0; xi < yc; xi++) newH[uy][xi] = oldV[uy][yc - 1 - xi];
+  }
+
+  dsnState.xSegs = newXSegs;
+  dsnState.ySegs = newYSegs;
+  dsnState.xCount = newXSegs.length;
+  dsnState.yCount = newYSegs.length;
+  dsnState.vLines = newV;
+  dsnState.hLines = newH;
+
+  dsnHover = null;
+  renderAllInputs();
+  drawDesignerCanvas();
+}
+
+// Ayna: 'h' → x ekseni ters, 'v' → y ekseni ters
+function flipDesign(dir) {
+  const xc = dsnState.xSegs.length, yc = dsnState.ySegs.length;
+  const oldV = dsnState.vLines, oldH = dsnState.hLines;
+
+  if (dir === 'h') {
+    dsnState.xSegs = [...dsnState.xSegs].reverse();
+    const newV = [];
+    for (let ux = 0; ux <= xc; ux++) newV[ux] = [...oldV[xc - ux]];
+    const newH = [];
+    for (let uy = 0; uy <= yc; uy++) newH[uy] = [...oldH[uy]].reverse();
+    dsnState.vLines = newV;
+    dsnState.hLines = newH;
+  } else {
+    dsnState.ySegs = [...dsnState.ySegs].reverse();
+    const newV = [];
+    for (let ux = 0; ux <= xc; ux++) newV[ux] = [...oldV[ux]].reverse();
+    const newH = [];
+    for (let uy = 0; uy <= yc; uy++) newH[uy] = [...oldH[yc - uy]];
+    dsnState.vLines = newV;
+    dsnState.hLines = newH;
+  }
+
+  dsnHover = null;
+  renderAllInputs();
+  drawDesignerCanvas();
+}
+
+// Verilen canvas koordinatındaki çizgi parçasını bul
+function hitLineSegment(mx, my) {
+  const canvas = document.getElementById('designerCanvas');
+  const g = dsnGeom(canvas);
+  if (!g) return null;
+  const { px, py, xPos, yPos } = g;
+  const HIT = 10;
+
+  // Dikey çizgi parçası? vLines[ux][yi]
+  for (let ux = 0; ux < xPos.length; ux++) {
+    if (Math.abs(mx - px(ux)) > HIT) continue;
+    for (let yi = 0; yi < dsnState.ySegs.length; yi++) {
       const y1 = py(yi), y2 = py(yi + 1);
-      const midY = (y1 + y2) / 2;
-      if (Math.abs(my - midY) < (y2 - y1) / 2 + HIT) {
-        dsnState.vLines[ux][yi] = drawMode;
-        hit = true;
-        break;
-      }
+      if (my >= y1 - HIT && my <= y2 + HIT) return { kind: 'v', a: ux, b: yi };
     }
   }
-
-  // Yatay çizgi parçası mı? hLines[uy][xi]
-  if (!hit) {
-    for (let uy = 0; uy < yPos.length && !hit; uy++) {
-      const ly = py(uy);
-      if (Math.abs(my - ly) > HIT) continue;
-      for (let xi = 0; xi < xSegs.length; xi++) {
-        const x1 = px(xi), x2 = px(xi + 1);
-        const midX = (x1 + x2) / 2;
-        if (Math.abs(mx - midX) < (x2 - x1) / 2 + HIT) {
-          dsnState.hLines[uy][xi] = drawMode;
-          hit = true;
-          break;
-        }
-      }
+  // Yatay çizgi parçası? hLines[uy][xi]
+  for (let uy = 0; uy < yPos.length; uy++) {
+    if (Math.abs(my - py(uy)) > HIT) continue;
+    for (let xi = 0; xi < dsnState.xSegs.length; xi++) {
+      const x1 = px(xi), x2 = px(xi + 1);
+      if (mx >= x1 - HIT && mx <= x2 + HIT) return { kind: 'h', a: uy, b: xi };
     }
   }
+  return null;
+}
 
-  if (hit) drawDesignerCanvas();
+function dsnMouseXY(e) {
+  const canvas = document.getElementById('designerCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const cx = e.touches ? e.touches[0].clientX : e.clientX;
+  const cy = e.touches ? e.touches[0].clientY : e.clientY;
+  return [(cx - rect.left) * (canvas.width / rect.width),
+          (cy - rect.top) * (canvas.height / rect.height)];
+}
+
+function dsnPaintAt(mx, my) {
+  const hit = hitLineSegment(mx, my);
+  if (!hit) return false;
+  if (hit.kind === 'v') {
+    if (dsnState.vLines[hit.a][hit.b] === drawMode) return false;
+    dsnState.vLines[hit.a][hit.b] = drawMode;
+  } else {
+    if (dsnState.hLines[hit.a][hit.b] === drawMode) return false;
+    dsnState.hLines[hit.a][hit.b] = drawMode;
+  }
+  drawDesignerCanvas();
+  return true;
+}
+
+function bindDesignerCanvas() {
+  const canvas = document.getElementById('designerCanvas');
+  canvas.onclick = null;
+
+  canvas.onmousedown = e => {
+    const [mx, my] = dsnMouseXY(e);
+    const hit = hitLineSegment(mx, my);
+    if (hit) {
+      dsnPainting = true;
+      dsnPaintAt(mx, my);
+    } else {
+      // Boş alanda sürükleme → kaydırma (pan)
+      dsnPanning = true;
+      dsnPanStart = { x: e.clientX, y: e.clientY, panX: dsnPanX, panY: dsnPanY };
+      canvas.style.cursor = 'grabbing';
+    }
+  };
+  canvas.onmousemove = e => {
+    if (dsnPanning && dsnPanStart) {
+      dsnPanX = dsnPanStart.panX + (e.clientX - dsnPanStart.x);
+      dsnPanY = dsnPanStart.panY + (e.clientY - dsnPanStart.y);
+      clampPan(canvas);
+      drawDesignerCanvas();
+      return;
+    }
+    const [mx, my] = dsnMouseXY(e);
+    if (dsnPainting) {
+      dsnPaintAt(mx, my);
+    } else {
+      const hit = hitLineSegment(mx, my);
+      const changed = JSON.stringify(hit) !== JSON.stringify(dsnHover);
+      dsnHover = hit;
+      canvas.style.cursor = hit ? 'pointer' : 'grab';
+      if (changed) drawDesignerCanvas();
+    }
+  };
+  canvas.onmouseup = () => {
+    dsnPainting = false;
+    dsnPanning = false; dsnPanStart = null;
+  };
+  canvas.onmouseleave = () => {
+    dsnPainting = false;
+    dsnPanning = false; dsnPanStart = null;
+    if (dsnHover) { dsnHover = null; drawDesignerCanvas(); }
+  };
+
+  // Tekerlek ile zoom (imleç merkezli, yumuşak ve yavaş)
+  canvas.onwheel = e => {
+    e.preventDefault();
+    const [mx, my] = dsnMouseXY(e);
+    // deltaMode: 0=piksel (trackpad/fare), 1=satır (bazı fareler)
+    let dy = e.deltaY * (e.deltaMode === 1 ? 33 : 1);
+    dy = Math.max(-60, Math.min(60, dy)); // hızlı tekerlek olaylarını sınırla
+    const factor = Math.exp(-dy * 0.0022); // olay başına en fazla ~%14
+    smoothZoomTo((dsnZoomRAF ? dsnZoomTarget : dsnZoom) * factor, mx, my);
+  };
+
+  // Dokunmatik destek
+  canvas.ontouchstart = e => { e.preventDefault(); dsnPainting = true; const [mx,my] = dsnMouseXY(e); dsnPaintAt(mx,my); };
+  canvas.ontouchmove  = e => { e.preventDefault(); if (dsnPainting) { const [mx,my] = dsnMouseXY(e); dsnPaintAt(mx,my); } };
+  canvas.ontouchend   = () => { dsnPainting = false; };
+
+  updateZoomLabel();
 }
 
 function drawDesignerCanvas() {
@@ -1684,6 +2079,14 @@ function drawDesignerCanvas() {
   const container = canvas.parentElement;
   const W = container.clientWidth || 700;
   canvas.width = W;
+
+  // Yükseklik: tam ekranda görünür alanı doldur, normalde 640px
+  if (dsnFullscreen) {
+    const h = canvas.clientHeight || (window.innerHeight - 100);
+    if (h > 50) canvas.height = h;
+  } else if (canvas.height !== 640) {
+    canvas.height = 640;
+  }
 
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, W, canvas.height);
@@ -1693,100 +2096,185 @@ function drawDesignerCanvas() {
   const vLines = dsnState.vLines;
   const hLines = dsnState.hLines;
 
-  const totalXmm = xSegs.reduce((s, seg) => s + seg.len, 0);
-  const totalYmm = ySegs.reduce((s, seg) => s + seg.len, 0);
-  if (totalXmm === 0 || totalYmm === 0) return;
+  const g = dsnGeom(canvas);
+  if (!g) return;
+  const { totalXmm, totalYmm, drawW, drawH, ox, oy, px, py } = g;
 
-  const PAD = 56;
-  const availW = W - PAD * 2;
-  const availH = canvas.height - PAD * 2;
-  const scale = Math.min(availW / totalXmm, availH / totalYmm);
+  // ── Palet: net ama yumuşak ──
+  const COLORS = { Cut: '#e5484d', Crease: '#46a6de', None: '#3d4454' };
+  const DASH   = { Cut: [], Crease: [9, 6], None: [3, 6] };
+  const LW     = { Cut: 2.75, Crease: 2, None: 1 };
 
-  const drawW = totalXmm * scale;
-  const drawH = totalYmm * scale;
-  const ox = (W - drawW) / 2;
-  const oy = (canvas.height - drawH) / 2;
-
-  const COLORS = { Cut: '#ef4444', None: '#555b66', Crease: '#3b82f6' };
-  const DASH   = { Cut: [], None: [3, 5], Crease: [8, 5] };
-  const LW     = { Cut: 2.5, None: 1, Crease: 2 };
-
-  // Background
-  ctx.fillStyle = 'rgba(245,158,11,0.04)';
+  // ── Karton zemin (hafif kraft tonu + yumuşak gölge) ──
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.35)';
+  ctx.shadowBlur = 16;
+  ctx.shadowOffsetY = 4;
+  const grad = ctx.createLinearGradient(ox, oy, ox + drawW, oy + drawH);
+  grad.addColorStop(0, 'rgba(247,168,0,0.07)');
+  grad.addColorStop(1, 'rgba(210,150,60,0.03)');
+  ctx.fillStyle = grad;
   ctx.fillRect(ox, oy, drawW, drawH);
+  ctx.restore();
 
-  // Pozisyon dizileri
-  const xPos = [0]; xSegs.forEach(s => xPos.push(xPos[xPos.length-1] + s.len));
-  const yPos = [0]; ySegs.forEach(s => yPos.push(yPos[yPos.length-1] + s.len));
-
-  const px = i => ox + xPos[i] * scale;
-  const py = i => oy + yPos[i] * scale;
-
-  // --- Dikey çizgi parçaları ---
-  for (let ux = 0; ux < vLines.length; ux++) {
-    for (let yi = 0; yi < vLines[ux].length; yi++) {
-      const t = vLines[ux][yi];
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(px(ux), py(yi));
-      ctx.lineTo(px(ux), py(yi+1));
-      ctx.strokeStyle = COLORS[t];
-      ctx.lineWidth = LW[t];
-      ctx.setLineDash(DASH[t]);
-      ctx.stroke();
-      ctx.restore();
+  // ── Hover vurgusu (çizgilerin ALTINA) ──
+  if (dsnHover) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(247,168,0,0.35)';
+    ctx.lineWidth = 12;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    if (dsnHover.kind === 'v') {
+      ctx.moveTo(px(dsnHover.a), py(dsnHover.b));
+      ctx.lineTo(px(dsnHover.a), py(dsnHover.b + 1));
+    } else {
+      ctx.moveTo(px(dsnHover.b), py(dsnHover.a));
+      ctx.lineTo(px(dsnHover.b + 1), py(dsnHover.a));
     }
+    ctx.stroke();
+    ctx.restore();
   }
 
-  // --- Yatay çizgi parçaları ---
-  for (let uy = 0; uy < hLines.length; uy++) {
-    for (let xi = 0; xi < hLines[uy].length; xi++) {
-      const t = hLines[uy][xi];
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(px(xi), py(uy));
-      ctx.lineTo(px(xi+1), py(uy));
-      ctx.strokeStyle = COLORS[t];
-      ctx.lineWidth = LW[t];
-      ctx.setLineDash(DASH[t]);
-      ctx.stroke();
-      ctx.restore();
-    }
-  }
+  const strokeSeg = (x1, y1, x2, y2, t) => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = COLORS[t];
+    ctx.lineWidth = LW[t];
+    ctx.setLineDash(DASH[t]);
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    ctx.restore();
+  };
 
-  // --- Kesişim noktaları ---
+  // Önce None (arkada soluk), sonra Crease, en üstte Cut
+  const order = ['None', 'Crease', 'Cut'];
+  order.forEach(pass => {
+    for (let ux = 0; ux < vLines.length; ux++)
+      for (let yi = 0; yi < vLines[ux].length; yi++)
+        if (vLines[ux][yi] === pass) strokeSeg(px(ux), py(yi), px(ux), py(yi+1), pass);
+    for (let uy = 0; uy < hLines.length; uy++)
+      for (let xi = 0; xi < hLines[uy].length; xi++)
+        if (hLines[uy][xi] === pass) strokeSeg(px(xi), py(uy), px(xi+1), py(uy), pass);
+  });
+
+  // ── Kesişim noktaları (küçük, sakin) ──
   for (let ux = 0; ux <= xSegs.length; ux++) {
     for (let uy = 0; uy <= ySegs.length; uy++) {
       ctx.beginPath();
-      ctx.arc(px(ux), py(uy), 3.5, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(245,158,11,0.7)';
+      ctx.arc(px(ux), py(uy), 2.25, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(247,168,0,0.8)';
       ctx.fill();
-      ctx.strokeStyle = '#f59e0b';
-      ctx.lineWidth = 1;
-      ctx.stroke();
     }
   }
 
-  // --- Segment etiketleri (üstte B isimleri) ---
+  // ── ÜSTTE: X segment FORMÜLLERİ ──
   ctx.font = '600 11px "DM Mono", monospace';
   ctx.textAlign = 'center';
   for (let i = 0; i < xSegs.length; i++) {
     const cx = (px(i) + px(i+1)) / 2;
-    ctx.fillStyle = '#f59e0bcc';
-    ctx.fillText(xSegs[i].name + ': ' + xSegs[i].len, cx, oy - 10);
+    const label = (xSegs[i].formula || xSegs[i].name || '').trim() || xSegs[i].name;
+    ctx.fillStyle = '#e8a33d';
+    ctx.fillText(label, cx, oy - 12);
   }
 
-  // --- Segment etiketleri (solda H isimleri) ---
+  // ── ALTTA: X segment hesaplanan ÖLÇÜLERİ ──
+  for (let i = 0; i < xSegs.length; i++) {
+    const cx = (px(i) + px(i+1)) / 2;
+    ctx.fillStyle = '#7fc8a9';
+    ctx.fillText(xSegs[i].len + ' mm', cx, oy + drawH + 20);
+  }
+
+  // ── SOLDA: Y segment FORMÜLLERİ ──
   ctx.textAlign = 'right';
   for (let i = 0; i < ySegs.length; i++) {
     const cy = (py(i) + py(i+1)) / 2;
-    ctx.fillStyle = '#f59e0bcc';
-    ctx.fillText(ySegs[i].name + ': ' + ySegs[i].len, ox - 10, cy + 4);
+    const label = (ySegs[i].formula || ySegs[i].name || '').trim() || ySegs[i].name;
+    ctx.fillStyle = '#e8a33d';
+    ctx.fillText(label, ox - 12, cy + 4);
   }
+
+  // ── SAĞDA: Y segment hesaplanan ÖLÇÜLERİ ──
+  ctx.textAlign = 'left';
+  for (let i = 0; i < ySegs.length; i++) {
+    const cy = (py(i) + py(i+1)) / 2;
+    ctx.fillStyle = '#7fc8a9';
+    ctx.fillText(ySegs[i].len + ' mm', ox + drawW + 12, cy + 4);
+  }
+
+  const round2 = v => Math.round(v * 100) / 100;
+
+  // ── TOPLAM ÖLÇÜ ÇİZGİLERİ (teknik resim tarzı) ──
+  const dimColor = '#9aa3b2';
+  const drawArrow = (x, y, angle) => {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(-7, -3.5); ctx.lineTo(-7, 3.5); ctx.closePath();
+    ctx.fillStyle = dimColor;
+    ctx.fill();
+    ctx.restore();
+  };
+
+  // Alt: toplam genişlik
+  const dimY = oy + drawH + 42;
+  ctx.save();
+  ctx.strokeStyle = dimColor;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([]);
+  // uzatma çizgileri
+  ctx.beginPath();
+  ctx.moveTo(ox, oy + drawH + 28); ctx.lineTo(ox, dimY + 4);
+  ctx.moveTo(ox + drawW, oy + drawH + 28); ctx.lineTo(ox + drawW, dimY + 4);
+  ctx.stroke();
+  // ölçü çizgisi
+  ctx.beginPath();
+  ctx.moveTo(ox, dimY); ctx.lineTo(ox + drawW, dimY);
+  ctx.stroke();
+  drawArrow(ox, dimY, Math.PI);
+  drawArrow(ox + drawW, dimY, 0);
+  ctx.font = '700 12px "DM Mono", monospace';
+  ctx.textAlign = 'center';
+  const wText = '↔ ' + round2(totalXmm) + ' mm';
+  const wTw = ctx.measureText(wText).width;
+  ctx.fillStyle = 'var(--bg)';
+  ctx.fillStyle = '#111111';
+  ctx.fillRect((ox + drawW / 2) - wTw / 2 - 6, dimY - 8, wTw + 12, 16);
+  ctx.fillStyle = '#d8dde6';
+  ctx.fillText(wText, ox + drawW / 2, dimY + 4);
+  ctx.restore();
+
+  // Sağ: toplam yükseklik
+  const dimX = ox + drawW + 52;
+  ctx.save();
+  ctx.strokeStyle = dimColor;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(ox + drawW + 38, oy); ctx.lineTo(dimX + 4, oy);
+  ctx.moveTo(ox + drawW + 38, oy + drawH); ctx.lineTo(dimX + 4, oy + drawH);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(dimX, oy); ctx.lineTo(dimX, oy + drawH);
+  ctx.stroke();
+  drawArrow(dimX, oy, -Math.PI / 2);
+  drawArrow(dimX, oy + drawH, Math.PI / 2);
+  ctx.translate(dimX, oy + drawH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.font = '700 12px "DM Mono", monospace';
+  ctx.textAlign = 'center';
+  const hText = '↕ ' + round2(totalYmm) + ' mm';
+  const hTw = ctx.measureText(hText).width;
+  ctx.fillStyle = '#111111';
+  ctx.fillRect(-hTw / 2 - 6, -8, hTw + 12, 16);
+  ctx.fillStyle = '#d8dde6';
+  ctx.fillText(hText, 0, 4);
+  ctx.restore();
 
   // Info bar
   document.getElementById('canvasInfo').textContent =
-    `Toplam: ${totalXmm}mm × ${totalYmm}mm  |  Izgara: ${xSegs.length}×${ySegs.length}  |  Çizgi: ${vLines.length * vLines[0].length + hLines.length * hLines[0].length} parça`;
+    `Toplam: ${round2(totalXmm)}mm × ${round2(totalYmm)}mm  |  Izgara: ${xSegs.length}×${ySegs.length}  |  Zoom: ${Math.round(dsnZoom*100)}%  |  Çizgi: ${vLines.length * vLines[0].length + hLines.length * hLines[0].length} parça`;
 }
 
 function drawVertLine(ctx, x, y, h, type, COLORS, DASH, LW) {
@@ -1818,12 +2306,23 @@ function saveDesignAsCudbox() {
   const numUY = ySegs.length + 1;
 
   // ---- bx_Arguments ----
-  let argsXml = '';
-  ySegs.forEach((seg, i) => {
-    argsXml += `    <Bx_Argument>\r\n      <name>${seg.name}</name>\r\n      <value>${seg.len}</value>\r\n    </Bx_Argument>\r\n`;
+  // Tanımlı değişkenler + formülü değişkenle eşleşmeyen segmentlerin isimleri
+  const argsOut = {};
+  dsnState.vars.forEach(v => {
+    const n = (v.name || '').trim();
+    if (n) argsOut[n] = v.value;
   });
-  xSegs.forEach((seg, i) => {
-    argsXml += `    <Bx_Argument>\r\n      <name>${seg.name}</name>\r\n      <value>${seg.len}</value>\r\n    </Bx_Argument>\r\n`;
+  [...ySegs, ...xSegs].forEach(seg => {
+    const f = (seg.formula || '').trim();
+    // Formül tek bir tanımsız isimse (örn. eski usül "B0"), argüman olarak ölçüsüyle ekle
+    if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(f) && !(f in argsOut)) argsOut[f] = seg.len;
+    // Segment adı da hiçbir yerde yoksa ekle (geri uyumluluk)
+    const n = (seg.name || '').trim();
+    if (n && !(n in argsOut)) argsOut[n] = seg.len;
+  });
+  let argsXml = '';
+  Object.entries(argsOut).forEach(([name, value]) => {
+    argsXml += `    <Bx_Argument>\r\n      <name>${name}</name>\r\n      <value>${value}</value>\r\n    </Bx_Argument>\r\n`;
   });
 
   // ---- unit_Xs (dikey çizgiler) ----
