@@ -347,7 +347,17 @@ td select.yon-sel:focus{border-color:var(--orange);}
 .cv-fire{color:#ef4444;}
 .cv-rulo{color:#60a5fa;}
 .cv-zero{color:var(--dim);}
+.opt90-lbl{display:flex;align-items:center;gap:6px;font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.6px;color:#c084fc;cursor:pointer;padding:7px 0;}
+.opt90-lbl input{accent-color:#c084fc;width:15px;height:15px;cursor:pointer;}
+.ozet-legend{margin:-4px 0 14px;display:flex;flex-direction:column;gap:4px;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:.4px;color:var(--muted);line-height:1.5;}
+.ozet-esitlik{margin-top:10px;padding:9px 14px;border:1px solid rgba(56,189,248,.28);background:rgba(56,189,248,.06);border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:.6px;color:#9dd6f5;}
+.ozet-esitlik b{color:#e2f4ff;}
+.ozet-uyari{margin-top:8px;padding:8px 14px;border:1px solid rgba(248,113,113,.35);background:rgba(248,113,113,.08);border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:12px;color:#fca5a5;}
 .ikili-badge{display:inline-block;margin-left:4px;font-size:9px;font-weight:700;letter-spacing:.5px;color:var(--bg);background:var(--orange);border-radius:3px;padding:0 4px;vertical-align:middle;}
+.cevir-badge{display:inline-block;margin-left:4px;font-size:9px;font-weight:700;letter-spacing:.5px;color:#0b0b0b;background:#c084fc;border-radius:3px;padding:0 4px;vertical-align:middle;cursor:help;}
+.cv-brut{color:#93c5fd;font-weight:700;}
+.cv-bruttl{color:#38bdf8;font-weight:800;cursor:help;}
+th.brut-col,td.brut-col{background:rgba(56,189,248,.07);}
 .kal-dot{display:inline-block;margin-left:3px;font-size:8px;color:var(--green);vertical-align:middle;}
 
 /* Add row btn */
@@ -725,8 +735,8 @@ footer{
       <div class="sv" id="yedekZaman" style="font-size:11px;">—</div>
       <div class="sl">Son Yedek</div>
     </div>
-    <div class="stat-pill"><div class="sv" id="hM2">0,00</div><div class="sl">Toplam m²</div></div>
-    <div class="stat-pill"><div class="sv" id="hTL">0,00</div><div class="sl">Toplam TL</div></div>
+    <div class="stat-pill" title="Fiilen satın alınan karton — rulo eni × kalıp boyu"><div class="sv" id="hM2">0,00</div><div class="sl">Brüt m²</div></div>
+    <div class="stat-pill" title="Satın alınan kartonun maliyeti (fatura karşılığı)"><div class="sv" id="hTL">0,00</div><div class="sl">Brüt Maliyet TL</div></div>
     <div class="stat-pill"><div class="sv" id="hRulo">0,0</div><div class="sl">Rulo (m)</div></div>
     <a href="index.html" class="hdr-home">🏠 ANA SAYFA</a>
     <div class="hdr-badge">ONLINE</div>
@@ -749,6 +759,10 @@ footer{
         <option value="YATAY">YATAY</option>
         <option value="DİKEY İKİLİ">DİKEY İKİLİ</option>
         <option value="YATAY İKİLİ">YATAY İKİLİ</option>
+        <option value="DİKEY 90°">DİKEY 90° (çevrilmiş)</option>
+        <option value="YATAY 90°">YATAY 90° (çevrilmiş)</option>
+        <option value="DİKEY 90° İKİLİ">DİKEY 90° İKİLİ</option>
+        <option value="YATAY 90° İKİLİ">YATAY 90° İKİLİ</option>
       </select>
     </div>
     <div class="gb-field">
@@ -791,9 +805,16 @@ footer{
         <span class="dot"></span><span id="stokToggleLbl">PİYASA ENLERİ</span>
       </div>
     </div>
+    <div class="gb-field">
+      <div class="gb-lbl">⟳ 90° Döndürme</div>
+      <label class="opt90-lbl" title="Açıkken optimizasyon kalıbı rulo üzerinde 90° çevirmeyi de dener (en ↔ boy). Çok ciddi tasarruf sağlayabilir ANCAK oluk (flüt) yönü döner — kutu mukavemeti değişir.">
+        <input type="checkbox" id="izin90" checked onchange="showSaveMsg(this.checked?'⟳ 90° döndürme denenecek':'⟳ 90° döndürme kapalı')">
+        <span>Denensin (oluk yönü döner!)</span>
+      </label>
+    </div>
     <div style="margin-left:auto;display:flex;align-items:flex-end;">
       <button class="opt-btn" onclick="optimizeEt()"
-              title="Her kutu için 4 kesim yönünü (DİKEY / YATAY / DİKEY İKİLİ / YATAY İKİLİ) dener; en az karton tüketen (en az fire veren) yönü otomatik seçer. Stok enleri girilmişse onlara göre optimize eder.">⚡ OPTİMİZE ET</button>
+              title="Her kutu için tüm kesim yönlerini dener ve EN AZ KARTON SATIN ALDIRAN (brüt m²/adet en düşük) yönü seçer. Stok enleri girilmişse onlara göre optimize eder.">⚡ OPTİMİZE ET</button>
     </div>
   </div>
 
@@ -816,12 +837,23 @@ footer{
   <div class="section active" id="sec-ozet">
     <div class="ozet-wrap">
       <h2>📊 Genel Toplam Özeti</h2>
+      <div class="ozet-legend">
+        <span><b style="color:#38bdf8">BRÜT</b> = fiilen satın alınan karton (rulo eni payı × kalıp boyu) — <b>karton faturasının karşılığı</b>, teklif ve sipariş bu sayıyla verilir.</span>
+        <span><b style="color:#4ade80">ÜRÜNE GİDEN</b> + <b style="color:#f87171">FİRE</b> = BRÜT. Bu iki kalem birbirine <u>eklenmez</u>, brütü paylaşır.</span>
+        <span><b style="color:var(--muted)">KALIP ALANI</b> (en × boy) yalnızca tasarım kıyaslaması içindir; satın alınan miktardan küçüktür, maliyet olarak kullanılmaz.</span>
+      </div>
       <div class="ozet-grid" id="ozetGrid"></div>
       <div class="ozet-total">
-        <div><div class="ot-lbl">Genel Toplam m²</div><div class="ot-val" id="ozetM2">0,00 m²</div></div>
-        <div><div class="ot-lbl">Genel Toplam Maliyet</div><div class="ot-val" style="color:#F59E0B" id="ozetTL">0,00 TL</div></div>
+        <div><div class="ot-lbl">Satın Alınan Karton (Brüt)</div><div class="ot-val" style="color:#38bdf8" id="ozetBrutM2">0,00 m²</div></div>
+        <div><div class="ot-lbl">Genel Toplam Maliyet (Brüt)</div><div class="ot-val" style="color:#F59E0B" id="ozetTL">0,00 TL</div></div>
         <div><div class="ot-lbl">Toplam Rulo</div><div class="ot-val" style="color:#60a5fa" id="ozetRulo">0,0 m</div></div>
       </div>
+      <div class="ozet-total" style="margin-top:10px;">
+        <div><div class="ot-lbl">Ürüne Giden Malzeme</div><div class="ot-val" style="color:#4ade80;font-size:20px;" id="ozetNetTL">0,00 TL</div></div>
+        <div><div class="ot-lbl">Fire Maliyeti</div><div class="ot-val" style="color:#f87171;font-size:20px;" id="ozetFireTL">0,00 TL</div></div>
+        <div><div class="ot-lbl">Kalıp Alanı (bilgi)</div><div class="ot-val" style="color:var(--muted);font-size:20px;" id="ozetM2">0,00 m²</div></div>
+      </div>
+      <div class="ozet-esitlik" id="ozetEsitlik"></div>
     </div>
   </div>
 
@@ -1153,15 +1185,26 @@ const nearPiyasa=en=>{
   return v<100?100:v;              // en küçük piyasa eni 100 mm
 };
 
+// Seçilebilir tüm kesim yönleri (tek kaynak — dropdown ve optimizasyon buradan beslenir)
+const YON_LISTESI=[
+  'DİKEY','YATAY',
+  'DİKEY İKİLİ','YATAY İKİLİ',
+  'DİKEY 90°','YATAY 90°',
+  'DİKEY 90° İKİLİ','YATAY 90° İKİLİ'
+];
+
 // Dışarıdan (Excel) gelen yön/kesim metnini standart değere çevirir:
-//  "YATAY" / "DİKEY" temel yön + "İKİLİ" (çift / 2 / double) ek ifadesi.
+//  "YATAY"/"DİKEY" temel yön + "90°" (döndürme) + "İKİLİ" (çift / 2 / double).
 function parseYon(s){
   s=String(s||'').toLocaleUpperCase('tr-TR');
   const yatay=s.indexOf('YATAY')>=0;
+  const cevir=s.indexOf('90')>=0||s.indexOf('ÇEVR')>=0||s.indexOf('CEVR')>=0||
+              s.indexOf('ÇEVİR')>=0||s.indexOf('CEVIR')>=0||
+              s.indexOf('DÖND')>=0||s.indexOf('DOND')>=0||s.indexOf('ROT')>=0;
   const ikili=s.indexOf('İKİLİ')>=0||s.indexOf('IKILI')>=0||
               s.indexOf('ÇİFT')>=0||s.indexOf('CIFT')>=0||
-              s.indexOf('DOUBLE')>=0||/(^|\D)2(\D|$)/.test(s);
-  return (yatay?'YATAY':'DİKEY')+(ikili?' İKİLİ':'');
+              s.indexOf('DOUBLE')>=0||/(^|\D)2(\D|$)/.test(s.replace(/90/g,''));
+  return (yatay?'YATAY':'DİKEY')+(cevir?' 90°':'')+(ikili?' İKİLİ':'');
 }
 
 // Bir tipin İÇE/DIŞA aktarılabilir ölçü değişkenleri.
@@ -1399,32 +1442,41 @@ function hesapla(ft,r){
     return val!==undefined&&val!==''&&val!==null ? (parseFloat(val)||0) : def;
   });
 
-  // Yön + Kesim çözümle: "YATAY" / "DİKEY" temel yönü, "İKİLİ" ise çift kesim demektir.
+  // Yön + Kesim çözümle:
+  //   "YATAY"/"DİKEY" → formülde L↔B takası (tipe göre sonucu değiştirmeyebilir)
+  //   "İKİLİ"          → aynı kalıptan iki adet yan yana
+  //   "90°"            → kalıbın rulo üzerinde 90° döndürülmesi (en ↔ boy takası)
   const yonStr=(r.yon||'DİKEY');
   const isYatay=yonStr.indexOf('YATAY')>=0;
   const ikili=yonStr.indexOf('İKİLİ')>=0;
+  const cevir=yonStr.indexOf('90')>=0;
 
-  let en=0,boy=0;
+  let en0=0,boy0=0;
   const hasDims=args.some((v,i)=>!['T','P','K','K1','K2'].includes(vars[i])&&v>0);
   if(hasDims&&c){
     try{
       if(isYatay){
-        en = c.yatayEn ? Math.round(c.yatayEn(...args)) : 0;
-        boy = c.yatayBoy ? Math.round(c.yatayBoy(...args)) : 0;
+        en0 = c.yatayEn ? Math.round(c.yatayEn(...args)) : 0;
+        boy0 = c.yatayBoy ? Math.round(c.yatayBoy(...args)) : 0;
       }else{
-        en = c.dikeyEn ? Math.round(c.dikeyEn(...args)) : 0;
-        boy = c.dikeyBoy ? Math.round(c.dikeyBoy(...args)) : 0;
+        en0 = c.dikeyEn ? Math.round(c.dikeyEn(...args)) : 0;
+        boy0 = c.dikeyBoy ? Math.round(c.dikeyBoy(...args)) : 0;
       }
-    }catch(e){en=0;boy=0;}
+    }catch(e){en0=0;boy0=0;}
   }
 
-  if(ft.isOzel&&!(en>0&&boy>0)){
-    en=r.ozelEn||0; boy=r.ozelBoy||0;
+  if(ft.isOzel&&!(en0>0&&boy0>0)){
+    en0=r.ozelEn||0; boy0=r.ozelBoy||0;
   }
 
-  if(en<=0||boy<=0) return null;
+  if(en0<=0||boy0<=0) return null;
 
-  const m2A=(en/1000)*(boy/1000);               // tek kutu net alanı (değişmez)
+  // 90° döndürme: kalıbın hangi kenarının rulo enine (web) geldiğini değiştirir.
+  // DİKKAT: oluk (flüt) yönü de döner → kutu mukavemeti değişir.
+  const en  = cevir ? boy0 : en0;
+  const boy = cevir ? en0  : boy0;
+
+  const m2A=(en/1000)*(boy/1000);               // KALIP (blank) alanı — ürün + işleme firesi
   const H=parseFloat(r.H)||0;
   const T=parseFloat(r.T)||3;
 
@@ -1433,17 +1485,32 @@ function hesapla(ft,r){
   // Piyasa eni bu çift genişliğe göre yuvarlanır, böylece tek kesimde yukarı yuvarlanan
   // awkward enler (ör. 550 -> 600) ikili kesimde tam boya oturabilir (1100 -> 1100).
   const enKesim = ikili ? en*2 : en;            // tabloda gösterilecek "Karton Eni"
-  const piyasa  = nearPiyasa(enKesim);          // kesimin piyasa eni
-  const piyasaPerBox = ikili ? piyasa/2 : piyasa; // kutu başına düşen piyasa eni payı
+  const piyasa  = nearPiyasa(enKesim);          // kesimin piyasa/stok eni
+  const piyasaPerBox = ikili ? piyasa/2 : piyasa; // kutu başına düşen rulo eni payı
 
-  // ---- FIRE: iki bileşen ----
-  // 1) İŞLEME firesi (trim + slot, ya da kalibre edilmişse α/β). Piyasa eni HARİÇ.
-  //    Kalibrasyon yapılırken girilen "gerçek fire %" de yalnızca işleme firesi olmalıdır;
-  //    piyasa eni firesi aşağıda ayrıca ve kesin olarak eklenir.
+  // Stok modunda hiçbir karton enine sığmayan kesim
+  const sigmaz=STOK_MODU&&STOK_ENLERI.length>0&&piyasa<=0;
+
+  // ============================================================
+  // BRÜT = fiilen SATIN ALINAN karton (rulo eni payı × kalıp boyu).
+  // Tüm maliyet ve fire yüzdeleri bu tek paydaya oturur:
+  //     brüt = net ürün + işleme firesi + piyasa eni firesi
+  // SIĞMAZ durumda payda sıfırlanmasın diye kalıp alanına düşülür.
+  // ============================================================
+  const rullEn  = piyasaPerBox>0 ? piyasaPerBox : en;
+  const brutM2A = (rullEn/1000)*(boy/1000);     // m²/adet — satın alınan
+
+  // ---- 1) PİYASA ENİ FİRESİ: rulo eni payı ile kalıp eni arasındaki şerit ----
+  // Tolerans nedeniyle piyasaPerBox < en olabilir (alt boydan kesim): şerit yoktur, 0 kabul edilir.
+  const piyasaM2   = Math.max(0,(rullEn-en))*boy/1e6;          // m²/adet
+  const firePiyasa = brutM2A>0 ? (piyasaM2/brutM2A)*100 : 0;   // % (brüte göre)
+
+  // ---- 2) İŞLEME FİRESİ (slot + trim, ya da kalibre edilmişse α/β) ----
+  // Kalibrasyonda girilen "gerçek fire %" toplam (brüt) fire olduğu ve piyasa payı
+  // düşülerek saklandığı için, buradaki işleme firesi de BRÜT tabanlıdır.
   let fireIsleme;
   // 0) BİREBİR KALİBRASYON: Bu ölçü kalibrasyon tablosunda aynen girildiyse,
   //    regresyon tahmini yerine o satırın GERÇEK işleme firesini doğrudan kullan.
-  //    Böylece kalibre edilen kutu, girdiğin gerçek fire ile birebir görünür.
   const kalibTam=findKalibMatch(ft,r,vars);
   const kal=(typeof KALIB_RESULT!=='undefined')?KALIB_RESULT[ft.id]:null;
   if(kalibTam&&kalibTam._fireIsleme!==undefined){
@@ -1453,32 +1520,34 @@ function hesapla(ft,r){
     fireIsleme=kal.alpha*(H*T/m2A)+kal.beta;     // öğrenilen regresyon tahmini
     if(fireIsleme<0)fireIsleme=0;
   }else{
-    const slot=4*H*T/1e6,trim=0.04*m2A;
-    fireIsleme=m2A>0?((slot+trim)/m2A)*100:0;    // varsayılan formül
+    const slot=4*H*T/1e6,trim=0.04*m2A;          // m²/adet
+    fireIsleme=brutM2A>0?((slot+trim)/brutM2A)*100:0;  // varsayılan formül (brüte göre)
   }
-  const islemeM2=fireIsleme/100*m2A;            // m²/adet
+  if(fireIsleme>100)fireIsleme=100;
+  const islemeM2=fireIsleme/100*brutM2A;         // m²/adet
 
-  // 2) PİYASA ENİ firesi: kutu başına düşen piyasa eni payı ile tek kutu eni arasındaki şerit.
-  //    İkili kesimde piyasaPerBox = piyasa/2 olduğundan fire önemli ölçüde düşebilir.
-  // Tolerans nedeniyle piyasaPerBox < en olabilir (alt boydan kesim): bu durumda
-  // atılan şerit yoktur, piyasa eni firesi 0 kabul edilir (negatife düşmez).
-  const firePiyasa=piyasaPerBox>0?Math.max(0,((piyasaPerBox-en)/piyasaPerBox)*100):0; // % (atılan/brüt)
-  const piyasaM2=(piyasaPerBox-en)>0?((piyasaPerBox-en)*boy)/1e6:0; // m²/adet
-
-  // 3) TOPLAM fire = işleme + piyasa eni
-  const fireOran=fireIsleme+firePiyasa;          // %
+  // ---- 3) TOPLAM fire — aynı payda, gerçekten toplanabilir ----
+  const fireOran=fireIsleme+firePiyasa;          // % (brüte göre)
   const totFire=islemeM2+piyasaM2;               // m²/adet
+  const netUrunM2=Math.max(0,brutM2A-totFire);   // ürüne fiilen giren malzeme
 
   const adet=r.adet||0,fi=parseFloat(r.fiyat)||gF(ft.id);
-  const totM2=m2A*adet,totFireM2=totFire*adet;
-  // Stok modunda hiçbir karton enine sığmayan kesim
-  const sigmaz=STOK_MODU&&STOK_ENLERI.length>0&&piyasa<=0;
-  return{en:enKesim,enTek:en,ikili,boy,m2A,totM2,totFireM2,totTL:totM2*fi,
-    sigmaz,fireM2A:totFire,
+  const totM2=m2A*adet;                          // kalıp alanı toplamı
+  const brutTop=brutM2A*adet;                    // SATIN ALINAN toplam
+  const totFireM2=totFire*adet;
+  const netUrunTop=netUrunM2*adet;
+
+  return{en:enKesim,enTek:en,ikili,cevir,boy,m2A,totM2,totFireM2,totTL:totM2*fi,
+    // --- brüt (fatura) ---
+    brutM2A,brutTop,brutTL:brutTop*fi,
+    // --- net ürün ---
+    netUrunM2,netUrunTop,netUrunTL:netUrunTop*fi,
+    sigmaz,fireM2A:totFire,islemeM2,piyasaM2,
     fireOran,fireIsleme,firePiyasa,fireTL:totFireM2*fi,
     kalibExact:!!(kalibTam&&kalibTam._fireIsleme!==undefined),
-    rulo:enKesim>0?totM2/(enKesim/1000):0,
-    piyasa,
+    // Rulo metrajı: adet × kalıp boyu (ikili kesimde yarısı)
+    rulo:(boy/1000)*adet/(ikili?2:1),
+    piyasa,piyasaPerBox,
     // Piyasa eni ile kesim eni arasındaki fark
     piyasaFark: piyasa-enKesim,
     piyasaFireEk: firePiyasa
@@ -1492,9 +1561,10 @@ const FIXED_COLS_TAIL=[
   {w:104,lbl:'Yön / Kesim',key:'_yon'},
   {w:74,lbl:'Karton Eni',key:'_en'},{w:74,lbl:'Piyasa Eni',key:'_piyasa'},
   {w:74,lbl:'Karton Boy',key:'_boy'},
-  {w:72,lbl:'m²/Adet',key:'_m2a'},{w:56,lbl:'Adet',key:'_adet'},
-  {w:78,lbl:'Toplam m²',key:'_totm2'},
-  {w:66,lbl:'Birim TL',key:'_fiyat'},{w:84,lbl:'Toplam TL',key:'_tottl'},
+  {w:72,lbl:'Kalıp m²/Ad',key:'_m2a'},{w:56,lbl:'Adet',key:'_adet'},
+  {w:78,lbl:'Kalıp m²',key:'_totm2'},
+  {w:66,lbl:'Birim TL',key:'_fiyat'},{w:84,lbl:'Kalıp TL',key:'_tottl'},
+  {w:82,lbl:'BRÜT m²',key:'_brutm2'},{w:92,lbl:'BRÜT TL',key:'_bruttl'},
   {w:56,lbl:'Fire %',key:'_fire'},{w:66,lbl:'Fire m²',key:'_firem2'},{w:74,lbl:'Fire TL',key:'_firetl'},
   {w:64,lbl:'Rulo (m)',key:'_rulo'},
 ];
@@ -1540,12 +1610,16 @@ function calcCellsHtml(h){
     const kalNot=h.kalibExact?' ✓kalibre (birebir ölçü)':'';
     fireHtml=h.sigmaz
       ?`<span class="cv cv-sigmaz" title="Bu kesim eni (${h.en} mm) stoktaki hiçbir karton enine sığmıyor. Başka bir yön deneyin veya stok listesine daha geniş bir en ekleyin.">SIĞMAZ</span>`
-      :`<div class="fire-cell" title="İşleme: ${h.fireIsleme.toFixed(2)}% + Piyasa eni: ${h.firePiyasa.toFixed(2)}% = Toplam ${h.fireOran.toFixed(2)}%${kalNot}"><span class="fire-cell-pct ${fc}">${h.fireOran.toFixed(2)}%${h.kalibExact?'<span class="kal-dot" title="Kalibrasyondan birebir">●</span>':''}</span><div class="fire-cell-bar ${fc}" style="width:${Math.min(h.fireOran*4,100)}%"></div></div>`;
+      :`<div class="fire-cell" title="Tümü BRÜT (satın alınan) kartona göre — İşleme: ${h.fireIsleme.toFixed(2)}% + Piyasa eni: ${h.firePiyasa.toFixed(2)}% = Toplam ${h.fireOran.toFixed(2)}%${kalNot}"><span class="fire-cell-pct ${fc}">${h.fireOran.toFixed(2)}%${h.kalibExact?'<span class="kal-dot" title="Kalibrasyondan birebir">●</span>':''}</span><div class="fire-cell-bar ${fc}" style="width:${Math.min(h.fireOran*4,100)}%"></div></div>`;
   }else fireHtml=cv(null);
+  const cevirBadge=h&&h.cevir?'<span class="cevir-badge" title="Kalıp 90° çevrildi (en ↔ boy). Oluk/flüt yönü de döner — kutu mukavemetini kontrol edin.">⟳90°</span>':'';
   return {
+    brutm2: h?(h.sigmaz?`<span class="cv cv-sigmaz">—</span>`:cv(h.brutTop,'cv-brut',2)):cv(null),
+    bruttl: h?(h.sigmaz?`<span class="cv cv-sigmaz">—</span>`
+              :`<span class="cv cv-bruttl" title="Satın alınan karton: ${fmt(h.brutM2A,4)} m²/adet × ${fmt(h.brutTop/(h.brutM2A||1),0)} adet">${fmt(h.brutTL,2)}</span>`):cv(null),
     en:   h?(h.ikili
-            ?`<span class="cv cv-eni" title="İkili kesim: 2 × ${h.enTek} mm yan yana = ${h.en} mm">${Number(h.en).toLocaleString('tr-TR')}<span class="ikili-badge">2×</span></span>`
-            :cv(h.en,'cv-eni')):cv(null),
+            ?`<span class="cv cv-eni" title="İkili kesim: 2 × ${h.enTek} mm yan yana = ${h.en} mm">${Number(h.en).toLocaleString('tr-TR')}<span class="ikili-badge">2×</span>${cevirBadge}</span>`
+            :`<span class="cv cv-eni">${Number(h.en).toLocaleString('tr-TR')}${cevirBadge}</span>`):cv(null),
     pi:   h?(h.sigmaz
             ?`<span class="cv cv-sigmaz" title="Stoktaki karton enlerine sığmıyor">SIĞMAZ</span>`
             :cv(h.piyasa,'cv-piyasa')):cv(null),
@@ -1587,10 +1661,7 @@ function rowInner(ftId,i){
   onchange="editText('${ftId}',${i},'ad',this.value)"></td>
 ${varCells}
 <td><select class="yon-sel" onchange="editCell('${ftId}',${i},'yon',this.value)">
-  <option${row.yon==='DİKEY'?' selected':''}>DİKEY</option>
-  <option${row.yon==='YATAY'?' selected':''}>YATAY</option>
-  <option${row.yon==='DİKEY İKİLİ'?' selected':''}>DİKEY İKİLİ</option>
-  <option${row.yon==='YATAY İKİLİ'?' selected':''}>YATAY İKİLİ</option>
+  ${YON_LISTESI.map(y=>`<option${row.yon===y?' selected':''}>${y}</option>`).join('')}
 </select></td>
 <td id="cEn_${P}">${cc.en}</td>
 <td id="cPi_${P}">${cc.pi}</td>
@@ -1603,6 +1674,8 @@ ${varCells}
   title="${fiyatManuel?'Manuel fiyat — sekme fiyatından etkilenmez':'Sekme varsayılan fiyatı'}"
   onchange="editPrice('${ftId}',${i},+this.value)"></td>
 <td id="cTL_${P}">${cc.tl}</td>
+<td class="brut-col" id="cBM2_${P}">${cc.brutm2}</td>
+<td class="brut-col" id="cBTL_${P}">${cc.bruttl}</td>
 <td id="cFire_${P}">${cc.fire}</td>
 <td id="cFM2_${P}">${cc.fm2}</td>
 <td id="cFTL_${P}">${cc.ftl}</td>
@@ -1626,7 +1699,8 @@ function refreshRow(ftId,i){
   const P=ftId+'_'+i;
   const set=(pre,html)=>{const el=document.getElementById(pre+P);if(el)el.innerHTML=html;};
   set('cEn_',cc.en); set('cPi_',cc.pi); set('cBoy_',cc.boy); set('cM2_',cc.m2);
-  set('cTM2_',cc.tm2); set('cTL_',cc.tl); set('cFire_',cc.fire);
+  set('cTM2_',cc.tm2); set('cTL_',cc.tl);
+  set('cBM2_',cc.brutm2); set('cBTL_',cc.bruttl); set('cFire_',cc.fire);
   set('cFM2_',cc.fm2); set('cFTL_',cc.ftl); set('cRulo_',cc.rulo);
 }
 
@@ -1688,7 +1762,7 @@ function renderTable(ftId){
   const vars=ft._vars||[];
   const totalW=cols.reduce((s,col)=>s+col.w,0);
   const colGroupHtml=cols.map(col=>`<col style="width:${col.w}px;min-width:${col.w}px;">`).join('');
-  const thHtml=cols.map(col=>`<th>${col.lbl}</th>`).join('');
+  const thHtml=cols.map(col=>`<th${(col.key==='_brutm2'||col.key==='_bruttl')?' class="brut-col"':''}>${col.lbl}</th>`).join('');
 
   const aramaQ=getAramaQuery();
 
@@ -1979,7 +2053,7 @@ function stokRecalc(){
 
 // Genel fire özeti (adet girilmemiş satırlar 1 adet sayılır ki karşılaştırma anlamlı olsun)
 function stokOzetHesap(){
-  let fireM2=0,netM2=0,sigmazSay=0,satir=0;
+  let fireM2=0,brutM2=0,kalipM2=0,brutTL=0,fireTL=0,sigmazSay=0,satir=0;
   FEFCO_TYPES.forEach(ft=>{
     (DATA[ft.id]||[]).forEach(r=>{
       const h=hesapla(ft,r);
@@ -1987,16 +2061,22 @@ function stokOzetHesap(){
       satir++;
       const n=Math.max(1,parseFloat(r.adet)||0);
       if(h.sigmaz){sigmazSay++;return;}
-      fireM2+=h.fireM2A*n;
-      netM2+=h.m2A*n;
+      const fi=parseFloat(r.fiyat)||gF(ft.id);
+      fireM2 +=h.fireM2A*n;
+      brutM2 +=h.brutM2A*n;
+      kalipM2+=h.m2A*n;
+      brutTL +=h.brutM2A*n*fi;
+      fireTL +=h.fireM2A*n*fi;
     });
   });
-  return{fireM2,netM2,pct:netM2>0?fireM2/netM2*100:0,sigmazSay,satir};
+  // Fire yüzdesi HER YERDE brüt (satın alınan) kartona göre
+  return{fireM2,brutM2,netM2:kalipM2,brutTL,fireTL,
+         pct:brutM2>0?fireM2/brutM2*100:0,sigmazSay,satir};
 }
 
 // ============================================================
-// ⚡ OPTİMİZE ET — her satır için 4 kesim yönünü dener,
-// en az karton tüketen (brüt m²/adet en düşük) yönü seçer.
+// ⚡ OPTİMİZE ET — her satır için 8 kesim yönünü (DİKEY/YATAY × tek/İKİLİ × düz/90°) dener,
+// en az karton SATIN ALDIRAN (brüt m²/adet en düşük) yönü seçer.
 // Stok enleri girilmişse otomatik stok moduna geçer ve
 // SADECE eldeki kartonlara sığan yönler arasından seçim yapar.
 // ============================================================
@@ -2008,30 +2088,37 @@ function optimizeEt(){
     stokKaydet();
   }
 
-  const YONLER=['DİKEY','YATAY','DİKEY İKİLİ','YATAY İKİLİ'];
+  const izin90=(()=>{const e=document.getElementById('izin90');return e?e.checked:true;})();
+  const YONLER=izin90?YON_LISTESI.slice():YON_LISTESI.filter(y=>y.indexOf('90')<0);
   const once=stokOzetHesap();
 
-  let degisen=0,incelenen=0,sigmayan=0;
+  let degisen=0,incelenen=0,sigmayan=0,cevrilen=0;
   const detay=[];
 
   FEFCO_TYPES.forEach(ft=>{
     (DATA[ft.id]||[]).forEach(r=>{
       const orijYon=r.yon||'DİKEY';
+      // Kullanıcı 90°'yi kapatsa bile satır zaten 90° ise aday listesinde kalsın
+      const adaylar=YONLER.includes(orijYon)?YONLER:[orijYon,...YONLER];
       let best=null,bestYon=orijYon,herhangiHesap=false;
 
-      YONLER.forEach(y=>{
+      adaylar.forEach(y=>{
         r.yon=y;
         const h=hesapla(ft,r);
         if(!h)return;
         herhangiHesap=true;
-        if(h.sigmaz)return;                       // stoğa sığmayan yön aday olamaz
-        // Brüt tüketim: kutu başına düşen karton şeridi alanı (en az olan kazanır)
-        const perEn=h.piyasa/(h.ikili?2:1);        // kutu başına piyasa/stok eni payı
-        const brut=(perEn*h.boy)/1e6;              // m²/adet brüt tüketim
-        if(!best
-           || brut<best.brut-1e-9
-           || (Math.abs(brut-best.brut)<1e-9&&h.fireOran<best.fire-1e-9)){
-          best={brut,fire:h.fireOran,piyasa:h.piyasa,ikili:h.ikili};
+        if(h.sigmaz)return;                        // stoğa sığmayan yön aday olamaz
+        // AMAÇ: kutu başına SATIN ALINAN karton (brüt m²/adet) en az olsun
+        const brut=h.brutM2A;
+        const cevir=!!h.cevir;
+        const better =
+             !best
+          || brut < best.brut-1e-9
+          // eşitse: oluk yönünü bozmayan (90° olmayan) tercih edilir
+          || (Math.abs(brut-best.brut)<1e-9 && best.cevir && !cevir)
+          || (Math.abs(brut-best.brut)<1e-9 && best.cevir===cevir && h.fireOran<best.fire-1e-9);
+        if(better){
+          best={brut,fire:h.fireOran,piyasa:h.piyasa,ikili:h.ikili,cevir};
           bestYon=y;
         }
       });
@@ -2049,9 +2136,11 @@ function optimizeEt(){
       }
 
       r.yon=bestYon;
+      if(best.cevir) cevrilen++;
       if(bestYon!==orijYon){
         degisen++;
-        detay.push({kod:ft.kod,ad:r.ad||'—',eski:orijYon,yeni:bestYon,fire:best.fire,piyasa:best.piyasa,sigmaz:false});
+        detay.push({kod:ft.kod,ad:r.ad||'—',eski:orijYon,yeni:bestYon,fire:best.fire,
+                    piyasa:best.piyasa,cevir:best.cevir,sigmaz:false});
       }
     });
   });
@@ -2061,7 +2150,7 @@ function optimizeEt(){
   try{yedekSayacArtir();}catch(e){}
 
   const sonra=stokOzetHesap();
-  optSonucGoster(once,sonra,{degisen,incelenen,sigmayan,detay});
+  optSonucGoster(once,sonra,{degisen,incelenen,sigmayan,cevrilen,detay});
 }
 
 function optSonucGoster(once,sonra,st){
@@ -2077,7 +2166,8 @@ function optSonucGoster(once,sonra,st){
     return;
   }
 
-  const fark=once.fireM2-sonra.fireM2;
+  const farkM2=once.brutM2-sonra.brutM2;      // satın alınan kartondaki azalma
+  const farkTL=once.brutTL-sonra.brutTL;      // paradaki azalma
   const modTxt=STOK_MODU&&STOK_ENLERI.length
     ?`stoktaki enlere göre (<b>${STOK_ENLERI.join(', ')} mm</b>)`
     :'piyasa enlerine (100\'ün katları) göre';
@@ -2085,14 +2175,17 @@ function optSonucGoster(once,sonra,st){
   let html=`⚡ <b>${st.incelenen}</b> satır ${modTxt} incelendi · <b>${st.degisen}</b> satırın kesim yönü değiştirildi.<br>`;
   const kurtarilan=once.sigmazSay-sonra.sigmazSay;   // önce sığmayan, artık sığan kutu sayısı
   if(kurtarilan>0){
-    // Sığmaz kutular fire toplamına girmediği için önce/sonra karşılaştırması yanıltıcı olur
+    // Sığmaz kutular toplamlara girmediği için önce/sonra karşılaştırması yanıltıcı olur
     html+=`<span class="iyi">✓ ${kurtarilan} kutu yön değişikliğiyle stoğa sığar hale getirildi.</span> `;
-    html+=`🔥 Sığan kutuların toplam firesi: <b>${fmt(sonra.fireM2,2)} m²</b> (%${sonra.pct.toFixed(2)})`;
+    html+=`📦 Sığan kutuların brüt karton tüketimi: <b>${fmt(sonra.brutM2,2)} m²</b> · <b>${fmt(sonra.brutTL,2)} TL</b> (fire %${sonra.pct.toFixed(2)})`;
   }else{
-    html+=`🔥 Toplam fire: <b>${fmt(once.fireM2,2)} m²</b> (%${once.pct.toFixed(2)}) → <b class="${fark>=-0.001?'iyi':'kotu'}">${fmt(sonra.fireM2,2)} m²</b> (%${sonra.pct.toFixed(2)})`;
-    if(fark>0.001)html+=` · <span class="iyi">✓ ${fmt(fark,2)} m² tasarruf</span>`;
+    html+=`📦 Satın alınan karton: <b>${fmt(once.brutM2,2)} m²</b> → <b class="${farkM2>=-0.001?'iyi':'kotu'}">${fmt(sonra.brutM2,2)} m²</b>`;
+    html+=` &nbsp;·&nbsp; 💰 Maliyet: <b>${fmt(once.brutTL,2)} TL</b> → <b class="${farkTL>=-0.001?'iyi':'kotu'}">${fmt(sonra.brutTL,2)} TL</b>`;
+    html+=`<br>🔥 Fire: %${once.pct.toFixed(2)} → %${sonra.pct.toFixed(2)}`;
+    if(farkTL>0.01)html+=` · <span class="iyi">✓ ${fmt(farkM2,2)} m² / ${fmt(farkTL,2)} TL tasarruf</span>`;
     else if(st.degisen===0)html+=` · <span class="iyi">✓ Zaten en verimli yönlerdesiniz</span>`;
   }
+  if(st.cevrilen>0)html+=`<br><span style="color:#c084fc">⟳ ${st.cevrilen} kutu 90° çevrilmiş kalıpla hesaplanıyor — oluk (flüt) yönü döndüğü için kutu mukavemetini mutlaka doğrulayın.</span>`;
   if(st.sigmayan>0)html+=`<br><span class="kotu">⚠️ ${st.sigmayan} kutu hiçbir yönde stoktaki karton enlerine sığmıyor</span> — daha geniş bir en ekleyin veya o kutuları piyasa modunda hesaplayın.`;
 
   if(st.detay.length){
@@ -2101,7 +2194,7 @@ function optSonucGoster(once,sonra,st){
     st.detay.forEach(d=>{
       rows+=d.sigmaz
         ?`<tr><td>${d.kod}</td><td>${esc(d.ad)}</td><td colspan="2" style="color:#ff6b6b;">SIĞMAZ — kesim eni ${d.en} mm</td><td>—</td></tr>`
-        :`<tr><td>${d.kod}</td><td>${esc(d.ad)}</td><td style="color:var(--muted);">${d.eski}</td><td style="color:var(--green);">→ ${d.yeni}</td><td>${d.piyasa} mm · %${d.fire.toFixed(2)}</td></tr>`;
+        :`<tr><td>${d.kod}</td><td>${esc(d.ad)}</td><td style="color:var(--muted);">${d.eski}</td><td style="color:var(--green);">→ ${d.yeni}${d.cevir?' <span class="cevir-badge">⟳90°</span>':''}</td><td>${d.piyasa} mm · %${d.fire.toFixed(2)}</td></tr>`;
     });
     det.innerHTML=`<table><thead><tr><th>Tip</th><th>Kutu</th><th>Eski Yön</th><th>Yeni Yön</th><th>En · Fire</th></tr></thead><tbody>${rows}</tbody></table>`;
   }else{det.innerHTML='';det.classList.remove('show');}
@@ -2129,24 +2222,28 @@ function updateFire(){
     anyData=true;
 
     // ---- Tipe ait toplam hesapla ----
-    let sumFireM2=0,sumFireTL=0,sumFireIsleme=0,sumFirePiyasa=0,sumFireOran=0,totalAdet=0;
+    // Adet girilmemiş satır HER YERDE 1 sayılır (pay ve payda tutarlı olsun diye).
+    let sumFireM2=0,sumFireTL=0,sumIslemeM2=0,sumPiyasaM2=0,sumBrutM2=0,sumBrutTL=0,totalAdet=0;
     rows.forEach(r=>{
       const h=hesapla(ft,r);
       if(!h)return;
-      const adet=r.adet||1;
-      sumFireM2     += h.totFireM2;
-      sumFireTL     += h.fireTL;
-      sumFireIsleme += h.fireIsleme * adet;
-      sumFirePiyasa += h.firePiyasa * adet;
-      sumFireOran   += h.fireOran   * adet;
-      totalAdet     += adet;
+      const adet=Math.max(1,parseFloat(r.adet)||0);
+      const fi=parseFloat(r.fiyat)||gF(ft.id);
+      sumFireM2   += h.fireM2A  * adet;
+      sumFireTL   += h.fireM2A  * adet * fi;
+      sumIslemeM2 += h.islemeM2 * adet;
+      sumPiyasaM2 += h.piyasaM2 * adet;
+      sumBrutM2   += h.brutM2A  * adet;
+      sumBrutTL   += h.brutM2A  * adet * fi;
+      totalAdet   += adet;
     });
 
-    const avgFirePct    = totalAdet>0 ? sumFireOran   / totalAdet : 0;
-    const avgFireIsleme = totalAdet>0 ? sumFireIsleme / totalAdet : 0;
-    const avgFirePiyasa = totalAdet>0 ? sumFirePiyasa / totalAdet : 0;
-    const avgFireM2     = totalAdet>0 ? sumFireM2     / totalAdet : 0;
-    const avgFireTL     = totalAdet>0 ? sumFireTL     / totalAdet : 0;
+    // Ağırlıklı yüzdeler — hepsi BRÜT (satın alınan) kartona göre, bileşenler toplanır
+    const avgFireIsleme = sumBrutM2>0 ? sumIslemeM2/sumBrutM2*100 : 0;
+    const avgFirePiyasa = sumBrutM2>0 ? sumPiyasaM2/sumBrutM2*100 : 0;
+    const avgFirePct    = avgFireIsleme + avgFirePiyasa;
+    const avgFireM2     = totalAdet>0 ? sumFireM2 / totalAdet : 0;
+    const avgFireTL     = totalAdet>0 ? sumFireTL / totalAdet : 0;
     const afc=fireClass(avgFirePct);
     const barW=Math.min(avgFirePct*4,100);
 
@@ -2162,9 +2259,10 @@ function updateFire(){
       <span class="fire-pct ${afc}" style="font-size:16px;width:56px;">${avgFirePct.toFixed(2)}%</span>
     </div>
     <div class="fire-detail" style="margin-bottom:8px;">
-      <span>İşleme firesi ort.: <b>${avgFireIsleme.toFixed(2)}%</b></span>
-      <span>Piyasa eni firesi ort.: <b>${avgFirePiyasa.toFixed(2)}%</b></span>
-      <span style="color:var(--orange)">Toplam ort.: <b style="color:var(--orange)">${avgFirePct.toFixed(2)}%</b></span>
+      <span>İşleme firesi: <b>${avgFireIsleme.toFixed(2)}%</b></span>
+      <span>Piyasa eni firesi: <b>${avgFirePiyasa.toFixed(2)}%</b></span>
+      <span style="color:var(--orange)">Toplam: <b style="color:var(--orange)">${avgFirePct.toFixed(2)}%</b></span>
+      <span style="color:var(--muted);font-size:10px;">(tümü satın alınan kartona göre)</span>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
       <div class="fire-avg-chip">
@@ -2183,6 +2281,14 @@ function updateFire(){
         <span class="av" style="color:var(--muted)">${fmt(sumFireTL,2)} TL</span>
         <span class="al">Toplam Fire TL</span>
       </div>
+      <div class="fire-avg-chip">
+        <span class="av" style="color:#38bdf8">${fmt(sumBrutM2,2)} m²</span>
+        <span class="al">Satın Alınan (Brüt)</span>
+      </div>
+      <div class="fire-avg-chip">
+        <span class="av" style="color:#38bdf8">${fmt(sumBrutTL,2)} TL</span>
+        <span class="al">Brüt Maliyet</span>
+      </div>
     </div>
   </div>
 </div>`;
@@ -2196,21 +2302,38 @@ function updateFire(){
 }
 
 function updateOzet(){
-  let tM2=0,tTL=0,tRulo=0;
+  let tKalipM2=0,tBrutM2=0,tBrutTL=0,tNetTL=0,tFireTL=0,tFireM2=0,tRulo=0,tSigmaz=0;
   const g=document.getElementById('ozetGrid');if(!g)return;
   let html='';
   FEFCO_TYPES.forEach(ft=>{
-    let m2=0,tl=0,rulo=0;
-    DATA[ft.id].forEach(r=>{const h=hesapla(ft,r);if(h){m2+=h.totM2;tl+=h.totTL;rulo+=h.rulo;}});
-    tM2+=m2;tTL+=tl;tRulo+=rulo;
+    let kalipM2=0,brutM2=0,brutTL=0,fireTL=0,rulo=0,sig=0;
+    (DATA[ft.id]||[]).forEach(r=>{
+      const h=hesapla(ft,r);if(!h)return;
+      if(h.sigmaz){sig++;return;}          // SIĞMAZ satır maliyete girmez
+      kalipM2+=h.totM2; brutM2+=h.brutTop; brutTL+=h.brutTL;
+      fireTL+=h.fireTL; rulo+=h.rulo;
+      tNetTL+=h.netUrunTL; tFireM2+=h.totFireM2;
+    });
+    tKalipM2+=kalipM2; tBrutM2+=brutM2; tBrutTL+=brutTL; tFireTL+=fireTL; tRulo+=rulo; tSigmaz+=sig;
     html+=`<div class="ozet-item"><div class="oi-kod">${ft.kod}</div><div class="oi-ad">${ft.ad}</div>
-    <div class="oi-m2">${fmt(m2,2)} m²</div><div class="oi-tl">${fmt(tl,2)} TL</div>
-    <div class="oi-rulo">Rulo: ${fmt(rulo,1)} m</div></div>`;
+    <div class="oi-m2">${fmt(brutM2,2)} m² brüt</div><div class="oi-tl">${fmt(brutTL,2)} TL</div>
+    <div class="oi-rulo">Rulo: ${fmt(rulo,1)} m${sig?` · <span style="color:#f87171">${sig} sığmaz</span>`:''}</div></div>`;
   });
   g.innerHTML=html;
-  document.getElementById('ozetM2').textContent=fmt(tM2,2)+' m²';
-  document.getElementById('ozetTL').textContent=fmt(tTL,2)+' TL';
-  document.getElementById('ozetRulo').textContent=fmt(tRulo,1)+' m';
+  const setTxt=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setTxt('ozetBrutM2',fmt(tBrutM2,2)+' m²');
+  setTxt('ozetTL',fmt(tBrutTL,2)+' TL');
+  setTxt('ozetRulo',fmt(tRulo,1)+' m');
+  setTxt('ozetNetTL',fmt(tNetTL,2)+' TL');
+  setTxt('ozetFireTL',fmt(tFireTL,2)+' TL');
+  setTxt('ozetM2',fmt(tKalipM2,2)+' m²');
+  const es=document.getElementById('ozetEsitlik');
+  if(es){
+    const pct=tBrutM2>0?tFireM2/tBrutM2*100:0;
+    es.innerHTML=`✔ Ürüne giden <b>${fmt(tNetTL,2)} TL</b> + Fire <b>${fmt(tFireTL,2)} TL</b> = Brüt <b>${fmt(tBrutTL,2)} TL</b>`
+      +` &nbsp;·&nbsp; Genel fire oranı <b>%${pct.toFixed(2)}</b> (satın alınan kartona göre)`
+      +(tSigmaz?`<div class="ozet-uyari">⚠️ ${tSigmaz} satır stoktaki hiçbir karton enine sığmıyor ve toplamlara DAHİL EDİLMEDİ. "Optimize Et" ile 90° çevirmeyi deneyin veya stok listesine uygun bir en ekleyin.</div>`:'');
+  }
 }
 
 let _piyasaFilter='';   // '' = tüm piyasa enleri
@@ -2247,12 +2370,13 @@ function updatePiyasa(){
   widths.forEach(w=>{
     if(_piyasaFilter && String(w)!==String(_piyasaFilter)) return;
     const list=groups[w];
-    let tM2=0; list.forEach(it=>tM2+=it.h.totM2);
+    let tM2=0,tBrut=0,tBrutTL=0;
+    list.forEach(it=>{ tM2+=it.h.totM2; if(!it.h.sigmaz){tBrut+=it.h.brutTop; tBrutTL+=it.h.brutTL;} });
     gosterilen+=list.length;
     const grpLbl=w>0
       ?`📦 ${w} mm ${STOK_MODU&&STOK_ENLERI.length?'stok':'piyasa'} eni`
       :`⚠️ STOĞA SIĞMAYAN KUTULAR`;
-    html+=`<tr><td colspan="8" style="background:var(--surface2);color:${w>0?'var(--orange)':'#ff6b6b'};font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;padding:8px 14px;border-top:2px solid ${w>0?'var(--orange-border)':'rgba(255,107,107,.4)'};">${grpLbl} &nbsp;·&nbsp; ${list.length} kutu &nbsp;·&nbsp; toplam ${fmt(tM2,2)} m²</td></tr>`;
+    html+=`<tr><td colspan="8" style="background:var(--surface2);color:${w>0?'var(--orange)':'#ff6b6b'};font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;padding:8px 14px;border-top:2px solid ${w>0?'var(--orange-border)':'rgba(255,107,107,.4)'};">${grpLbl} &nbsp;·&nbsp; ${list.length} kutu &nbsp;·&nbsp; ${w>0?`satın alınan <b style="color:#38bdf8">${fmt(tBrut,2)} m²</b> · <b style="color:#38bdf8">${fmt(tBrutTL,2)} TL</b>`:'maliyete dahil değil'}</td></tr>`;
     list.forEach(({ft,r,h})=>{
       html+=`<tr>
         <td>${h.sigmaz?'<span class="cv cv-sigmaz">SIĞMAZ</span>':`<span class="cv cv-piyasa">${h.piyasa}</span>`}${h.ikili?'<span class="ikili-badge">2×</span>':''}</td>
@@ -2275,7 +2399,10 @@ function updatePiyasa(){
 
 function updateHeader(){
   let m2=0,tl=0,rulo=0;
-  FEFCO_TYPES.forEach(ft=>DATA[ft.id].forEach(r=>{const h=hesapla(ft,r);if(h){m2+=h.totM2;tl+=h.totTL;rulo+=h.rulo;}}));
+  FEFCO_TYPES.forEach(ft=>(DATA[ft.id]||[]).forEach(r=>{
+    const h=hesapla(ft,r);
+    if(h&&!h.sigmaz){m2+=h.brutTop;tl+=h.brutTL;rulo+=h.rulo;}
+  }));
   document.getElementById('hM2').textContent=fmt(m2,2);
   document.getElementById('hTL').textContent=fmt(tl,2);
   document.getElementById('hRulo').textContent=fmt(rulo,1);
@@ -3081,7 +3208,7 @@ function exportExcel(){
         if(v==='T')return 'T Kalınlık (mm)';
         if(v==='P')return 'P Pay (mm)';
         return v+' (mm)';
-      }),'Yön','Adet','Karton Eni (mm)','Piyasa Eni (mm)','Karton Boy (mm)','m²/Adet','Toplam m²','Birim TL','Toplam TL','Fire %','Fire m²','Rulo (m)','Notlar'];
+      }),'Yön','Adet','Karton Eni (mm)','Piyasa Eni (mm)','Karton Boy (mm)','Kalıp m²/Adet','Kalıp m²','Birim TL','Kalıp TL','BRÜT m² (satın alınan)','BRÜT TL (fatura)','Ürüne Giden TL','Fire %','Fire m²','Fire TL','Rulo (m)','Notlar'];
 
       const rows=[header];
       (DATA[ft.id]||[]).forEach(r=>{
@@ -3104,8 +3231,12 @@ function exportExcel(){
           h?parseFloat(h.totM2.toFixed(4)):'',
           fi,
           h?parseFloat(h.totTL.toFixed(2)):'',
+          h?(h.sigmaz?'SIĞMAZ':parseFloat(h.brutTop.toFixed(4))):'',
+          h?(h.sigmaz?'SIĞMAZ':parseFloat(h.brutTL.toFixed(2))):'',
+          h?(h.sigmaz?'':parseFloat(h.netUrunTL.toFixed(2))):'',
           h?parseFloat(h.fireOran.toFixed(2)):'',
           h?parseFloat(h.totFireM2.toFixed(4)):'',
+          h?parseFloat(h.fireTL.toFixed(2)):'',
           h?parseFloat(h.rulo.toFixed(2)):'',
           r.notlar||''
         ]);
@@ -3113,25 +3244,37 @@ function exportExcel(){
 
       const ws=XLSX.utils.aoa_to_sheet(rows);
       // Sütun genişlikleri
-      ws['!cols']=[{wch:18},...vars.map(()=>({wch:12})),{wch:8},{wch:7},{wch:13},{wch:13},{wch:13},{wch:10},{wch:11},{wch:9},{wch:11},{wch:8},{wch:10},{wch:10},{wch:16}];
+      ws['!cols']=[{wch:18},...vars.map(()=>({wch:12})),{wch:16},{wch:7},{wch:13},{wch:13},{wch:13},{wch:12},{wch:11},{wch:9},{wch:11},{wch:18},{wch:15},{wch:13},{wch:8},{wch:10},{wch:10},{wch:10},{wch:16}];
       // Sayfa adı max 31 karakter
       const sheetName=(ft.kod+' '+ft.ad).replace(/[\\\/\*\[\]\:\?]/g,'').substring(0,31);
       XLSX.utils.book_append_sheet(wb,ws,sheetName);
     });
 
     // Özet sayfası
-    const sumHeader=['FEFCO Tipi','Ad','Toplam m²','Toplam TL','Rulo (m)'];
+    const sumHeader=['FEFCO Tipi','Ad','BRÜT m² (satın alınan)','BRÜT TL (fatura)','Ürüne Giden TL','Fire TL','Fire %','Kalıp m² (bilgi)','Rulo (m)','Sığmayan Satır'];
     const sumRows=[sumHeader];
-    let tM2=0,tTL=0,tRulo=0;
+    let tB=0,tBTL=0,tNet=0,tFTL=0,tFM2=0,tM2=0,tRulo=0,tSig=0;
     FEFCO_TYPES.forEach(ft=>{
-      let m2=0,tl=0,rulo=0;
-      DATA[ft.id].forEach(r=>{const h=hesapla(ft,r);if(h){m2+=h.totM2;tl+=h.totTL;rulo+=h.rulo;}});
-      tM2+=m2;tTL+=tl;tRulo+=rulo;
-      sumRows.push([ft.kod,ft.ad,parseFloat(m2.toFixed(4)),parseFloat(tl.toFixed(2)),parseFloat(rulo.toFixed(2))]);
+      let b=0,btl=0,net=0,ftl=0,fm2=0,m2=0,rulo=0,sig=0;
+      (DATA[ft.id]||[]).forEach(r=>{
+        const h=hesapla(ft,r); if(!h)return;
+        if(h.sigmaz){sig++;return;}
+        b+=h.brutTop;btl+=h.brutTL;net+=h.netUrunTL;ftl+=h.fireTL;fm2+=h.totFireM2;m2+=h.totM2;rulo+=h.rulo;
+      });
+      tB+=b;tBTL+=btl;tNet+=net;tFTL+=ftl;tFM2+=fm2;tM2+=m2;tRulo+=rulo;tSig+=sig;
+      sumRows.push([ft.kod,ft.ad,parseFloat(b.toFixed(4)),parseFloat(btl.toFixed(2)),
+        parseFloat(net.toFixed(2)),parseFloat(ftl.toFixed(2)),
+        parseFloat((b>0?fm2/b*100:0).toFixed(2)),parseFloat(m2.toFixed(4)),
+        parseFloat(rulo.toFixed(2)),sig]);
     });
-    sumRows.push(['','TOPLAM',parseFloat(tM2.toFixed(4)),parseFloat(tTL.toFixed(2)),parseFloat(tRulo.toFixed(2))]);
+    sumRows.push(['','TOPLAM',parseFloat(tB.toFixed(4)),parseFloat(tBTL.toFixed(2)),
+      parseFloat(tNet.toFixed(2)),parseFloat(tFTL.toFixed(2)),
+      parseFloat((tB>0?tFM2/tB*100:0).toFixed(2)),parseFloat(tM2.toFixed(4)),
+      parseFloat(tRulo.toFixed(2)),tSig]);
+    sumRows.push([]);
+    sumRows.push(['','NOT: Ürüne Giden + Fire = BRÜT. Bu ikisi birbirine EKLENMEZ; brütü paylaşır. Kalıp m² yalnızca bilgi amaçlıdır.']);
     const wsSum=XLSX.utils.aoa_to_sheet(sumRows);
-    wsSum['!cols']=[{wch:14},{wch:28},{wch:13},{wch:13},{wch:12}];
+    wsSum['!cols']=[{wch:14},{wch:28},{wch:20},{wch:16},{wch:14},{wch:12},{wch:9},{wch:16},{wch:12},{wch:13}];
     XLSX.utils.book_append_sheet(wb,wsSum,'ÖZET');
 
     const d=new Date();
@@ -3600,9 +3743,10 @@ function _varLbl(v){ return v; }
 function _typeStats(ft){
   const vars = ft._vars || extractAllVars(ft);
   const out  = {vars, rows:[], tM2:0, tTL:0, tFireM2:0, tFireTL:0, tAdet:0,
-                islM2:0, piyM2:0, tRulo:0};
+                islM2:0, piyM2:0, tRulo:0, tBrutM2:0, tBrutTL:0, tNetTL:0, tSigmaz:0};
   (DATA[ft.id]||[]).forEach(r=>{
     const h=hesapla(ft,r); if(!h||!(h.en>0)) return;
+    if(h.sigmaz){ out.tSigmaz++; return; }        // sığmayan satır maliyete girmez
     const fi=parseFloat(r.fiyat)||gF(ft.id);
     const adet=r.adet||0;
     const varVals=vars.map(v=>{
@@ -3617,12 +3761,17 @@ function _typeStats(ft){
     out.tFireTL += h.fireTL;
     out.tAdet   += adet;
     out.tRulo   += h.rulo;
-    out.islM2   += (h.fireIsleme/100)*h.m2A*adet;
-    out.piyM2   += (h.firePiyasa/100)*h.m2A*adet;
+    // DÜZELTME: bileşenler doğrudan m² olarak alınır — artık islM2+piyM2 = tFireM2
+    out.islM2   += h.islemeM2*adet;
+    out.piyM2   += h.piyasaM2*adet;
+    out.tBrutM2 += h.brutTop;
+    out.tBrutTL += h.brutTL;
+    out.tNetTL  += h.netUrunTL;
   });
-  out.firePct = out.tM2>0 ? out.tFireM2/out.tM2*100 : 0;
-  out.islPct  = out.tM2>0 ? out.islM2/out.tM2*100   : 0;
-  out.piyPct  = out.tM2>0 ? out.piyM2/out.tM2*100   : 0;
+  // Tüm yüzdeler BRÜT (satın alınan) kartona göre — bileşenler toplandığında toplamı verir
+  out.firePct = out.tBrutM2>0 ? out.tFireM2/out.tBrutM2*100 : 0;
+  out.islPct  = out.tBrutM2>0 ? out.islM2/out.tBrutM2*100   : 0;
+  out.piyPct  = out.tBrutM2>0 ? out.piyM2/out.tBrutM2*100   : 0;
   return out;
 }
 
@@ -3631,12 +3780,14 @@ function _piyasaUsage(types){
   const map={};
   types.forEach(ft=>{
     (DATA[ft.id]||[]).forEach(r=>{
-      const h=hesapla(ft,r); if(!h||!(h.en>0)) return;
+      const h=hesapla(ft,r); if(!h||!(h.en>0)||h.sigmaz) return;
       const p=h.piyasa;
-      if(!map[p]) map[p]={piyasa:p,olcu:0,adet:0,m2:0,fireM2:0,fireTL:0};
+      if(!map[p]) map[p]={piyasa:p,olcu:0,adet:0,m2:0,brutM2:0,brutTL:0,fireM2:0,fireTL:0};
       map[p].olcu  += 1;
       map[p].adet  += (r.adet||0);
       map[p].m2    += h.totM2;
+      map[p].brutM2+= h.brutTop;
+      map[p].brutTL+= h.brutTL;
       map[p].fireM2+= h.totFireM2;
       map[p].fireTL+= h.fireTL;
     });
@@ -3736,10 +3887,10 @@ function pdfKutuDetay(){
     // KPI
     body+='<div class="kpi-row">'
       + _kpi(_n(st.tAdet,0),'Toplam Adet','blue')
-      + _kpi(_n(st.tM2,2)+' m²','Toplam Üretim','green')
-      + _kpi(_n(st.tTL,2)+' TL','Toplam Maliyet','orange')
-      + _kpi(_n(st.firePct,1)+' %','Ort. Fire', st.firePct<=5?'green':st.firePct<=12?'orange':'red')
-      + _kpi(_n(st.tFireM2,2)+' m²','Toplam Fire','red')
+      + _kpi(_n(st.tBrutM2,2)+' m²','Satın Alınan Karton','blue')
+      + _kpi(_n(st.tBrutTL,2)+' TL','Brüt Maliyet','orange')
+      + _kpi(_n(st.tNetTL,2)+' TL','Ürüne Giden','green')
+      + _kpi(_n(st.firePct,1)+' %','Fire Oranı', st.firePct<=5?'green':st.firePct<=12?'orange':'red')
       + _kpi(_n(st.tFireTL,2)+' TL','Fire Maliyeti','red')
       + '</div>';
 
@@ -3747,7 +3898,7 @@ function pdfKutuDetay(){
     let head='<thead><tr><th class="l">Kutu Adı</th>';
     vars.forEach(v=>head+='<th>'+esc(_varLbl(v))+'</th>');
     head+='<th class="c">Yön</th><th>Adet</th><th>K.Eni</th><th>Piyasa Eni</th><th>K.Boy</th>'
-        +'<th>m²/Ad</th><th>Top. m²</th><th>Br.TL</th><th>Top. TL</th>'
+        +'<th>Kalıp m²/Ad</th><th>Kalıp m²</th><th>Br.TL</th><th>BRÜT m²</th><th>BRÜT TL</th>'
         +'<th>Fire %</th><th>Fire m²</th><th>Fire TL</th><th>Rulo m</th></tr></thead>';
 
     let rowsHtml='';
@@ -3763,7 +3914,8 @@ function pdfKutuDetay(){
         +'<td>'+_n(h.m2A,4)+'</td>'
         +'<td>'+_n(h.totM2,2)+'</td>'
         +'<td>'+_n(x.fi,2)+'</td>'
-        +'<td>'+_n(h.totTL,2)+'</td>'
+        +'<td><b>'+_n(h.brutTop,2)+'</b></td>'
+        +'<td><b>'+_n(h.brutTL,2)+'</b></td>'
         +'<td><span class="fire-badge '+cls+'">'+_n(h.fireOran,2)+'%</span></td>'
         +'<td>'+_n(h.totFireM2,3)+'</td>'
         +'<td>'+_n(h.fireTL,2)+'</td>'
@@ -3777,7 +3929,8 @@ function pdfKutuDetay(){
       + '<td colspan="4"></td>'
       + '<td>'+_n(st.tM2,2)+'</td>'
       + '<td></td>'
-      + '<td>'+_n(st.tTL,2)+'</td>'
+      + '<td><b>'+_n(st.tBrutM2,2)+'</b></td>'
+      + '<td><b>'+_n(st.tBrutTL,2)+'</b></td>'
       + '<td>'+_n(st.firePct,1)+'%</td>'
       + '<td>'+_n(st.tFireM2,3)+'</td>'
       + '<td>'+_n(st.tFireTL,2)+'</td>'
@@ -3788,10 +3941,10 @@ function pdfKutuDetay(){
     // Bu tipe ait piyasa karton eni kullanımı
     const usage=_piyasaUsage([ft]);
     body+='<div class="sec-title" style="font-size:12px;margin-top:10px;">Piyasa Karton Eni Kullanımı — '+esc(ft.kod)+'</div>';
-    let uHead='<thead><tr><th>Piyasa Karton Eni (mm)</th><th>Kullanılan Ölçü</th><th>Toplam Adet</th><th>Toplam m²</th><th>Fire m²</th><th>Fire TL</th></tr></thead>';
+    let uHead='<thead><tr><th>Piyasa Eni (mm)</th><th>Kullanılan Ölçü</th><th>Toplam Adet</th><th>BRÜT m²</th><th>BRÜT TL</th><th>Fire m²</th><th>Fire TL</th></tr></thead>';
     let uRows='';
     usage.forEach(u=>{
-      uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' ölçü</td><td>'+_n(u.adet,0)+'</td><td>'+_n(u.m2,2)+'</td><td>'+_n(u.fireM2,3)+'</td><td>'+_n(u.fireTL,2)+'</td></tr>';
+      uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' ölçü</td><td>'+_n(u.adet,0)+'</td><td><b>'+_n(u.brutM2,2)+'</b></td><td><b>'+_n(u.brutTL,2)+'</b></td><td>'+_n(u.fireM2,3)+'</td><td>'+_n(u.fireTL,2)+'</td></tr>';
     });
     body+='<table>'+uHead+'<tbody>'+uRows+'</tbody></table>';
     body+='</div>';
@@ -3805,18 +3958,21 @@ function pdfFire(){
   const types=_typesWithData();
   if(!types.length){ alert('Önce en az bir kutuya L, B, H ölçüsü girin.'); return; }
 
-  let gM2=0,gTL=0,gFireM2=0,gFireTL=0;
-  const statList=types.map(ft=>{ const st=_typeStats(ft); gM2+=st.tM2;gTL+=st.tTL;gFireM2+=st.tFireM2;gFireTL+=st.tFireTL; return {ft,st}; });
-  const gFirePct = gM2>0 ? gFireM2/gM2*100 : 0;
+  let gBrutM2=0,gBrutTL=0,gNetTL=0,gFireM2=0,gFireTL=0;
+  const statList=types.map(ft=>{ const st=_typeStats(ft);
+    gBrutM2+=st.tBrutM2;gBrutTL+=st.tBrutTL;gNetTL+=st.tNetTL;gFireM2+=st.tFireM2;gFireTL+=st.tFireTL;
+    return {ft,st}; });
+  const gFirePct = gBrutM2>0 ? gFireM2/gBrutM2*100 : 0;
 
   let body=_docHeader('Fire Analizi Raporu','İşleme + Piyasa Eni Firesi · Fire Maliyeti');
 
   body+='<div class="kpi-row">'
-    + _kpi(_n(gM2,2)+' m²','Toplam Üretim','green')
+    + _kpi(_n(gBrutM2,2)+' m²','Satın Alınan Karton','blue')
     + _kpi(_n(gFireM2,2)+' m²','Toplam Fire','red')
     + _kpi(_n(gFirePct,1)+' %','Genel Fire Oranı', gFirePct<=5?'green':gFirePct<=12?'orange':'red')
     + _kpi(_n(gFireTL,2)+' TL','Toplam Fire Maliyeti','red')
-    + _kpi(_n(gTL,2)+' TL','Toplam Maliyet','orange')
+    + _kpi(_n(gBrutTL,2)+' TL','Brüt Maliyet','orange')
+    + _kpi(_n(gNetTL,2)+' TL','Ürüne Giden','green')
     + '</div>';
 
   // Tip bazında fire
@@ -3842,18 +3998,19 @@ function pdfFire(){
   // Piyasa eni bazında fire
   const usage=_piyasaUsage(types);
   body+='<div class="sec-title">Piyasa Karton Eni Bazında Fire Dağılımı</div>';
-  let uHead='<thead><tr><th>Piyasa Karton Eni (mm)</th><th>Kullanılan Ölçü</th><th>Toplam Adet</th><th>Toplam m²</th><th>Fire m²</th><th>Fire %</th><th>Fire Maliyeti TL</th></tr></thead>';
+  let uHead='<thead><tr><th>Piyasa Eni (mm)</th><th>Kullanılan Ölçü</th><th>Toplam Adet</th><th>BRÜT m²</th><th>Fire m²</th><th>Fire %</th><th>Fire Maliyeti TL</th></tr></thead>';
   let uRows=''; let uM2=0,uFireM2=0,uFireTL=0,uAdet=0,uOlcu=0;
   usage.forEach(u=>{
-    const p=u.m2>0?u.fireM2/u.m2*100:0;
-    uM2+=u.m2;uFireM2+=u.fireM2;uFireTL+=u.fireTL;uAdet+=u.adet;uOlcu+=u.olcu;
-    uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' ölçü</td><td>'+_n(u.adet,0)+'</td><td>'+_n(u.m2,2)+'</td><td>'+_n(u.fireM2,3)+'</td>'
+    const p=u.brutM2>0?u.fireM2/u.brutM2*100:0;
+    uM2+=u.brutM2;uFireM2+=u.fireM2;uFireTL+=u.fireTL;uAdet+=u.adet;uOlcu+=u.olcu;
+    uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' ölçü</td><td>'+_n(u.adet,0)+'</td><td>'+_n(u.brutM2,2)+'</td><td>'+_n(u.fireM2,3)+'</td>'
       +'<td><span class="fire-badge '+_fireCls(p)+'">'+_n(p,1)+'%</span></td><td>'+_n(u.fireTL,2)+'</td></tr>';
   });
   let uFoot='<tfoot><tr><td>TOPLAM</td><td>'+_n(uOlcu,0)+' ölçü</td><td>'+_n(uAdet,0)+'</td><td>'+_n(uM2,2)+'</td><td>'+_n(uFireM2,3)+'</td><td>'+_n(uM2>0?uFireM2/uM2*100:0,1)+'%</td><td>'+_n(uFireTL,2)+'</td></tr></tfoot>';
   body+='<table>'+uHead+'<tbody>'+uRows+'</tbody>'+uFoot+'</table>';
 
-  body+='<p class="note">Fire = İşleme firesi (kesim/slot ağzı kaybı) + Piyasa eni firesi (hesaplanan en ile bir üst piyasa karton eni arasındaki şerit kaybı). '
+  body+='<p class="note">Fire = İşleme firesi (kesim/slot ağzı kaybı) + Piyasa eni firesi (hesaplanan en ile rulo eni arasındaki şerit kaybı). '
+    +'Tüm fire yüzdeleri SATIN ALINAN (brüt) kartona göre hesaplanır; bu nedenle işleme % + piyasa eni % = toplam % eşitliği her satırda sağlanır. '
     +'Fire oranı ≤ %5 düşük, %5–12 orta, &gt; %12 yüksek olarak değerlendirilir.</p>';
 
   _openReport('ORİMAK · Fire Analizi Raporu', body, false);
@@ -3864,46 +4021,47 @@ function pdfKurumsal(){
   const types=_typesWithData();
   if(!types.length){ alert('Önce en az bir kutuya L, B, H ölçüsü girin.'); return; }
 
-  let gM2=0,gTL=0,gRulo=0,gFireM2=0,gFireTL=0,gAdet=0;
+  let gM2=0,gBrutM2=0,gBrutTL=0,gNetTL=0,gRulo=0,gFireM2=0,gFireTL=0,gAdet=0,gSigmaz=0;
   const statList=types.map(ft=>{
     const st=_typeStats(ft);
-    gM2+=st.tM2;gTL+=st.tTL;gRulo+=st.tRulo;gFireM2+=st.tFireM2;gFireTL+=st.tFireTL;gAdet+=st.tAdet;
+    gM2+=st.tM2;gBrutM2+=st.tBrutM2;gBrutTL+=st.tBrutTL;gNetTL+=st.tNetTL;
+    gRulo+=st.tRulo;gFireM2+=st.tFireM2;gFireTL+=st.tFireTL;gAdet+=st.tAdet;gSigmaz+=st.tSigmaz;
     return {ft,st};
   });
-  const gFirePct=gM2>0?gFireM2/gM2*100:0;
+  const gFirePct=gBrutM2>0?gFireM2/gBrutM2*100:0;
 
   let body=_docHeader('Kurumsal Üretim & Maliyet Raporu','Genel Özet · Üretim · Maliyet · Fire · Karton Eni');
 
   body+='<div class="kpi-row">'
     + _kpi(_n(gAdet,0),'Toplam Adet','blue')
-    + _kpi(_n(gM2,2)+' m²','Toplam Üretim','green')
-    + _kpi(_n(gTL,2)+' TL','Toplam Maliyet','orange')
+    + _kpi(_n(gBrutM2,2)+' m²','Satın Alınan Karton','blue')
+    + _kpi(_n(gBrutTL,2)+' TL','BRÜT MALİYET','orange')
     + _kpi(_n(gRulo,1)+' m','Toplam Rulo','blue')
     + '</div>';
   body+='<div class="kpi-row">'
+    + _kpi(_n(gNetTL,2)+' TL','Ürüne Giden','green')
     + _kpi(_n(gFireM2,2)+' m²','Toplam Fire','red')
     + _kpi(_n(gFireTL,2)+' TL','Toplam Fire Maliyeti','red')
     + _kpi(_n(gFirePct,1)+' %','Genel Fire Oranı', gFirePct<=5?'green':gFirePct<=12?'orange':'red')
-    + _kpi(_n(gTL>0?(gFireTL/gTL*100):0,1)+' %','Maliyette Fire Payı','red')
     + '</div>';
 
   // Kutu tipi bazında özet
   body+='<div class="sec-title">Kutu Tipi Bazında Özet</div>';
-  let head='<thead><tr><th class="l">FEFCO Tipi</th><th class="l">Ad</th><th>Adet</th><th>Toplam m²</th>'
-    +'<th>Maliyet TL</th><th>Fire %</th><th>Fire m²</th><th>Fire TL</th><th>Rulo m</th></tr></thead>';
+  let head='<thead><tr><th class="l">FEFCO Tipi</th><th class="l">Ad</th><th>Adet</th><th>BRÜT m²</th>'
+    +'<th>BRÜT Maliyet TL</th><th>Fire %</th><th>Fire m²</th><th>Fire TL</th><th>Rulo m</th></tr></thead>';
   let rows='';
   statList.forEach(({ft,st})=>{
     rows+='<tr><td class="l"><b>'+esc(ft.kod)+'</b></td><td class="l">'+esc(ft.ad)+'</td>'
       +'<td>'+_n(st.tAdet,0)+'</td>'
-      +'<td>'+_n(st.tM2,2)+'</td>'
-      +'<td>'+_n(st.tTL,2)+'</td>'
+      +'<td>'+_n(st.tBrutM2,2)+'</td>'
+      +'<td>'+_n(st.tBrutTL,2)+'</td>'
       +'<td><span class="fire-badge '+_fireCls(st.firePct)+'">'+_n(st.firePct,1)+'%</span></td>'
       +'<td>'+_n(st.tFireM2,3)+'</td>'
       +'<td>'+_n(st.tFireTL,2)+'</td>'
       +'<td>'+_n(st.tRulo,1)+'</td></tr>';
   });
   let foot='<tfoot><tr><td class="l" colspan="2">GENEL TOPLAM</td>'
-    +'<td>'+_n(gAdet,0)+'</td><td>'+_n(gM2,2)+'</td><td>'+_n(gTL,2)+'</td>'
+    +'<td>'+_n(gAdet,0)+'</td><td>'+_n(gBrutM2,2)+'</td><td>'+_n(gBrutTL,2)+'</td>'
     +'<td>'+_n(gFirePct,1)+'%</td><td>'+_n(gFireM2,3)+'</td><td>'+_n(gFireTL,2)+'</td><td>'+_n(gRulo,1)+'</td></tr></tfoot>';
   body+='<table>'+head+'<tbody>'+rows+'</tbody>'+foot+'</table>';
 
@@ -3911,17 +4069,20 @@ function pdfKurumsal(){
   const usage=_piyasaUsage(types);
   body+='<div class="sec-title">Piyasa Karton Eni Kullanım Dağılımı</div>';
   body+='<div class="formula" style="margin-left:0;">Hangi piyasa karton eninden kaç farklı ölçü ve kaç adet kutu üretiliyor:</div>';
-  let uHead='<thead><tr><th>Piyasa Karton Eni (mm)</th><th>Kullanılan Ölçü Sayısı</th><th>Toplam Adet</th><th>Toplam m²</th><th>Fire m²</th><th>Tahmini Fire Maliyeti TL</th></tr></thead>';
+  let uHead='<thead><tr><th>Piyasa Eni (mm)</th><th>Kullanılan Ölçü Sayısı</th><th>Toplam Adet</th><th>BRÜT m² (satın alınan)</th><th>Fire m²</th><th>Tahmini Fire Maliyeti TL</th></tr></thead>';
   let uRows=''; let uM2=0,uFireM2=0,uFireTL=0,uAdet=0,uOlcu=0;
   usage.forEach(u=>{
-    uM2+=u.m2;uFireM2+=u.fireM2;uFireTL+=u.fireTL;uAdet+=u.adet;uOlcu+=u.olcu;
-    uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' ölçü</td><td>'+_n(u.adet,0)+'</td><td>'+_n(u.m2,2)+'</td><td>'+_n(u.fireM2,3)+'</td><td>'+_n(u.fireTL,2)+'</td></tr>';
+    uM2+=u.brutM2;uFireM2+=u.fireM2;uFireTL+=u.fireTL;uAdet+=u.adet;uOlcu+=u.olcu;
+    uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' ölçü</td><td>'+_n(u.adet,0)+'</td><td>'+_n(u.brutM2,2)+'</td><td>'+_n(u.fireM2,3)+'</td><td>'+_n(u.fireTL,2)+'</td></tr>';
   });
   let uFoot='<tfoot><tr><td>TOPLAM</td><td>'+_n(uOlcu,0)+' ölçü</td><td>'+_n(uAdet,0)+'</td><td>'+_n(uM2,2)+'</td><td>'+_n(uFireM2,3)+'</td><td>'+_n(uFireTL,2)+'</td></tr></tfoot>';
   body+='<table>'+uHead+'<tbody>'+uRows+'</tbody>'+uFoot+'</table>';
 
   body+='<p class="note">Bu rapor mevcut girilen tüm kutu ölçüleri üzerinden otomatik hesaplanmıştır. '
-    +'Maliyet = Toplam m² × birim TL. Fire maliyeti, fire m² × ilgili kutu birim TL toplamıdır.</p>';
+    +'<b>BRÜT maliyet = fiilen satın alınan karton (rulo eni payı × kalıp boyu) × birim TL</b> — yani karton faturasının karşılığıdır. '
+    +'Ürüne giden + Fire = Brüt eşitliği her satırda sağlanır; bu iki kalem birbirine EKLENMEZ, brütü paylaşır. '
+    +'Kalıp alanı (en × boy) yalnızca bilgi amaçlıdır ve satın alınan miktardan küçüktür.'
+    +(gSigmaz?' <b>UYARI: '+_n(gSigmaz,0)+' ölçü stoktaki karton enlerine sığmadığı için toplamlara dahil edilmemiştir.</b>':'')+'</p>';
 
   _openReport('ORİMAK · Kurumsal Genel Rapor', body, false);
 }
