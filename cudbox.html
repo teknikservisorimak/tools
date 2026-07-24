@@ -543,6 +543,99 @@ tr:hover td { background: var(--surface2); }
   transition:all .2s;text-decoration:none;display:flex;align-items:center;gap:5px;
 }
 .hdr-home:hover{background:var(--accent);color:#1a1a1a;}
+
+/* ===== KASET OFSET PANEL ===== */
+#panel-offset .ko-row { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; }
+#panel-offset .ko-field { display:flex; flex-direction:column; gap:5px; }
+#panel-offset .ko-field > label {
+  font-size:10px; font-weight:700; letter-spacing:.7px; text-transform:uppercase; color:var(--text3);
+}
+#panel-offset input[type=text], #panel-offset input[type=number], #panel-offset select {
+  background:var(--surface2); border:1px solid var(--border-hi); color:var(--text);
+  border-radius:6px; padding:8px 10px; font-family:var(--mono); font-size:13px; outline:none;
+  transition:all .15s; width:110px;
+}
+#panel-offset input:focus, #panel-offset select:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-bg); }
+#panel-offset select { cursor:pointer; }
+#panel-offset select:disabled { opacity:.4; cursor:not-allowed; }
+#panel-offset .ko-src { font-family:var(--mono); font-size:11.5px; color:var(--text3); align-self:center; }
+
+#panel-offset .ko-seg { display:flex; border:1px solid var(--border-hi); border-radius:6px; overflow:hidden; }
+#panel-offset .ko-seg button {
+  background:var(--surface2); border:0; color:var(--text3); padding:8px 12px;
+  font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; font-family:var(--sans); white-space:nowrap;
+}
+#panel-offset .ko-seg button + button { border-left:1px solid var(--border-hi); }
+#panel-offset .ko-seg button.on { background:var(--accent); color:var(--bg); }
+
+#panel-offset .ko-svgwrap {
+  background:linear-gradient(135deg,rgba(247,168,0,.05),rgba(210,150,60,.02));
+  border:1px solid var(--border); border-radius:var(--radius); padding:8px 6px;
+}
+#panel-offset .ko-svgwrap svg { display:block; width:100%; height:auto; }
+#panel-offset .ko-svgwrap svg text { font-family:var(--mono); }
+#panel-offset .ko-gapHit { cursor:pointer; }
+#panel-offset .ko-legend { display:flex; flex-wrap:wrap; gap:14px; font-size:11.5px; color:var(--text3); margin-top:10px; }
+#panel-offset .ko-legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:-1px; }
+
+#panel-offset .ko-cards { display:flex; flex-wrap:wrap; gap:9px; }
+#panel-offset .ko-gcard {
+  flex:0 0 150px; width:150px; background:var(--surface2); border:1px solid var(--border);
+  border-radius:7px; padding:8px 9px; transition:all .15s;
+}
+#panel-offset .ko-gcard:hover { border-color:var(--border-hi); }
+#panel-offset .ko-gcard.act { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-bg); }
+#panel-offset .ko-gt {
+  font-family:var(--mono); font-size:11px; color:var(--accent); font-weight:700; letter-spacing:.4px;
+  margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;
+}
+#panel-offset .ko-gt small { color:var(--text3); font-weight:400; letter-spacing:0; }
+#panel-offset .ko-grow { display:flex; gap:6px; align-items:center; }
+#panel-offset .ko-mi {
+  flex:1; width:100%; background:var(--surface); border:1.5px solid var(--border-hi); color:var(--text);
+  border-radius:5px; padding:7px 4px; font-family:var(--mono); font-size:15px; font-weight:600;
+  text-align:center; outline:none; transition:all .15s;
+}
+#panel-offset .ko-mi.filled { border-color:rgba(247,168,0,.5); }
+#panel-offset .ko-ti {
+  width:52px; background:var(--surface); border:1px solid var(--border); color:var(--accent);
+  border-radius:5px; padding:6px 2px; font-family:var(--mono); font-size:11.5px; text-align:center; outline:none;
+}
+#panel-offset .ko-gf { margin-top:6px; text-align:center; }
+
+#panel-offset .ko-badge {
+  display:inline-block; font-family:var(--mono); font-size:11px; font-weight:700;
+  padding:3px 8px; border-radius:5px; white-space:nowrap; line-height:1.2;
+}
+#panel-offset .ko-badge.zero { background:var(--surface3); color:var(--text3); border:1px solid var(--border); }
+#panel-offset .ko-badge.rt   { background:var(--green-bg); color:var(--green); border:1px solid rgba(34,197,94,.35); }
+#panel-offset .ko-badge.lf   { background:var(--blue-bg);  color:var(--blue);  border:1px solid rgba(59,130,246,.35); }
+#panel-offset .ko-badge.warn { background:var(--red-bg);   color:var(--red);   border:1px solid rgba(239,68,68,.35); }
+
+#panel-offset .ko-pill { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700; }
+
+#panel-offset .ko-stats { display:flex; flex-wrap:wrap; gap:10px; }
+#panel-offset .ko-stat {
+  flex:1 1 140px; background:var(--surface2); border:1px solid var(--border);
+  border-radius:7px; padding:10px 13px;
+}
+#panel-offset .ko-stat .lbl { font-size:9.5px; letter-spacing:.7px; text-transform:uppercase; color:var(--text3); font-weight:700; }
+#panel-offset .ko-stat .val { font-family:var(--mono); font-size:19px; font-weight:600; margin-top:2px; }
+#panel-offset .ko-stat .val.g { color:var(--green); }
+#panel-offset .ko-stat .val.a { color:var(--accent); }
+#panel-offset .ko-stat .val.r { color:var(--red); }
+
+#panel-offset .ko-note {
+  background:var(--accent-bg); border:1px solid rgba(247,168,0,.3); border-radius:7px;
+  padding:10px 13px; font-size:12.2px; color:var(--text2); line-height:1.65; margin-bottom:12px;
+}
+#panel-offset .ko-note strong { color:var(--accent); }
+#panel-offset .ko-hint { font-size:12.2px; color:var(--text3); line-height:1.75; }
+#panel-offset .ko-hint strong { color:var(--text2); }
+#panel-offset .ko-hint code {
+  font-family:var(--mono); background:var(--surface2); border:1px solid var(--border);
+  padding:1px 5px; border-radius:4px; color:var(--accent); font-size:11.5px;
+}
 </style>
 </head>
 <body>
@@ -583,6 +676,7 @@ tr:hover td { background: var(--surface2); }
   <div class="tab" data-i18n-tab="tab_templates" onclick="switchTab('templates')">📐 Şablonlar</div>
   <div class="tab" data-i18n-tab="tab_designer" onclick="switchTab('designer')">✏️ Kutu Tasarımcısı</div>
   <div class="tab" data-i18n-tab="tab_converter" onclick="switchTab('converter')">🔄 Excel Dönüştürücü</div>
+  <div class="tab" data-i18n-tab="tab_offset" onclick="switchTab('offset')">📏 Kaset Ofset</div>
   <div class="tab" data-i18n-tab="tab_langmgr" onclick="switchTab('langmgr')" id="tabLangMgr" style="display:none;">🌐 Dil Yönetimi</div>
   <div class="tab" data-i18n-tab="tab_help" onclick="switchTab('help')">📖 Yardım</div>
 </div>
@@ -747,6 +841,149 @@ tr:hover td { background: var(--surface2); }
       <div style="margin-top:20px;">
         <button class="btn btn-primary" onclick="cvConvert()">🔄 Dönüştür &amp; İndir</button>
         <span id="cvConvertStatus" style="margin-left:12px;font-size:13px;color:var(--text3);"></span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ========== KASET OFSET PANEL ========== -->
+<div id="panel-offset" class="panel">
+
+  <div class="card">
+    <div class="card-header">
+      <h3>① Kaset Düzeni <span class="badge">Adım 1</span></h3>
+      <div class="btn-group">
+        <button class="btn btn-sm" onclick="koFromDesigner()">✏️ Tasarımcıdan Al</button>
+        <label class="btn btn-sm">📂 .cudbox Yükle
+          <input type="file" id="koFile" accept=".cudbox,.xml" style="display:none;" onchange="koHandleFile(this.files[0])">
+        </label>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="ko-row">
+        <div class="ko-field">
+          <label>Kaset sayısı</label>
+          <input type="number" id="koCount" value="8" min="2" max="60">
+        </div>
+        <div class="ko-field">
+          <label>Hedef aralık (mm)</label>
+          <input type="text" id="koTarget" value="100">
+        </div>
+        <button class="btn btn-primary" onclick="koManual()">Oluştur</button>
+        <button class="btn" onclick="koAllTargets()">Tüm hedefleri eşitle</button>
+        <div style="flex:1"></div>
+        <span class="ko-src" id="koSrc">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>② Tüm Kasetler <span class="badge" id="koBadge">0 kaset</span></h3>
+    </div>
+    <div class="card-body">
+      <div class="ko-row" style="margin-bottom:14px;">
+        <div class="ko-field">
+          <label>Kayma dağılımı</label>
+          <div class="ko-seg" id="koAnchSeg">
+            <button class="on" data-a="bal" onclick="koSetAnchor('bal')">Dengeli</button>
+            <button data-a="fix" onclick="koSetAnchor('fix')">Sabit kaset</button>
+            <button data-a="mid" onclick="koSetAnchor('mid')">Merkezi koru</button>
+          </div>
+        </div>
+        <div class="ko-field">
+          <label>Sabit kalacak</label>
+          <select id="koRef" onchange="koCalc()" disabled></select>
+        </div>
+        <div class="ko-field">
+          <label>Yön yorumu</label>
+          <div class="ko-seg" id="koDirSeg">
+            <button class="on" data-inv="0" onclick="koSetInv(0)">Normal</button>
+            <button data-inv="1" onclick="koSetInv(1)">Ters çevir</button>
+          </div>
+        </div>
+        <div class="ko-field">
+          <label>Kayma limiti (mm)</label>
+          <input type="text" id="koLim" placeholder="yok" style="width:88px;" oninput="koCalc()">
+        </div>
+        <div class="ko-field">
+          <label>Görsel abartma</label>
+          <input type="number" id="koExag" value="8" min="1" max="60" style="width:80px;" oninput="koCalc()">
+        </div>
+      </div>
+      <div class="ko-svgwrap" id="koSvg"></div>
+      <div class="ko-legend">
+        <span><i style="background:#3d3d3d"></i>Kesikli = şu anki konum</span>
+        <span><i style="background:#22c55e"></i>Sağa kayacak</span>
+        <span><i style="background:#3b82f6"></i>Sola kayacak</span>
+        <span><i style="background:#F7A800"></i>Yerinde kalıyor</span>
+        <span><i style="background:#ef4444"></i>Limit aşımı</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>③ Makineden Çıkan Ölçüler <span class="badge" id="koFilled">0 / 0</span></h3>
+      <div class="btn-group">
+        <button class="btn btn-sm" onclick="koFillTargets()">Hepsi tam</button>
+        <button class="btn btn-sm" onclick="koClear()">Temizle</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="ko-cards" id="koCards"></div>
+      <p style="font-size:12px;color:var(--text3);margin-top:12px;line-height:1.7;">
+        Kasetler <strong style="color:var(--text2)">sağdan sola</strong> numaralanır: en sağdaki dikey çizgi <strong style="color:var(--text2)">K1</strong>.
+        Her kart iki kaset arasındaki aralıktır. Soldaki küçük turuncu kutu <strong style="color:var(--text2)">hedef</strong>,
+        büyük kutu <strong style="color:var(--text2)">makineden çıkan ölçü</strong>. <strong style="color:var(--text2)">Enter</strong> ile sonrakine geçilir.
+      </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>④ Kasete Verilecek Ofset</h3>
+      <div class="btn-group">
+        <button class="btn btn-sm" onclick="koCopy()">📋 Kopyala</button>
+        <button class="btn btn-sm" onclick="koCsv()">⬇ CSV</button>
+        <button class="btn btn-sm" onclick="window.print()">🖨 Yazdır</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="ko-stats" id="koStats" style="margin-bottom:16px;"></div>
+      <div class="table-wrap" style="margin-bottom:18px;">
+        <table>
+          <thead><tr><th>Kaset</th><th style="text-align:right">Nominal Konum</th><th style="text-align:right">Verilecek Ofset</th><th>Yön</th><th style="text-align:right">Yeni Konum</th></tr></thead>
+          <tbody id="koTbK"></tbody>
+        </table>
+      </div>
+      <div style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--text2);font-weight:600;margin-bottom:8px;">Kontrol · düzeltme sonrası aralıklar</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aralık</th><th style="text-align:right">Hedef</th><th style="text-align:right">Ölçülen</th><th style="text-align:right">Fark</th><th style="text-align:right">Düzeltme Sonrası</th><th>Durum</th></tr></thead>
+          <tbody id="koTbG"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>Zincir etkisi — hesap nasıl kuruldu?</h3></div>
+    <div class="card-body">
+      <div class="ko-note">
+        <strong>Her kaset iki aralığı birden etkiler.</strong> Bir kaseti 1 mm sola aldığında sağındaki aralık 1 mm büyür, solundaki 1 mm küçülür. Bu yüzden aralıklar tek tek düzeltilemez — hepsi tek bir zincir olarak çözülür.
+      </div>
+      <div class="ko-hint">
+        Düzeltme sonrası hedefi tutturmak için:<br>
+        <code>ölçülen + ofset(k) − ofset(k+1) = hedef</code> &nbsp;→&nbsp; <code>ofset(k+1) = ofset(k) − (hedef − ölçülen)</code><br><br>
+        <strong>Örnek:</strong> 2. aralık 99, 3. aralık 98. K3'ü 1 mm sola alınca 2. aralık 100 olur ama 3. aralık 97'ye düşer. Zincir devam eder: K4 toplam <strong>3 mm sola</strong> gitmek zorundadır. Alttaki kontrol tablosunda hepsinin hedefe oturduğu görülür.<br><br>
+        <strong>Kayma dağılımı</strong> — zincirin tamamı topluca ötelenebilir, aralıklar değişmez:<br>
+        · <strong>Dengeli:</strong> en büyük kayma en aza indirilir, K1 dahil herkes oynar.<br>
+        · <strong>Sabit kaset:</strong> seçilen kaset hiç kıpırdamaz.<br>
+        · <strong>Merkezi koru:</strong> kaymaların ortalaması sıfır, kesim deseni yerinde kalır.<br><br>
+        <strong>Yön yorumu:</strong> "Normal"de <code>+</code> sağa, <code>−</code> sola. Makine ters tepki veriyorsa "Ters çevir" bütün işaretleri döndürür.
       </div>
     </div>
   </div>
@@ -1009,6 +1246,7 @@ function switchTab(tab, fromEl) {
   const tabEl = document.querySelector(`.tab[onclick*="'${tab}'"]`);
   if (tabEl) tabEl.classList.add('active');
   // Lang manager açıldığında grid'i güncelle
+  if (tab === 'offset') koInit();
   if (tab === 'langmgr') {
     const sel = document.getElementById('lmLangSelect');
     lmRenderGrid(sel ? sel.value : 'tr');
@@ -3053,6 +3291,7 @@ const I18N_DEFAULTS = {
     tab_templates:  '📐 Şablonlar',
     tab_designer:   '✏️ Kutu Tasarımcısı',
     tab_converter:  '🔄 Excel Dönüştürücü',
+    tab_offset:     '📏 Kaset Ofset',
     tab_langmgr:    '🌐 Dil Yönetimi',
     tab_help:       '📖 Yardım',
     langMgrBtn:     'Dil Yönetimi',
@@ -3098,6 +3337,7 @@ const I18N_DEFAULTS = {
     tab_templates:  '📐 Templates',
     tab_designer:   '✏️ Box Designer',
     tab_converter:  '🔄 Excel Converter',
+    tab_offset:     '📏 Cassette Offset',
     tab_langmgr:    '🌐 Language',
     tab_help:       '📖 Help',
     langMgrBtn:     'Language',
@@ -3143,6 +3383,7 @@ const I18N_DEFAULTS = {
     tab_templates:  '📐 Vorlagen',
     tab_designer:   '✏️ Box-Designer',
     tab_converter:  '🔄 Excel-Konverter',
+    tab_offset:     '📏 Kassetten-Offset',
     tab_langmgr:    '🌐 Sprache',
     tab_help:       '📖 Hilfe',
     langMgrBtn:     'Sprache',
@@ -3188,6 +3429,7 @@ const I18N_DEFAULTS = {
     tab_templates:  '📐 Modèles',
     tab_designer:   '✏️ Concepteur de boîte',
     tab_converter:  '🔄 Convertisseur Excel',
+    tab_offset:     '📏 Décalage Cassette',
     tab_langmgr:    '🌐 Langue',
     tab_help:       '📖 Aide',
     langMgrBtn:     'Langue',
@@ -3233,6 +3475,7 @@ const I18N_DEFAULTS = {
     tab_templates:  '📐 Plantillas',
     tab_designer:   '✏️ Diseñador de cajas',
     tab_converter:  '🔄 Convertidor Excel',
+    tab_offset:     '📏 Offset de Casetes',
     tab_langmgr:    '🌐 Idioma',
     tab_help:       '📖 Ayuda',
     langMgrBtn:     'Idioma',
@@ -3278,6 +3521,7 @@ const I18N_DEFAULTS = {
     tab_templates:  '📐 القوالب',
     tab_designer:   '✏️ مصمم الصناديق',
     tab_converter:  '🔄 محول Excel',
+    tab_offset:     '📏 إزاحة الكاسيت',
     tab_langmgr:    '🌐 اللغة',
     tab_help:       '📖 مساعدة',
     langMgrBtn:     'اللغة',
@@ -3343,6 +3587,7 @@ const I18N_LABELS = {
   appTitle: 'Uygulama Başlığı', appSubtitle: 'Alt Başlık',
   tab_generate: 'Tab: Üretim', tab_templates: 'Tab: Şablonlar',
   tab_designer: 'Tab: Tasarımcı', tab_converter: 'Tab: Dönüştürücü',
+  tab_offset: 'Tab: Kaset Ofset',
   tab_langmgr: 'Tab: Dil Yönetimi', tab_help: 'Tab: Yardım',
   langMgrBtn: 'Dil Yönetimi Butonu',
   lm_title: 'Dil Mgr: Başlık', lm_desc: 'Dil Mgr: Açıklama', lm_save: 'Dil Mgr: Kaydet Butonu',
@@ -3799,6 +4044,341 @@ function clearDatData() {
   document.getElementById('btnClearDat').style.display = 'none';
   updateGenerateButton();
 }
+
+// =============================================
+// KASET OFSET HESAPLAMA (zincir etkili)
+// =============================================
+var koS = { N:0, pos:[], target:[], meas:[], anchor:'bal', ref:1, inv:0, src:'—' };
+var koK = [], koG = [], koReady = false;
+
+function koNum(v){ if(v===null||v===undefined) return null; var s=String(v).trim().replace(',','.'); if(s==='') return null; var n=parseFloat(s); return isNaN(n)?null:n; }
+function koF(v,d){ d=(d===undefined)?2:d; if(v===null||v===undefined||isNaN(v)) return '—'; var s=v.toFixed(d); if(s.indexOf('.')>-1) s=s.replace(/0+$/,'').replace(/\.$/,''); return s; }
+function koSgn(v){ if(v===null||v===undefined) return '—'; if(Math.abs(v)<0.0005) return '0'; return (v>0?'+':'')+koF(v); }
+function koSave(){ try{ localStorage.setItem('cudbox_kaset_ofset', JSON.stringify(koS)); }catch(e){} }
+function koLoad(){ try{ var r=localStorage.getItem('cudbox_kaset_ofset'); if(r){ var o=JSON.parse(r); if(o&&o.N>1){ koS=o; if(!koS.anchor)koS.anchor='bal'; if(!koS.ref)koS.ref=1; return true; } } }catch(e){} return false; }
+
+function koInit(){
+  if(koReady) return;
+  koReady = true;
+  if(koLoad()){
+    koSetAnchor(koS.anchor); koSetInv(koS.inv);
+    document.getElementById('koCount').value = koS.N;
+    koRender();
+  } else {
+    koManual();
+  }
+}
+
+function koBuild(positions, srcName){
+  var xs=positions.slice().sort(function(a,b){return a-b;});
+  var u=[]; for(var i=0;i<xs.length;i++){ if(i===0||Math.abs(xs[i]-xs[i-1])>0.0001) u.push(xs[i]); }
+  if(u.length<2){ alert('En az 2 dikey çizgi gerekli.'); return; }
+  var N=u.length, pos=[];
+  for(var k=0;k<N;k++) pos.push(u[N-1-k]);          // kaset 1 = en sağ = en büyük X
+  var tg=[]; for(var g=0;g<N-1;g++) tg.push(Math.round((pos[g]-pos[g+1])*1000)/1000);
+  koS.N=N; koS.pos=pos; koS.target=tg; koS.meas=new Array(N-1).fill(null);
+  if(koS.ref>N) koS.ref=1;
+  koS.src=srcName;
+  document.getElementById('koCount').value=N;
+  koRender();
+}
+
+function koManual(){
+  var n=parseInt(document.getElementById('koCount').value,10), t=koNum(document.getElementById('koTarget').value);
+  if(!n||n<2){ alert('Kaset sayısı en az 2 olmalı.'); return; }
+  if(!t||t<=0){ alert('Geçerli bir hedef aralık gir.'); return; }
+  var xs=[]; for(var i=0;i<n;i++) xs.push(i*t);
+  koBuild(xs,'Elle: '+n+' kaset × '+koF(t)+' mm');
+}
+
+function koAllTargets(){
+  var t=koNum(document.getElementById('koTarget').value);
+  if(t===null||t<=0){ alert('Geçerli bir hedef aralık gir.'); return; }
+  for(var g=0;g<koS.N-1;g++) koS.target[g]=t;
+  koRender();
+}
+
+// Kutu Tasarımcısı'ndaki aktif düzenden kaset konumlarını al
+function koFromDesigner(){
+  if(typeof dsnState==='undefined' || !dsnState.xSegs || dsnState.xSegs.length<1){
+    alert('Kutu Tasarımcısı\'nda henüz bir düzen yok.'); return;
+  }
+  var xs=[0], acc=0;
+  for(var i=0;i<dsnState.xSegs.length;i++){
+    var L=parseFloat(dsnState.xSegs[i].len);
+    if(isNaN(L)||L<=0){ alert('Tasarımcıdaki bazı ölçüler hesaplanamadı.'); return; }
+    acc+=L; xs.push(Math.round(acc*1000)/1000);
+  }
+  koBuild(xs,'Tasarımcıdan: '+dsnState.xSegs.length+' segment');
+}
+
+function koHandleFile(file){
+  if(!file) return;
+  var r=new FileReader();
+  r.onload=function(){
+    var doc;
+    try{ doc=new DOMParser().parseFromString(r.result,'text/xml'); }catch(e){ alert('Dosya okunamadı.'); return; }
+    if(doc.getElementsByTagName('parsererror').length){ alert('Geçersiz .cudbox dosyası.'); return; }
+    var xs=[], units=doc.getElementsByTagName('Unit_X');
+    for(var i=0;i<units.length;i++){
+      var p=units[i].getElementsByTagName('Point');
+      if(p.length){ var e=p[0].getElementsByTagName('X')[0]; if(e){ var v=parseFloat(e.textContent); if(!isNaN(v)) xs.push(v); } }
+    }
+    if(xs.length<2){
+      var all=doc.getElementsByTagName('X'), st={};
+      for(var j=0;j<all.length;j++){ var q=parseFloat(all[j].textContent); if(!isNaN(q)) st[q]=1; }
+      xs=Object.keys(st).map(parseFloat);
+    }
+    if(xs.length<2){ alert('Dosyada dikey çizgi bulunamadı.'); return; }
+    koBuild(xs,file.name);
+  };
+  r.readAsText(file,'utf-8');
+}
+
+// ── HESAP: ofset(k+1) = ofset(k) − (hedef − ölçülen) ──
+function koCalc(){
+  if(!koS.N) return;
+  koS.ref=parseInt(document.getElementById('koRef').value,10)||1;
+  var lim=koNum(document.getElementById('koLim').value);
+  var N=koS.N, err=[], raw=[0], g, i;
+
+  for(g=0; g<N-1; g++){
+    var t=koS.target[g], m=koS.meas[g];
+    var e=(m===null||t===null)?null:(t-m);
+    err.push(e);
+    raw.push(raw[g] - (e===null?0:e));
+  }
+
+  var C=0, mn=Math.min.apply(null,raw), mx=Math.max.apply(null,raw);
+  if(koS.anchor==='fix') C = -raw[koS.ref-1];
+  else if(koS.anchor==='bal') C = -(mn+mx)/2;
+  else { var sm=0; for(i=0;i<raw.length;i++) sm+=raw[i]; C=-sm/raw.length; }
+
+  var anyData=false; for(g=0; g<N-1; g++) if(err[g]!==null) anyData=true;
+
+  koK=[];
+  for(var k=1;k<=N;k++){
+    var d = anyData ? (raw[k-1]+C)*(koS.inv?-1:1) : 0;
+    d=Math.round(d*1000)/1000;
+    koK.push({ k:k, pos:koS.pos[k-1], off:d, over:(lim!==null&&lim>0&&Math.abs(d)>lim+0.0005), fixed:(koS.anchor==='fix'&&k===koS.ref) });
+  }
+  koG=[];
+  for(g=0; g<N-1; g++){
+    var after=(koS.meas[g]===null)?null:Math.round((koS.meas[g] + (koK[g].off-koK[g+1].off)*(koS.inv?-1:1))*1000)/1000;
+    koG.push({ g:g+1, target:koS.target[g], meas:koS.meas[g], err:err[g], after:after });
+  }
+  koPaint(); koSave();
+}
+
+function koRender(){
+  document.getElementById('koSrc').textContent = koS.N ? (koS.src+'  ·  '+koS.N+' kaset  ·  '+(koS.N-1)+' aralık') : '—';
+  document.getElementById('koBadge').textContent = koS.N ? (koS.N+' kaset') : '0 kaset';
+  var sel=document.getElementById('koRef'); sel.innerHTML='';
+  for(var r=1;r<=koS.N;r++){
+    var o=document.createElement('option');
+    o.value=r; o.textContent='K'+r+(r===1?' (en sağ)':(r===koS.N?' (en sol)':''));
+    if(r===koS.ref) o.selected=true;
+    sel.appendChild(o);
+  }
+  sel.disabled=(koS.anchor!=='fix');
+  koBuildCards();
+  if(!koS.N){ document.getElementById('koSvg').innerHTML='<div style="padding:36px;color:var(--text3);font-size:13px;text-align:center">Kaset sayısını gir ya da bir .cudbox yükle.</div>'; return; }
+  koCalc();
+}
+
+function koBuildCards(){
+  var c=document.getElementById('koCards'); c.innerHTML='';
+  for(var g=1; g<=koS.N-1; g++){
+    var d=document.createElement('div'); d.className='ko-gcard'; d.id='koGc'+g;
+    d.innerHTML =
+      '<div class="ko-gt"><span>K'+g+' ↔ K'+(g+1)+'</span><small>#'+g+'</small></div>'+
+      '<div class="ko-grow">'+
+        '<input class="ko-ti" type="text" id="koTg'+g+'" value="'+koF(koS.target[g-1])+'" title="hedef">'+
+        '<input class="ko-mi" type="text" id="koMs'+g+'" placeholder="ölçü" value="'+(koS.meas[g-1]===null?'':koF(koS.meas[g-1]))+'">'+
+      '</div>'+
+      '<div class="ko-gf"><span class="ko-badge zero" id="koGd'+g+'">fark —</span></div>';
+    c.appendChild(d);
+  }
+  for(var g2=1; g2<=koS.N-1; g2++) koWire(g2);
+}
+
+function koWire(gg){
+  var mi=document.getElementById('koMs'+gg), ti=document.getElementById('koTg'+gg);
+  if(!mi) return;
+  if(mi.value.trim()) mi.className='ko-mi filled';
+  mi.oninput=function(){ koS.meas[gg-1]=koNum(mi.value); mi.className='ko-mi'+(mi.value.trim()?' filled':''); koCalc(); };
+  mi.onfocus=function(){ koHi(gg); };
+  mi.onblur=function(){ koHi(0); };
+  mi.onkeydown=function(e){ if(e.key==='Enter'){ e.preventDefault(); var n=document.getElementById('koMs'+(gg+1)); if(n){n.focus();n.select();} else mi.blur(); } };
+  ti.oninput=function(){ var v=koNum(ti.value); if(v!==null) koS.target[gg-1]=v; koCalc(); };
+}
+function koHi(g){ for(var i=1;i<=koS.N-1;i++){ var e=document.getElementById('koGc'+i); if(e) e.className='ko-gcard'+(i===g?' act':''); } }
+function koFocusGap(g){ var m=document.getElementById('koMs'+g); if(m){ m.focus(); m.select(); } }
+
+function koPaint(){
+  var N=koS.N, exag=parseFloat(document.getElementById('koExag').value)||8, i, g;
+
+  var W=1000, H=304, ML=42, MR=42, US=W-ML-MR;
+  var pmin=koS.pos[N-1], pmax=koS.pos[0], span=(pmax-pmin)||1;
+  var sp=US/(N-1);
+  var X=function(k){ return ML + US*(koS.pos[k-1]-pmin)/span; };
+  var fsN = N<=12?12:(N<=20?10:(N<=30?8.5:7));
+  var fsG = fsN;
+  var dec = N<=24?2:1;
+  var maxShift = Math.min(sp*0.40, 26);
+  var TOP=44, BOT=228;
+
+  var s='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">';
+  s+='<defs><linearGradient id="koSheet" x1="0" y1="0" x2="1" y2="1">'+
+     '<stop offset="0" stop-color="#F7A800" stop-opacity="0.09"/><stop offset="1" stop-color="#d2963c" stop-opacity="0.03"/></linearGradient></defs>';
+  s+='<rect x="'+ML+'" y="'+TOP+'" width="'+US+'" height="'+(BOT-TOP)+'" fill="url(#koSheet)"/>';
+  for(var r=1;r<4;r++){ var yy=TOP+(BOT-TOP)*r/4; s+='<line x1="'+ML+'" y1="'+yy+'" x2="'+(ML+US)+'" y2="'+yy+'" stroke="#2a2a2a" stroke-width="0.7" stroke-dasharray="4 5"/>'; }
+
+  var dimY=TOP+34;
+  for(g=0; g<N-1; g++){
+    var xa=X(g+2), xb=X(g+1), mid=(xa+xb)/2;
+    var mm=koS.meas[g], tt=koS.target[g];
+    var col=(mm===null)?'#5a5a5a':(Math.abs(tt-mm)<0.0005?'#22c55e':'#e5484d');
+    s+='<line x1="'+(xa+2)+'" y1="'+dimY+'" x2="'+(xb-2)+'" y2="'+dimY+'" stroke="#3d3d3d" stroke-width="0.8"/>';
+    s+='<polygon points="'+(xa+2)+','+dimY+' '+(xa+8)+','+(dimY-2.6)+' '+(xa+8)+','+(dimY+2.6)+'" fill="#3d3d3d"/>';
+    s+='<polygon points="'+(xb-2)+','+dimY+' '+(xb-8)+','+(dimY-2.6)+' '+(xb-8)+','+(dimY+2.6)+'" fill="#3d3d3d"/>';
+    s+='<g class="ko-gapHit" onclick="koFocusGap('+(g+1)+')">';
+    s+='<rect x="'+(mid-sp/2+2)+'" y="'+(dimY-19)+'" width="'+(sp-4)+'" height="17" fill="rgba(0,0,0,0)"/>';
+    s+='<text x="'+mid+'" y="'+(dimY-6)+'" text-anchor="middle" font-size="'+fsG+'" font-weight="700" fill="'+col+'">'+(mm===null?'?':koF(mm))+'</text>';
+    s+='</g>';
+    if(N<=16) s+='<text x="'+mid+'" y="'+(dimY+13)+'" text-anchor="middle" font-size="'+(fsG-2)+'" fill="#5a5a5a">hedef '+koF(tt)+'</text>';
+  }
+
+  for(i=0;i<koK.length;i++){
+    var o=koK[i], x0=X(o.k);
+    var px=Math.max(-maxShift,Math.min(maxShift,o.off*exag));
+    var x1=x0+px;
+    var lc=o.over?'#ef4444':(Math.abs(o.off)<0.0005?'#F7A800':(o.off>0?'#22c55e':'#3b82f6'));
+    s+='<line x1="'+x0+'" y1="'+TOP+'" x2="'+x0+'" y2="'+BOT+'" stroke="#3d3d3d" stroke-width="1.2" stroke-dasharray="5 4"/>';
+    s+='<line x1="'+x1+'" y1="'+TOP+'" x2="'+x1+'" y2="'+BOT+'" stroke="'+lc+'" stroke-width="2.6" stroke-linecap="round"/>';
+    if(Math.abs(px)>1.5){
+      var ay=(TOP+BOT)/2, dir=px>0?1:-1;
+      s+='<line x1="'+x0+'" y1="'+ay+'" x2="'+x1+'" y2="'+ay+'" stroke="'+lc+'" stroke-width="1.4" opacity="0.85"/>';
+      s+='<polygon points="'+x1+','+ay+' '+(x1-dir*7)+','+(ay-3.4)+' '+(x1-dir*7)+','+(ay+3.4)+'" fill="'+lc+'"/>';
+    }
+    s+='<circle cx="'+x0+'" cy="22" r="'+(N<=20?11:9)+'" fill="'+(o.fixed?'#222222':'#F7A800')+'" stroke="'+(o.fixed?'#F7A800':'none')+'" stroke-width="1.4"/>';
+    s+='<text x="'+x0+'" y="'+(N<=20?26:25.5)+'" text-anchor="middle" font-size="'+fsN+'" font-weight="700" fill="'+(o.fixed?'#F7A800':'#0a0a0a')+'">'+o.k+'</text>';
+    var lbl=Math.abs(o.off)<0.0005?'0':((o.off>0?'+':'')+koF(o.off,dec));
+    s+='<text x="'+x0+'" y="'+(BOT+20)+'" text-anchor="middle" font-size="'+(fsN+0.5)+'" font-weight="700" fill="'+lc+'">'+lbl+'</text>';
+    if(Math.abs(o.off)>=0.0005)
+      s+='<text x="'+x0+'" y="'+(BOT+34)+'" text-anchor="middle" font-size="'+(fsN-2)+'" fill="'+lc+'" opacity="0.75">'+(o.off>0?'sağa':'sola')+'</text>';
+    else if(N<=20)
+      s+='<text x="'+x0+'" y="'+(BOT+34)+'" text-anchor="middle" font-size="'+(fsN-2)+'" fill="#5a5a5a">sabit</text>';
+  }
+  s+='<text x="'+ML+'" y="'+(H-6)+'" font-size="9" fill="#5a5a5a">◀ sol</text>';
+  s+='<text x="'+(ML+US)+'" y="'+(H-6)+'" text-anchor="end" font-size="9" fill="#5a5a5a">sağ (K1) ▶</text>';
+  s+='</svg>';
+  document.getElementById('koSvg').innerHTML=s;
+
+  for(g=0; g<N-1; g++){
+    var gd=document.getElementById('koGd'+(g+1)); if(!gd) continue;
+    var e=koG[g].err;
+    if(e===null){ gd.className='ko-badge zero'; gd.textContent='fark —'; }
+    else if(Math.abs(e)<0.0005){ gd.className='ko-badge rt'; gd.textContent='fark 0'; }
+    else if(Math.abs(e)>=1){ gd.className='ko-badge warn'; gd.textContent='fark '+koSgn(e); }
+    else { gd.className='ko-badge lf'; gd.textContent='fark '+koSgn(e); }
+  }
+
+  var html='';
+  for(i=0;i<koK.length;i++){
+    var q=koK[i], yon, cls;
+    if(q.over){ yon='LİMİT AŞIMI'; cls='background:var(--red-bg);color:var(--red)'; }
+    else if(Math.abs(q.off)<0.0005){ yon=q.fixed?'SABİT':'KAYMA YOK'; cls='background:var(--surface3);color:var(--text2)'; }
+    else if(q.off>0){ yon='SAĞA ▶'; cls='background:var(--green-bg);color:var(--green)'; }
+    else { yon='◀ SOLA'; cls='background:var(--blue-bg);color:var(--blue)'; }
+    var cc=q.over?'var(--red)':(Math.abs(q.off)<0.0005?'var(--text3)':(q.off>0?'var(--green)':'var(--blue)'));
+    html+='<tr><td style="color:var(--accent);font-weight:700">K'+q.k+'</td>'+
+      '<td style="text-align:right;color:var(--text3)">'+koF(q.pos)+'</td>'+
+      '<td style="text-align:right;font-size:14px;font-weight:700;color:'+cc+'">'+koSgn(q.off)+'</td>'+
+      '<td><span class="ko-pill" style="'+cls+'">'+yon+'</span></td>'+
+      '<td style="text-align:right;color:var(--text3)">'+koF(q.pos+q.off)+'</td></tr>';
+  }
+  document.getElementById('koTbK').innerHTML=html;
+
+  html='';
+  for(i=0;i<koG.length;i++){
+    var w=koG[i], ok=(w.after!==null&&Math.abs(w.after-w.target)<0.0005);
+    html+='<tr><td style="color:var(--accent);font-weight:700">K'+w.g+' ↔ K'+(w.g+1)+'</td>'+
+      '<td style="text-align:right">'+koF(w.target)+'</td>'+
+      '<td style="text-align:right">'+(w.meas===null?'—':koF(w.meas))+'</td>'+
+      '<td style="text-align:right;color:'+(w.err===null?'var(--text3)':(Math.abs(w.err)<0.0005?'var(--green)':'var(--red)'))+'">'+koSgn(w.err)+'</td>'+
+      '<td style="text-align:right;font-weight:700;color:'+(ok?'var(--green)':'var(--text3)')+'">'+(w.after===null?'—':koF(w.after))+'</td>'+
+      '<td><span class="ko-pill" style="'+(w.after===null?'background:var(--surface3);color:var(--text3)':(ok?'background:var(--green-bg);color:var(--green)':'background:var(--red-bg);color:var(--red)'))+'">'+(w.after===null?'ölçü yok':(ok?'HEDEFTE ✓':'sapma var'))+'</span></td></tr>';
+  }
+  document.getElementById('koTbG').innerHTML=html;
+
+  var filled=0,tt2=0,tm2=0,worst=0,need=0,over=0;
+  for(g=0;g<N-1;g++){ if(koS.meas[g]!==null){ filled++; tt2+=koS.target[g]; tm2+=koS.meas[g]; } }
+  for(i=0;i<koK.length;i++){ var a=Math.abs(koK[i].off); if(a>Math.abs(worst)) worst=koK[i].off; if(a>=0.0005) need++; if(koK[i].over) over++; }
+  document.getElementById('koFilled').textContent = filled+' / '+(N-1);
+  document.getElementById('koStats').innerHTML =
+    koStat('Girilen ölçü', filled+' / '+(N-1), filled===(N-1)?'g':'a')+
+    koStat('Toplam hedef', koF(tt2)+' mm','')+
+    koStat('Toplam ölçülen', koF(tm2)+' mm','')+
+    koStat('Toplam sapma', (filled?koSgn(tt2-tm2)+' mm':'—'), Math.abs(tt2-tm2)<0.0005?'g':'r')+
+    koStat('En büyük kayma', (filled?koSgn(worst)+' mm':'—'), Math.abs(worst)>=1?'r':'a')+
+    koStat('Oynayan kaset', need+' / '+N, need?'a':'g')+
+    (over?koStat('Limit aşan', over+' kaset','r'):'');
+}
+function koStat(l,v,c){ return '<div class="ko-stat"><div class="lbl">'+l+'</div><div class="val '+c+'">'+v+'</div></div>'; }
+
+function koSetAnchor(a){
+  koS.anchor=a;
+  var b=document.querySelectorAll('#koAnchSeg button');
+  for(var i=0;i<b.length;i++) b[i].className=(b[i].getAttribute('data-a')===a?'on':'');
+  document.getElementById('koRef').disabled=(a!=='fix');
+  koCalc();
+}
+function koSetInv(v){
+  koS.inv=v;
+  var b=document.querySelectorAll('#koDirSeg button');
+  for(var i=0;i<b.length;i++) b[i].className=(parseInt(b[i].getAttribute('data-inv'),10)===v?'on':'');
+  koCalc();
+}
+function koFillTargets(){ for(var g=0;g<koS.N-1;g++) koS.meas[g]=koS.target[g]; koRender(); }
+function koClear(){ for(var g=0;g<koS.N-1;g++) koS.meas[g]=null; koRender(); }
+
+function koOutText(){
+  var L=['ORİMAK — KASET OFSET RAPORU'], i;
+  L.push(koS.src+' | '+koS.N+' kaset | dağılım: '+(koS.anchor==='bal'?'Dengeli':(koS.anchor==='fix'?('Sabit K'+koS.ref):'Merkezi'))+(koS.inv?' | yön: ters':''));
+  L.push(''); L.push('KASET → VERİLECEK OFSET');
+  for(i=0;i<koK.length;i++){ var o=koK[i]; L.push('K'+o.k+'  '+koSgn(o.off)+' mm  '+(Math.abs(o.off)<0.0005?'(sabit)':(o.off>0?'SAĞA':'SOLA'))); }
+  L.push(''); L.push('ARALIK KONTROL (hedef / ölçülen / sonrası)');
+  for(i=0;i<koG.length;i++){ var q=koG[i]; L.push('K'+q.g+'-K'+(q.g+1)+'  '+koF(q.target)+' / '+(q.meas===null?'—':koF(q.meas))+' / '+(q.after===null?'—':koF(q.after))); }
+  return L.join('\n');
+}
+function koCopy(){
+  var t=koOutText();
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function(){koToast('Panoya kopyalandı');},function(){koLegacyCopy(t);});
+  else koLegacyCopy(t);
+}
+function koLegacyCopy(t){
+  var a=document.createElement('textarea'); a.value=t; document.body.appendChild(a); a.select();
+  try{ document.execCommand('copy'); koToast('Panoya kopyalandı'); }catch(e){ alert(t); }
+  document.body.removeChild(a);
+}
+function koCsv(){
+  var rows=[['Kaset','Nominal Konum','Ofset','Yon','Yeni Konum']], i;
+  for(i=0;i<koK.length;i++){ var o=koK[i]; rows.push(['K'+o.k,koF(o.pos),koF(o.off),(Math.abs(o.off)<0.0005?'sabit':(o.off>0?'SAGA':'SOLA')),koF(o.pos+o.off)]); }
+  rows.push([]); rows.push(['Aralik','Hedef','Olculen','Fark','Duzeltme Sonrasi']);
+  for(i=0;i<koG.length;i++){ var q=koG[i]; rows.push(['K'+q.g+'-K'+(q.g+1),koF(q.target),q.meas===null?'':koF(q.meas),q.err===null?'':koF(q.err),q.after===null?'':koF(q.after)]); }
+  var csv='\uFEFF'+rows.map(function(r){return r.join(';');}).join('\r\n');
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='kaset_ofset.csv'; a.click();
+}
+function koToast(m){
+  var d=document.createElement('div'); d.textContent=m;
+  d.style.cssText='position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:#F7A800;color:#0a0a0a;padding:10px 20px;border-radius:20px;font-weight:700;font-size:13px;z-index:9999;box-shadow:0 6px 24px rgba(0,0,0,.5)';
+  document.body.appendChild(d);
+  setTimeout(function(){ d.style.transition='.35s'; d.style.opacity='0'; setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },380); },1500);
+}
+
 </script>
 
 
