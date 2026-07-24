@@ -1101,11 +1101,11 @@ const DEFAULT_FEFCO_TYPES=[
    dikeyEn:'2*L+2*B+K+K+P', dikeyBoy:'2*H+(L+B)/2+K+K+P+T',
    yatayEn:'2*B+2*L+K+K+P', yatayBoy:'2*H+(B+L)/2+K+K+P+T'},
   {id:'f0410',kod:'FEFCO 0410',ad:'Wrap-Around / Sarma Kutu',
-   dikeyEn:'2*L+2*B+K+K+P', dikeyBoy:'2*H+L+B+K+K+P',
-   yatayEn:'2*B+2*L+K+K+P', yatayBoy:'2*H+B+L+K+K+P'},
+   dikeyEn:'2*H+B+4*T', dikeyBoy:'3*H+6*T+2*L',
+   yatayEn:'3*H+6*T+2*L', yatayBoy:'2*H+B+4*T'},
   {id:'f0411',kod:'FEFCO 0411',ad:'Katlanır / Sarma Kutu (0411)',
-   dikeyEn:'2*L+2*B+K+K+P', dikeyBoy:'2*H+L+B+K+K+P',
-   yatayEn:'2*B+2*L+K+K+P', yatayBoy:'2*H+B+L+K+K+P'},
+   dikeyEn:'2*B+2*H+4*T', dikeyBoy:'2*H+L+3*T',
+   yatayEn:'2*H+L+3*T', yatayBoy:'2*B+2*H+4*T'},
   {id:'f0420',kod:'FEFCO 0420',ad:'Kilitli Tava Kutu',
    dikeyEn:'2*L+2*B+K+K+P', dikeyBoy:'H+L/2+B/2+K+K+P',
    yatayEn:'2*B+2*L+K+K+P', yatayBoy:'H+B/2+L/2+K+K+P'},
@@ -2772,6 +2772,32 @@ window.addEventListener('DOMContentLoaded',()=>{
     localStorage.setItem(MIG,'1');
     try{saveToLocal();}catch(e){}
   })();
+
+  // --- Tek seferlik geçiş: 0410 / 0411 STANDART formülleri ---
+  // Siteyi açan herkes bu formülleri görür. Sonradan kullanıcı formülü
+  // değiştirirse bayrak yüzünden bir daha geri yazılmaz.
+  (function stdFormul0410_0411(){
+    const MIG='orimak_fefco_std_formul_v1';
+    if(localStorage.getItem(MIG)) return;
+    ['f0410','f0411'].forEach(id=>{
+      const def=DEFAULT_FEFCO_TYPES.find(f=>f.id===id);
+      const cur=FEFCO_TYPES.find(f=>f.id===id);
+      if(!def||!cur) return;
+      const oldVars=[...(cur._vars||[])];
+      cur.dikeyEn=def.dikeyEn; cur.dikeyBoy=def.dikeyBoy;
+      cur.yatayEn=def.yatayEn; cur.yatayBoy=def.yatayBoy;
+      compileFormulas(cur);
+      // Yeni değişkenler (örn. T) mevcut satırlara varsayılan değerle eklensin
+      (cur._vars||[]).forEach(v=>{
+        if(!oldVars.includes(v)&&DATA[id]){
+          DATA[id].forEach(r=>{ if(r[v]===undefined||r[v]===''||r[v]===null) r[v]=VAR_DEFAULTS[v]!==undefined?VAR_DEFAULTS[v]:0; });
+        }
+      });
+    });
+    localStorage.setItem(MIG,'1');
+    try{saveToLocal();}catch(e){}
+  })();
+
   buildDynamicDOM();
   loadStok();                   // stok karton enleri + modu (render öncesi — nearPiyasa etkilenir)
   loadPiyasaTolerans();         // kaydedilen piyasa eni toleransını yükle (render öncesi)
