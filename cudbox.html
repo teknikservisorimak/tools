@@ -632,6 +632,41 @@ tr:hover td { background: var(--surface2); }
 #panel-offset .ko-note strong { color:var(--accent); }
 #panel-offset .ko-hint { font-size:12.2px; color:var(--text3); line-height:1.75; }
 #panel-offset .ko-hint strong { color:var(--text2); }
+#panel-excelrapor code {
+  font-family: var(--mono); color: var(--text2); background: var(--surface2);
+  padding: 1px 5px; border-radius: 4px; font-size: 11.5px;
+}
+#panel-excelrapor .exr-tprow {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding-top: 12px; border-top: 1px solid var(--border); margin-top: 12px;
+}
+#panel-excelrapor .exr-tprow:first-of-type { border-top: none; margin-top: 0; padding-top: 0; }
+#panel-excelrapor .exr-tplabel {
+  font-size: 11px; font-weight: 700; color: var(--text2);
+  text-transform: uppercase; letter-spacing: 0.04em; min-width: 90px;
+}
+#panel-excelrapor .exr-checks { display: flex; gap: 12px; flex-wrap: wrap; }
+#panel-excelrapor .exr-check {
+  display: flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: 12.5px; color: var(--text);
+  cursor: pointer; user-select: none;
+}
+#panel-excelrapor .exr-check input { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
+#panel-excelrapor .exr-tpactive {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+}
+#panel-excelrapor .exr-tag {
+  display: inline-block; font-family: var(--mono); font-size: 11.5px; font-weight: 600;
+  color: var(--accent); background: var(--accent-bg); border: 1px solid rgba(247,168,0,.35);
+  padding: 2px 8px; border-radius: 10px;
+}
+#panel-excelrapor .exr-fefco {
+  display: inline-block; font-family: var(--mono); font-size: 11px; font-weight: 700;
+  color: var(--blue); background: var(--blue-bg); border: 1px solid rgba(59,130,246,.35);
+  padding: 1px 7px; border-radius: 8px;
+}
+#panel-excelrapor .exr-empty-cell { color: var(--text3); }
 #panel-offset .ko-hint code {
   font-family:var(--mono); background:var(--surface2); border:1px solid var(--border);
   padding:1px 5px; border-radius:4px; color:var(--accent); font-size:11.5px;
@@ -676,6 +711,7 @@ tr:hover td { background: var(--surface2); }
   <div class="tab" data-i18n-tab="tab_templates" onclick="switchTab('templates')">📐 Şablonlar</div>
   <div class="tab" data-i18n-tab="tab_designer" onclick="switchTab('designer')">✏️ Kutu Tasarımcısı</div>
   <div class="tab" data-i18n-tab="tab_converter" onclick="switchTab('converter')">🔄 Excel Dönüştürücü</div>
+  <div class="tab" onclick="switchTab('excelrapor')">📦 CUDBOX → Excel</div>
   <div class="tab" data-i18n-tab="tab_offset" onclick="switchTab('offset')">📏 Kaset Ofset</div>
   <div class="tab" data-i18n-tab="tab_langmgr" onclick="switchTab('langmgr')" id="tabLangMgr" style="display:none;">🌐 Dil Yönetimi</div>
   <div class="tab" data-i18n-tab="tab_help" onclick="switchTab('help')">📖 Yardım</div>
@@ -842,6 +878,88 @@ tr:hover td { background: var(--surface2); }
         <button class="btn btn-primary" onclick="cvConvert()">🔄 Dönüştür &amp; İndir</button>
         <span id="cvConvertStatus" style="margin-left:12px;font-size:13px;color:var(--text3);"></span>
       </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ========== CUDBOX -> EXCEL RAPORU PANEL ========== -->
+<div id="panel-excelrapor" class="panel">
+
+  <div class="card" id="exrTemplateCard">
+    <div class="card-header">
+      <h3>📐 Ölçü Şablonu</h3>
+    </div>
+    <div class="card-body">
+      <p style="font-size:12.5px;color:var(--text2);line-height:1.7;margin-bottom:14px;">
+        Kutu tipleri farklı olabileceği için Excel'de hangi ölçü sütunlarının çıkacağını burada sabitleyebilirsin.
+        Şablon seçiliyken sadece buradaki alanlar sütun olur (bir dosyada o alan yoksa hücresi boş kalır); kutu tipi
+        değişse bile sütunlar sabit kalır. Şablon uygulanmazsa sistem yüklenen dosyalardaki tüm ölçü argümanlarını
+        otomatik toplar.
+      </p>
+
+      <div class="exr-tprow">
+        <div class="exr-tplabel">Elle seç</div>
+        <div class="exr-checks" id="exrChecks"></div>
+        <button class="btn btn-sm" onclick="exrApplyManualTemplate()">Şablonu Uygula</button>
+      </div>
+
+      <div class="exr-tprow">
+        <div class="exr-tplabel">Örnek dosyadan</div>
+        <button class="btn btn-sm" onclick="document.getElementById('exrTemplateFileInput').click()">📄 Örnek .cudbox Yükle</button>
+        <input type="file" id="exrTemplateFileInput" accept=".cudbox,.xml" style="display:none">
+        <span id="exrTemplateFileStatus" style="font-size:12px;font-family:var(--mono);"></span>
+      </div>
+
+      <div class="exr-tpactive" id="exrTpActive" style="display:none;">
+        <span style="font-size:12px;color:var(--text2);font-family:var(--mono);">Aktif şablon:</span>
+        <span id="exrTpActiveTags"></span>
+        <button class="btn btn-sm btn-danger" onclick="exrClearTemplate()">✕ Şablonu Kaldır (Otomatik moda dön)</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>① .cudbox Dosyalarını Yükle <span class="badge">Adım 1</span></h3>
+    </div>
+    <div class="card-body">
+      <div class="drop-zone" id="exrDropZone">
+        <input type="file" id="exrFileInput" multiple accept=".cudbox,.xml">
+        <div class="icon">📦</div>
+        <div class="label">.cudbox dosyalarını sürükleyin veya tıklayın</div>
+        <div class="hint">Birden fazla dosya seçebilirsiniz — ölçü sütunları argümanlara göre otomatik oluşur (B, L, H, K1, K2 ...)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>② Liste &amp; Excel <span class="badge">Adım 2</span></h3>
+      <div class="btn-group">
+        <span class="badge" id="exrFileCount">Dosya: 0</span>
+        <span class="badge" id="exrArgCount">Ölçü sütunu: 0</span>
+        <button class="btn btn-danger btn-sm" id="exrClearBtn" onclick="exrClearAll()" disabled>🗑 Temizle</button>
+        <button class="btn btn-primary btn-sm" id="exrExportBtn" onclick="exrExportExcel()" disabled>📥 Excel İndir (.xlsx)</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <span class="status-wait" id="exrStatusMsg" style="font-size:12px;font-family:var(--mono);display:block;margin-bottom:10px;"></span>
+      <div class="table-wrap" style="max-height:60vh;">
+        <table>
+          <thead id="exrThead"></thead>
+          <tbody id="exrTbody">
+            <tr><td colspan="99"><div class="empty"><div class="icon">📦</div><div class="msg">Henüz dosya yüklenmedi.</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:14px;font-size:12px;color:var(--text3);line-height:1.7;">
+        Ölçüler dosyanın <code>bx_Arguments</code> bölümünden okunur. <strong>Şablon aktifken</strong> sadece seçtiğin
+        alanlar sütun olur. <strong>Şablon yokken</strong> her farklı argüman adı kendi sütununu oluşturur. Bilinen isimler:
+        <code>B</code>=Boy, <code>L</code>=En, <code>H</code>=Yükseklik, <code>T</code>=Kalınlık, <code>K1</code>, <code>K2</code>, <code>P</code>=ek ölçüler.
+        Kutu tipi dosya adındaki FEFCO kodundan tespit edilir. Aynı dosyayı tekrar yüklerseniz eski satırın üzerine yazılır.
+      </p>
     </div>
   </div>
 
@@ -4372,6 +4490,339 @@ function koCsv(){
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   a.download='kaset_ofset.csv'; a.click();
 }
+// =============================================
+// CUDBOX -> EXCEL RAPORU
+// =============================================
+let exrRows = []; // { fileName, boxName, fefco, args: {ad: değer}, openW, openH, error }
+
+const EXR_KNOWN_ARGS = {
+  'B': 'B — Boy (mm)',
+  'L': 'L — En (mm)',
+  'H': 'H — Yükseklik (mm)',
+  'T': 'T — Kalınlık (mm)',
+  'K1': 'K1 (mm)',
+  'K2': 'K2 (mm)',
+  'P': 'P (mm)'
+};
+const EXR_KNOWN_ORDER = ['B', 'L', 'H', 'T', 'K1', 'K2', 'P'];
+
+// Ölçü şablonu: null ise otomatik (yüklenen dosyalardaki tüm argümanların birleşimi).
+// Dolu ise, sadece bu dizideki alanlar sütun olarak kullanılır (dosyada yoksa hücre boş kalır).
+let exrTemplate = null;
+
+function exrFmt(v) {
+  if (v === null || v === undefined || isNaN(v)) return '';
+  return (v === Math.floor(v)) ? String(v) : String(Math.round(v * 100) / 100);
+}
+
+function exrArgLabel(key) {
+  return EXR_KNOWN_ARGS[key] || (key + ' (mm)');
+}
+
+function exrCollectArgColumns() {
+  if (exrTemplate) return exrTemplate.slice();
+  const seen = new Set();
+  exrRows.forEach(r => { if (!r.error) Object.keys(r.args).forEach(k => seen.add(k)); });
+  const known = EXR_KNOWN_ORDER.filter(k => seen.has(k));
+  const others = [...seen].filter(k => !EXR_KNOWN_ORDER.includes(k))
+    .sort((a, b) => a.localeCompare(b, 'tr', { numeric: true, sensitivity: 'base' }));
+  return [...known, ...others];
+}
+
+function exrDetectFefco(fileName, boxName) {
+  for (const s of [fileName || '', boxName || '']) {
+    let m = s.match(/fefco[\s_\-]*(\d{4})(?:[\s_\-]+([A-Za-z]{1,2}))?(?=$|[\s_\-.])/i);
+    if (m) {
+      let code = m[1];
+      if (m[2]) code += ' ' + m[2].toUpperCase();
+      return code.trim();
+    }
+    m = s.match(/(?:^|[\s_\-])(0[1-9]\d{2})(?:$|[\s_\-.])/);
+    if (m) return m[1];
+  }
+  return '';
+}
+
+function exrParseCudbox(xmlStr, fileName) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlStr, 'text/xml');
+  const root = doc.documentElement;
+  if (!root || root.nodeName === 'parsererror' || doc.querySelector('parsererror')) {
+    throw new Error('Geçersiz XML — dosya bozuk olabilir');
+  }
+
+  const args = {};
+  root.querySelectorAll('bx_Arguments > Bx_Argument').forEach(n => {
+    const name  = n.querySelector('name')?.textContent?.trim();
+    const value = parseFloat(n.querySelector('value')?.textContent);
+    if (name) args[name] = isNaN(value) ? null : value;
+  });
+
+  let boxName = '';
+  for (const child of root.children) {
+    if (child.tagName === 'Name') { boxName = child.textContent.trim(); break; }
+  }
+  boxName = (boxName || fileName).replace(/\.cudbox$/i, '');
+
+  const openW = parseFloat(root.querySelector(':scope > Last_UnitX_Abs_Pos')?.textContent);
+  const openH = parseFloat(root.querySelector(':scope > Last_UnitY_Abs_Pos')?.textContent);
+
+  return {
+    fileName: fileName,
+    boxName: boxName,
+    fefco: exrDetectFefco(fileName, boxName),
+    args: args,
+    openW: isNaN(openW) ? null : openW,
+    openH: isNaN(openH) ? null : openH,
+    error: null
+  };
+}
+
+// ── Ölçü şablonu ─────────────────────────────────────────────────────────────
+function exrRenderTemplateChecks() {
+  const wrap = document.getElementById('exrChecks');
+  if (!wrap) return;
+  wrap.innerHTML = EXR_KNOWN_ORDER.map(k => {
+    const checked = exrTemplate ? exrTemplate.includes(k) : false;
+    return '<label class="exr-check">' +
+      '<input type="checkbox" value="' + k + '"' + (checked ? ' checked' : '') + '>' +
+      exrEsc(k) +
+    '</label>';
+  }).join('');
+}
+
+function exrApplyManualTemplate() {
+  const checked = Array.from(document.querySelectorAll('#exrChecks input:checked')).map(el => el.value);
+  if (!checked.length) {
+    exrSetStatus('⚠ En az bir alan seçmelisin', 'status-err');
+    return;
+  }
+  exrTemplate = EXR_KNOWN_ORDER.filter(k => checked.includes(k));
+  document.getElementById('exrTemplateFileStatus').textContent = '';
+  exrUpdateTemplateUI();
+  exrRender();
+  exrSetStatus('✅ Şablon uygulandı: ' + exrTemplate.join(', '), 'status-ok');
+}
+
+function exrApplyFileTemplate(argNames) {
+  const known = EXR_KNOWN_ORDER.filter(k => argNames.includes(k));
+  const others = argNames.filter(k => !EXR_KNOWN_ORDER.includes(k))
+    .sort((a, b) => a.localeCompare(b, 'tr', { numeric: true, sensitivity: 'base' }));
+  exrTemplate = [...known, ...others];
+  exrUpdateTemplateUI();
+  exrRender();
+}
+
+function exrClearTemplate() {
+  exrTemplate = null;
+  document.getElementById('exrTemplateFileStatus').textContent = '';
+  exrUpdateTemplateUI();
+  exrRender();
+  exrSetStatus('Şablon kaldırıldı — otomatik moda dönüldü', '');
+}
+
+function exrUpdateTemplateUI() {
+  exrRenderTemplateChecks();
+  const activeWrap = document.getElementById('exrTpActive');
+  const tagsEl = document.getElementById('exrTpActiveTags');
+  if (exrTemplate && exrTemplate.length) {
+    activeWrap.style.display = 'flex';
+    tagsEl.innerHTML = exrTemplate.map(k =>
+      '<span class="exr-tag" title="' + exrEsc(exrArgLabel(k)) + '">' + exrEsc(k) + '</span>'
+    ).join(' ');
+  } else {
+    activeWrap.style.display = 'none';
+    tagsEl.innerHTML = '';
+  }
+}
+
+document.getElementById('exrTemplateFileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const parsed = exrParseCudbox(ev.target.result, file.name);
+      const argNames = Object.keys(parsed.args);
+      if (!argNames.length) {
+        document.getElementById('exrTemplateFileStatus').textContent = '⚠ Dosyada ölçü argümanı bulunamadı';
+        document.getElementById('exrTemplateFileStatus').className = 'status-err';
+        return;
+      }
+      exrApplyFileTemplate(argNames);
+      document.getElementById('exrTemplateFileStatus').textContent = '✅ ' + file.name + ' → ' + argNames.join(', ');
+      document.getElementById('exrTemplateFileStatus').className = 'status-ok';
+    } catch (err) {
+      document.getElementById('exrTemplateFileStatus').textContent = '❌ ' + err.message;
+      document.getElementById('exrTemplateFileStatus').className = 'status-err';
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+// ── Dosya yükleme ────────────────────────────────────────────────────────────
+function exrHandleFiles(fileList) {
+  const files = Array.from(fileList).filter(f => /\.(cudbox|xml)$/i.test(f.name));
+  if (!files.length) {
+    exrSetStatus('⚠ .cudbox dosyası bulunamadı', 'status-err');
+    return;
+  }
+  let pending = files.length;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      let row;
+      try {
+        row = exrParseCudbox(e.target.result, file.name);
+      } catch (err) {
+        row = { fileName: file.name, boxName: '', fefco: '', args: {},
+                openW: null, openH: null, error: err.message };
+      }
+      const idx = exrRows.findIndex(r => r.fileName === row.fileName);
+      if (idx >= 0) exrRows[idx] = row; else exrRows.push(row);
+      if (--pending === 0) {
+        exrRows.sort((a,b) => a.fileName.localeCompare(b.fileName, 'tr', { numeric: true }));
+        exrRender();
+        const errCount = exrRows.filter(r => r.error).length;
+        exrSetStatus(errCount
+          ? '⚠ ' + errCount + ' dosya okunamadı'
+          : '✅ ' + files.length + ' dosya okundu', errCount ? 'status-err' : 'status-ok');
+      }
+    };
+    reader.onerror = () => {
+      exrRows.push({ fileName: file.name, boxName:'', fefco:'', args:{},
+                  openW:null, openH:null, error:'Dosya okunamadı' });
+      if (--pending === 0) exrRender();
+    };
+    reader.readAsText(file);
+  });
+}
+
+function exrEsc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Tablo ────────────────────────────────────────────────────────────────────
+function exrRender() {
+  const thead = document.getElementById('exrThead');
+  const tbody = document.getElementById('exrTbody');
+  const argCols = exrCollectArgColumns();
+
+  document.getElementById('exrFileCount').textContent = 'Dosya: ' + exrRows.length;
+  document.getElementById('exrArgCount').textContent = 'Ölçü sütunu: ' + argCols.length;
+  document.getElementById('exrExportBtn').disabled = exrRows.filter(r => !r.error).length === 0;
+  document.getElementById('exrClearBtn').disabled = exrRows.length === 0;
+
+  thead.innerHTML = '<tr>' +
+    '<th>#</th><th>Dosya Adı</th><th>Kutu Adı</th><th>Kutu Tipi (FEFCO)</th>' +
+    argCols.map(k => '<th title="' + exrEsc(exrArgLabel(k)) + '">' + exrEsc(k) + '</th>').join('') +
+    '<th>Açılım G × Y (mm)</th>' +
+  '</tr>';
+
+  const colTotal = 5 + argCols.length;
+
+  if (!exrRows.length) {
+    tbody.innerHTML = '<tr><td colspan="' + colTotal + '"><div class="empty"><div class="icon">📦</div><div class="msg">Henüz dosya yüklenmedi.</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = exrRows.map((r, i) => {
+    if (r.error) {
+      return '<tr><td>' + (i+1) + '</td>' +
+        '<td>' + exrEsc(r.fileName) + '</td>' +
+        '<td colspan="' + (colTotal - 2) + '" class="status-err">❌ ' + exrEsc(r.error) + '</td></tr>';
+    }
+    const acilim = (r.openW !== null && r.openH !== null) ? exrFmt(r.openW) + ' × ' + exrFmt(r.openH) : '';
+    const tip = r.fefco
+      ? '<span class="exr-fefco">FEFCO ' + exrEsc(r.fefco) + '</span>'
+      : '<span class="exr-empty-cell">—</span>';
+    const argCells = argCols.map(k => {
+      const v = r.args[k];
+      return (v === undefined || v === null)
+        ? '<td class="exr-empty-cell">—</td>'
+        : '<td>' + exrFmt(v) + '</td>';
+    }).join('');
+    return '<tr>' +
+      '<td>' + (i+1) + '</td>' +
+      '<td>' + exrEsc(r.fileName) + '</td>' +
+      '<td>' + exrEsc(r.boxName) + '</td>' +
+      '<td>' + tip + '</td>' +
+      argCells +
+      '<td>' + acilim + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function exrSetStatus(msg, cls) {
+  const el = document.getElementById('exrStatusMsg');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = (cls || 'status-wait');
+}
+
+function exrClearAll() {
+  exrRows = [];
+  exrRender();
+  exrSetStatus('', '');
+  document.getElementById('exrFileInput').value = '';
+}
+
+// ── Excel ────────────────────────────────────────────────────────────────────
+function exrExportExcel() {
+  const valid = exrRows.filter(r => !r.error);
+  if (!valid.length) return;
+  const argCols = exrCollectArgColumns();
+
+  const header = ['#', 'Dosya Adı', 'Kutu Adı', 'Kutu Tipi (FEFCO)',
+                  ...argCols.map(exrArgLabel),
+                  'Açılım Genişliği (mm)', 'Açılım Yüksekliği (mm)'];
+
+  const data = valid.map((r, i) => [
+    i + 1,
+    r.fileName,
+    r.boxName,
+    r.fefco ? 'FEFCO ' + r.fefco : '',
+    ...argCols.map(k => (r.args[k] === undefined || r.args[k] === null) ? '' : r.args[k]),
+    r.openW ?? '',
+    r.openH ?? ''
+  ]);
+
+  const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
+  ws['!cols'] = [
+    { wch: 4 }, { wch: 30 }, { wch: 26 }, { wch: 18 },
+    ...argCols.map(k => ({ wch: Math.max(12, exrArgLabel(k).length + 2) })),
+    { wch: 20 }, { wch: 20 }
+  ];
+  ws['!autofilter'] = { ref: XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:data.length, c:header.length-1} }) };
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Kutu Listesi');
+
+  const today = new Date();
+  const dateStr = today.getFullYear() + '-' +
+    String(today.getMonth()+1).padStart(2,'0') + '-' +
+    String(today.getDate()).padStart(2,'0');
+  XLSX.writeFile(wb, 'ORIMAK_Kutu_Listesi_' + dateStr + '.xlsx');
+  exrSetStatus('✅ Excel indirildi (' + valid.length + ' kutu, ' + argCols.length + ' ölçü sütunu)', 'status-ok');
+}
+
+// ── Sürükle-bırak ────────────────────────────────────────────────────────────
+(function exrInitDropzone(){
+  const dz = document.getElementById('exrDropZone');
+  if (!dz) return;
+  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); dz.classList.add('dragover');
+  }));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); dz.classList.remove('dragover');
+  }));
+  dz.addEventListener('drop', e => exrHandleFiles(e.dataTransfer.files));
+  document.getElementById('exrFileInput').addEventListener('change', e => exrHandleFiles(e.target.files));
+})();
+
+exrRenderTemplateChecks();
+exrRender();
+
 function koToast(m){
   var d=document.createElement('div'); d.textContent=m;
   d.style.cssText='position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:#F7A800;color:#0a0a0a;padding:10px 20px;border-radius:20px;font-weight:700;font-size:13px;z-index:9999;box-shadow:0 6px 24px rgba(0,0,0,.5)';
