@@ -319,6 +319,24 @@ tbody tr td:last-child{border-right:none;}
 .tbl-outer thead th:last-child{right:0;}
 .tbl-outer thead th:nth-last-child(2){right:40px;box-shadow:-9px 0 11px -9px rgba(0,0,0,.75);}
 
+/* ── PİYASA ÖZET: ayarlanabilir sütun genişlikleri + tam görünür kutu adları ── */
+#piyasaTable{table-layout:fixed;width:max-content;min-width:100%;}
+/* Başlıklar kırpılmasın, satıra sarsın */
+#piyasaTable thead th{white-space:normal;line-height:1.2;padding-right:13px;}
+/* Hücre içeriği (kutu adı, notlar) kırpılmadan tam görünsün — gerekirse alt satıra sarar */
+#piyasaTable tbody td{white-space:normal;word-break:break-word;overflow:visible;}
+/* Bu tabloda son 2 sütun sağa sabitlenmesin (yatay okuma + resize rahat olsun) */
+#piyasaTable thead th:last-child,
+#piyasaTable thead th:nth-last-child(2){right:auto;box-shadow:none;background:var(--dark);}
+#piyasaTable tbody td:last-child,
+#piyasaTable tbody td:nth-last-child(2){position:static;right:auto;box-shadow:none;background:transparent;}
+#piyasaTable tbody tr:nth-child(even) td:last-child,
+#piyasaTable tbody tr:nth-child(even) td:nth-last-child(2){background:rgba(255,255,255,.012);}
+/* Sürüklenebilir sütun tutamağı */
+.col-resizer{position:absolute;top:0;right:0;width:11px;height:100%;cursor:col-resize;z-index:60;touch-action:none;}
+.col-resizer::after{content:"";position:absolute;top:16%;right:3px;width:2px;height:68%;background:var(--border);border-radius:2px;transition:background .15s,width .15s;}
+.col-resizer:hover::after,.col-resizer.drag::after{background:var(--orange);width:3px;}
+
 /* Cell inputs */
 td input[type="text"],td input[type="number"]{
   background:transparent;border:none;
@@ -865,14 +883,22 @@ footer{
     <div class="piyasa-wrap">
       <h2>📦 Piyasa Karton Eni → Kutu Eşleşmesi Özeti</h2>
       <div class="piyasa-hint">⚠️ Kutulara L, B, H bilgisi girdikçe otomatik güncellenir. Sadece dolu kutular listelenir.</div>
-      <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
         <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;color:var(--orange);text-transform:uppercase;">Piyasa eni filtresi:</span>
         <select id="piyasaFilter" class="gb-inp" style="width:240px;" onchange="piyasaSetFilter(this.value)"></select>
         <button class="save-btn" onclick="piyasaSetFilter('')" title="Filtreyi kaldır" style="background:var(--orange-dim);border-color:var(--orange-border);color:var(--orange);">Tümünü Göster</button>
         <span id="piyasaFilterInfo" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--muted);"></span>
+        <button class="save-btn" onclick="pdfPiyasa()" title="Bu sekmeyi (filtre uygulanmışsa filtreli haliyle) PDF rapor olarak al" style="margin-left:auto;background:rgba(245,166,35,.14);border-color:rgba(245,166,35,.45);color:var(--orange);font-weight:700;">📄 Bu Sekmeyi PDF Al</button>
+      </div>
+      <div class="piyasa-hint" style="margin:0 0 12px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
+        <span>↔️ Sütun başlığının sağ kenarından tutup sürükleyerek genişlikleri ayarlayabilirsiniz — <b style="color:var(--muted);">kutu adları tam görünür</b> (genişlikler kaydedilir).</span>
+        <button class="save-btn" onclick="resetPiyasaColW()" title="Sütun genişliklerini varsayılana döndür" style="padding:3px 9px;font-size:10px;">↺ Genişlikleri sıfırla</button>
       </div>
       <div class="tbl-outer">
-        <table style="table-layout:auto;">
+        <table id="piyasaTable">
+          <colgroup>
+            <col><col><col><col><col><col><col><col>
+          </colgroup>
           <thead><tr>
             <th>Piyasa Karton Eni (mm)</th>
             <th>Hesaplanan Eni (mm)</th>
@@ -2397,6 +2423,76 @@ function updatePiyasa(){
   tb.innerHTML=html||`<tr><td colspan="8" style="text-align:center;color:var(--dim);padding:24px;font-family:'Barlow Condensed',sans-serif;font-size:12px;">${_piyasaFilter?'Bu piyasa eninde kutu yok.':'Henüz veri girilmedi.'}</td></tr>`;
 }
 
+// ── PİYASA ÖZET: AYARLANABİLİR SÜTUN GENİŞLİKLERİ ──────────────
+// Sütun başlığının sağ kenarından sürükleyerek her sütun genişletilir.
+// Genişlikler localStorage'a kaydedilir; "Kutu Adı" gibi uzun metinler tam görünür.
+const PIYASA_COLW_KEY='fefco_piyasa_colw_v1';
+const PIYASA_COL_DEFAULTS=[120,105,100,95,250,95,110,175];  // 8 sütun (px)
+function _piyasaCols(){
+  const t=document.getElementById('piyasaTable');
+  return t?Array.from(t.querySelectorAll('colgroup col')):[];
+}
+function loadPiyasaColW(){
+  let w=PIYASA_COL_DEFAULTS.slice();
+  try{
+    const s=JSON.parse(localStorage.getItem(PIYASA_COLW_KEY));
+    if(Array.isArray(s)&&s.length===w.length) w=s.map((x,i)=>Math.max(45,Number(x)||PIYASA_COL_DEFAULTS[i]));
+  }catch(e){}
+  _piyasaCols().forEach((c,i)=>{ c.style.width=w[i]+'px'; });
+}
+function savePiyasaColW(){
+  const w=_piyasaCols().map(c=>parseInt(c.style.width)||0);
+  try{ localStorage.setItem(PIYASA_COLW_KEY,JSON.stringify(w)); }catch(e){}
+}
+function resetPiyasaColW(){
+  _piyasaCols().forEach((c,i)=>{ c.style.width=PIYASA_COL_DEFAULTS[i]+'px'; });
+  savePiyasaColW();
+}
+function initPiyasaResizable(){
+  const t=document.getElementById('piyasaTable');
+  if(!t) return;
+  loadPiyasaColW();
+  const ths=t.querySelectorAll('thead th');
+  const cols=_piyasaCols();
+  ths.forEach((th,i)=>{
+    if(th.querySelector('.col-resizer')) return;   // zaten eklenmiş
+    const grip=document.createElement('span');
+    grip.className='col-resizer';
+    th.appendChild(grip);
+    let startX=0,startW=0;
+    const px=e=> e.touches&&e.touches[0]?e.touches[0].clientX:e.clientX;
+    const onMove=e=>{
+      const nw=Math.max(45,startW+(px(e)-startX));
+      if(cols[i]) cols[i].style.width=nw+'px';
+      if(e.cancelable) e.preventDefault();
+    };
+    const onUp=()=>{
+      document.removeEventListener('mousemove',onMove);
+      document.removeEventListener('mouseup',onUp);
+      document.removeEventListener('touchmove',onMove);
+      document.removeEventListener('touchend',onUp);
+      document.body.style.cursor='';
+      document.body.style.userSelect='';
+      grip.classList.remove('drag');
+      savePiyasaColW();
+    };
+    const onDown=e=>{
+      e.preventDefault(); e.stopPropagation();
+      startX=px(e);
+      startW=cols[i]?(parseInt(cols[i].style.width)||th.offsetWidth):th.offsetWidth;
+      document.addEventListener('mousemove',onMove);
+      document.addEventListener('mouseup',onUp);
+      document.addEventListener('touchmove',onMove,{passive:false});
+      document.addEventListener('touchend',onUp);
+      document.body.style.cursor='col-resize';
+      document.body.style.userSelect='none';
+      grip.classList.add('drag');
+    };
+    grip.addEventListener('mousedown',onDown);
+    grip.addEventListener('touchstart',onDown,{passive:false});
+  });
+}
+
 function updateHeader(){
   let m2=0,tl=0,rulo=0;
   FEFCO_TYPES.forEach(ft=>(DATA[ft.id]||[]).forEach(r=>{
@@ -2804,6 +2900,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   kalibInit();                 // önce kaydedilen kalibrasyonu yükle (öğrenilen formül + birebir veriler)
   FEFCO_TYPES.forEach(ft=>renderTable(ft.id));   // render artık kalibrasyonu görüyor
   updateAll();
+  initPiyasaResizable();        // piyasa özet tablosu sütunlarını sürüklenebilir yap + kayıtlı genişlikleri uygula
   yedekZamanGuncelle();
 });
 
@@ -4113,6 +4210,81 @@ function pdfKurumsal(){
   _openReport('ORİMAK · Kurumsal Genel Rapor', body, false);
 }
 
+// ---------- 4) PİYASA KARTON ENİ ÖZETİ RAPORU ----------
+// Sadece "Piyasa Özet" sekmesini PDF olarak üretir. Ekrandaki filtre
+// uygulanmışsa rapor da o piyasa enine göre filtrelenir.
+function pdfPiyasa(){
+  const items=[];
+  FEFCO_TYPES.forEach(ft=>{
+    (DATA[ft.id]||[]).forEach(r=>{ const h=hesapla(ft,r); if(!h) return; items.push({ft,r,h}); });
+  });
+  if(!items.length){ alert('Önce en az bir kutuya L, B, H ölçüsü girin.'); return; }
+
+  const groups={};
+  items.forEach(it=>{ (groups[it.h.piyasa]=groups[it.h.piyasa]||[]).push(it); });
+  const widths=Object.keys(groups).map(Number).sort((a,b)=>a-b);
+  const filtered = _piyasaFilter!=='' && widths.includes(Number(_piyasaFilter));
+  const subt = filtered ? ('Filtre: '+_piyasaFilter+' mm '+((STOK_MODU&&STOK_ENLERI.length)?'stok':'piyasa')+' eni')
+                        : 'Piyasa Karton Eni → Kutu Eşleşmesi · Tüm Enler';
+
+  let body=_docHeader('Piyasa Karton Eni Özeti', subt);
+
+  // KPI
+  let gKutu=0,gBrutM2=0,gBrutTL=0,gSig=0,shownW=0;
+  widths.forEach(w=>{
+    if(filtered && String(w)!==String(_piyasaFilter)) return;
+    shownW++;
+    groups[w].forEach(it=>{ gKutu++; if(it.h.sigmaz){gSig++;} else {gBrutM2+=it.h.brutTop; gBrutTL+=it.h.brutTL;} });
+  });
+  body+='<div class="kpi-row">'
+    + _kpi(_n(gKutu,0),'Toplam Kutu','blue')
+    + _kpi(_n(shownW,0),'Farklı Piyasa Eni','blue')
+    + _kpi(_n(gBrutM2,2)+' m²','Satın Alınan Karton','orange')
+    + _kpi(_n(gBrutTL,2)+' TL','Brüt Maliyet','orange')
+    + (gSig?_kpi(_n(gSig,0),'Stoğa Sığmayan','red'):'')
+    + '</div>';
+
+  // Tablo (piyasa enine göre gruplu)
+  let head='<thead><tr>'
+    + '<th>Piyasa Eni (mm)</th><th>Hesaplanan Eni (mm)</th><th>Toplam Eni (mm)</th>'
+    + '<th class="l">FEFCO</th><th class="l">Kutu Adı</th><th class="c">Kesim Yönü</th>'
+    + '<th>Karton Boyu (mm)</th><th class="l">Notlar</th></tr></thead>';
+  let rows='';
+  widths.forEach(w=>{
+    if(filtered && String(w)!==String(_piyasaFilter)) return;
+    const list=groups[w];
+    let tBrut=0,tBrutTL=0;
+    list.forEach(it=>{ if(!it.h.sigmaz){ tBrut+=it.h.brutTop; tBrutTL+=it.h.brutTL; } });
+    const lbl = w>0 ? (_n(w,0)+' mm '+((STOK_MODU&&STOK_ENLERI.length)?'stok':'piyasa')+' eni') : 'STOĞA SIĞMAYAN KUTULAR';
+    rows+='<tr><td colspan="8" style="text-align:left;font-weight:800;font-family:\'Barlow Condensed\',Arial,sans-serif;letter-spacing:.4px;padding:5px 8px;'
+      + 'background:'+(w>0?'#fbf2df':'#fde9e9')+';color:'+(w>0?'#b06f00':'#c00000')+';border-left:4px solid '+(w>0?'#F5A623':'#c00000')+';">'
+      + '📦 '+esc(lbl)+' &nbsp;·&nbsp; '+list.length+' kutu'
+      + (w>0?' &nbsp;·&nbsp; satın alınan '+_n(tBrut,2)+' m² · '+_n(tBrutTL,2)+' TL':' &nbsp;·&nbsp; maliyete dahil değil')
+      + '</td></tr>';
+    list.forEach(({ft,r,h})=>{
+      rows+='<tr>'
+        + '<td>'+(h.sigmaz?'SIĞMAZ':_n(h.piyasa,0))+(h.ikili?' <b style="color:#1565c0">(2×)</b>':'')+'</td>'
+        + '<td>'+_n(h.en,0)+'</td>'
+        + '<td>'+(h.sigmaz?'—':_n(h.piyasa,0))+'</td>'
+        + '<td class="l"><b>'+esc(ft.kod)+'</b></td>'
+        + '<td class="l">'+(esc(r.ad)||'—')+'</td>'
+        + '<td class="c">'+esc(r.yon||'')+'</td>'
+        + '<td>'+_n(h.boy,0)+'</td>'
+        + '<td class="l">'+esc(r.notlar||'')+'</td>'
+      + '</tr>';
+    });
+  });
+  body+='<table>'+head+'<tbody>'+rows+'</tbody></table>';
+
+  body+='<p class="note">Bu rapor kutuları <b>piyasa karton enine</b> göre gruplar. '
+    + '“Hesaplanan Eni” kutunun gerçekte gerektirdiği en; “Piyasa / Toplam Eni” ise fiilen satın alınan ruloya yuvarlanmış değerdir. '
+    + 'Her grubun başlığında o enden kesilen kutu sayısı ile satın alınan toplam karton (m² ve TL) gösterilir.'
+    + (filtered?' Rapor yalnızca <b>'+esc(_piyasaFilter)+' mm</b> piyasa enini içerecek şekilde filtrelenmiştir.':'')
+    + '</p>';
+
+  _openReport('ORİMAK · Piyasa Karton Eni Özeti', body, true);
+}
+
 // ---------- PDF MENÜSÜ ----------
 function openPdfMenu(){
   const bg=document.createElement('div');
@@ -4129,6 +4301,8 @@ function openPdfMenu(){
     + '<span>İşleme + piyasa eni firesi, fire maliyeti, karton eni bazında fire dağılımı</span></button>'
     + '<button class="save-btn pdf-opt" onclick="this.closest(\'.modal-bg\').remove();pdfKurumsal();">🏭 Kurumsal Genel Rapor'
     + '<span>Kapsamlı: üretim, maliyet, fire, fire maliyeti ve karton eni kullanım dağılımı</span></button>'
+    + '<button class="save-btn pdf-opt" onclick="this.closest(\'.modal-bg\').remove();pdfPiyasa();">📦 Piyasa Karton Eni Özeti'
+    + '<span>Hangi kutu hangi piyasa enini kullanıyor · piyasa enine göre gruplu eşleşme listesi</span></button>'
     + '</div>'
     + '<div class="modal-btns"><button class="modal-btn cancel" onclick="this.closest(\'.modal-bg\').remove();">Kapat</button></div>'
     + '</div>';
