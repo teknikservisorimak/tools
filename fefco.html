@@ -332,10 +332,10 @@ tbody tr td:last-child{border-right:none;}
 #piyasaTable tbody td:nth-last-child(2){position:static;right:auto;box-shadow:none;background:transparent;}
 #piyasaTable tbody tr:nth-child(even) td:last-child,
 #piyasaTable tbody tr:nth-child(even) td:nth-last-child(2){background:rgba(255,255,255,.012);}
-/* Sürüklenebilir sütun tutamağı */
-.col-resizer{position:absolute;top:0;right:0;width:11px;height:100%;cursor:col-resize;z-index:60;touch-action:none;}
-.col-resizer::after{content:"";position:absolute;top:16%;right:3px;width:2px;height:68%;background:var(--border);border-radius:2px;transition:background .15s,width .15s;}
-.col-resizer:hover::after,.col-resizer.drag::after{background:var(--orange);width:3px;}
+/* Sürüklenebilir sütun tutamağı — her zaman görünür, üzerine gelince belirginleşir */
+.col-resizer{position:absolute;top:0;right:0;width:13px;height:100%;cursor:col-resize;z-index:60;touch-action:none;}
+.col-resizer::after{content:"";position:absolute;top:15%;right:4px;width:3px;height:70%;background:rgba(245,166,35,.45);border-radius:2px;transition:background .15s,width .15s,box-shadow .15s;}
+.col-resizer:hover::after,.col-resizer.drag::after{background:var(--orange);width:4px;box-shadow:0 0 6px rgba(245,166,35,.7);}
 
 /* Cell inputs */
 td input[type="text"],td input[type="number"]{
@@ -891,8 +891,9 @@ footer{
         <button class="save-btn" onclick="pdfPiyasa()" title="Bu sekmeyi (filtre uygulanmışsa filtreli haliyle) PDF rapor olarak al" style="margin-left:auto;background:rgba(245,166,35,.14);border-color:rgba(245,166,35,.45);color:var(--orange);font-weight:700;">📄 Bu Sekmeyi PDF Al</button>
       </div>
       <div class="piyasa-hint" style="margin:0 0 12px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
-        <span>↔️ Sütun başlığının sağ kenarından tutup sürükleyerek genişlikleri ayarlayabilirsiniz — <b style="color:var(--muted);">kutu adları tam görünür</b> (genişlikler kaydedilir).</span>
-        <button class="save-btn" onclick="resetPiyasaColW()" title="Sütun genişliklerini varsayılana döndür" style="padding:3px 9px;font-size:10px;">↺ Genişlikleri sıfırla</button>
+        <span>↔️ Turuncu tutamaçtan <b style="color:var(--muted);">sürükleyerek</b> sütun genişliğini ayarlayın · tutamaca <b style="color:var(--muted);">çift tıklayınca</b> içeriğe sığar. Kutu Adı sütunu varsayılan olarak en uzun isme göre açılır.</span>
+        <button class="save-btn" onclick="fitPiyasaNameCol()" title="Kutu Adı sütununu en uzun isme göre genişlet" style="padding:3px 9px;font-size:10px;">↔ Kutu adına sığdır</button>
+        <button class="save-btn" onclick="resetPiyasaColW()" title="Otomatik genişliğe dön" style="padding:3px 9px;font-size:10px;">↺ Sıfırla</button>
       </div>
       <div class="tbl-outer">
         <table id="piyasaTable">
@@ -2421,48 +2422,90 @@ function updatePiyasa(){
   if(info) info.textContent=_piyasaFilter?`${gosterilen} kutu gösteriliyor (${_piyasaFilter} mm)`:`${widths.length} farklı piyasa eni`;
 
   tb.innerHTML=html||`<tr><td colspan="8" style="text-align:center;color:var(--dim);padding:24px;font-family:'Barlow Condensed',sans-serif;font-size:12px;">${_piyasaFilter?'Bu piyasa eninde kutu yok.':'Henüz veri girilmedi.'}</td></tr>`;
+
+  // Sütun genişliklerini uygula (otomatik modda Kutu Adı/Notlar içeriğe sığar)
+  if(typeof applyPiyasaColW==='function') applyPiyasaColW();
 }
 
-// ── PİYASA ÖZET: AYARLANABİLİR SÜTUN GENİŞLİKLERİ ──────────────
-// Sütun başlığının sağ kenarından sürükleyerek her sütun genişletilir.
-// Genişlikler localStorage'a kaydedilir; "Kutu Adı" gibi uzun metinler tam görünür.
+// ── PİYASA ÖZET: AYARLANABİLİR + İÇERİĞE SIĞAN SÜTUN GENİŞLİKLERİ ──
+// • Varsayılan: "Kutu Adı" sütunu en uzun isme göre otomatik genişler (isim tek satırda tam görünür).
+// • Başlığın sağ kenarındaki turuncu tutamaçtan sürükleyerek her sütun elle ayarlanır.
+// • Tutamaca çift tıklayınca o sütun içeriğe göre otomatik sığar.
+// • Elle ayar yapılınca genişlikler kaydedilir; "Sıfırla" ile otomatik moda dönülür.
 const PIYASA_COLW_KEY='fefco_piyasa_colw_v1';
-const PIYASA_COL_DEFAULTS=[120,105,100,95,250,95,110,175];  // 8 sütun (px)
+const PIYASA_COL_DEFAULTS=[120,105,100,95,260,95,110,175];  // 8 sütun (px)
+const PIYASA_COL_MAX=560, PIYASA_COL_MIN=55;
 function _piyasaCols(){
   const t=document.getElementById('piyasaTable');
   return t?Array.from(t.querySelectorAll('colgroup col')):[];
 }
-function loadPiyasaColW(){
-  let w=PIYASA_COL_DEFAULTS.slice();
-  try{
-    const s=JSON.parse(localStorage.getItem(PIYASA_COLW_KEY));
-    if(Array.isArray(s)&&s.length===w.length) w=s.map((x,i)=>Math.max(45,Number(x)||PIYASA_COL_DEFAULTS[i]));
-  }catch(e){}
-  _piyasaCols().forEach((c,i)=>{ c.style.width=w[i]+'px'; });
+function _piyasaSavedW(){
+  try{ const s=JSON.parse(localStorage.getItem(PIYASA_COLW_KEY));
+       if(Array.isArray(s)&&s.length===PIYASA_COL_DEFAULTS.length) return s; }catch(e){}
+  return null;
 }
 function savePiyasaColW(){
   const w=_piyasaCols().map(c=>parseInt(c.style.width)||0);
   try{ localStorage.setItem(PIYASA_COLW_KEY,JSON.stringify(w)); }catch(e){}
 }
-function resetPiyasaColW(){
-  _piyasaCols().forEach((c,i)=>{ c.style.width=PIYASA_COL_DEFAULTS[i]+'px'; });
-  savePiyasaColW();
+// Bir metnin piksel genişliğini ölçer (reflow yapmadan, canvas ile)
+function _measureText(txt,font){
+  const c=_measureText._c||(_measureText._c=document.createElement('canvas'));
+  const ctx=c.getContext('2d'); ctx.font=font;
+  return ctx.measureText(txt||'').width;
 }
+// idx sütununu, o sütundaki en uzun içeriğe göre genişletir
+function autoFitPiyasaCol(idx,save){
+  const cols=_piyasaCols(); if(!cols[idx]) return;
+  const t=document.getElementById('piyasaTable'); if(!t) return;
+  const cellFont="13px 'Barlow Condensed','Barlow',Arial,sans-serif";
+  const headFont="700 10px 'Barlow Condensed','Barlow',Arial,sans-serif";
+  let w=0;
+  t.querySelectorAll('#piyasaBody tr').forEach(tr=>{
+    const tds=tr.querySelectorAll('td');
+    if(tds.length!==8) return;                 // grup başlık satırlarını atla
+    w=Math.max(w,_measureText(tds[idx].textContent.trim(),cellFont));
+  });
+  const th=t.querySelectorAll('thead th')[idx];
+  if(th) w=Math.max(w,_measureText(th.textContent.trim(),headFont));
+  const need=Math.min(PIYASA_COL_MAX,Math.max(PIYASA_COL_MIN,Math.ceil(w)+32)); // iç boşluk payı
+  cols[idx].style.width=need+'px';
+  if(save) savePiyasaColW();
+}
+// Kayıtlı genişlik varsa uygula; yoksa (otomatik mod) Kutu Adı + Notlar'ı içeriğe sığdır.
+function applyPiyasaColW(){
+  const cols=_piyasaCols(); if(!cols.length) return;
+  const saved=_piyasaSavedW();
+  if(saved){
+    cols.forEach((c,i)=>{ c.style.width=Math.max(PIYASA_COL_MIN,Number(saved[i])||PIYASA_COL_DEFAULTS[i])+'px'; });
+  }else{
+    cols.forEach((c,i)=>{ c.style.width=PIYASA_COL_DEFAULTS[i]+'px'; });
+    autoFitPiyasaCol(4,false);   // Kutu Adı → içeriğe sığdır (isim tek satırda görünsün)
+    autoFitPiyasaCol(7,false);   // Notlar   → içeriğe sığdır
+  }
+}
+function resetPiyasaColW(){
+  try{ localStorage.removeItem(PIYASA_COLW_KEY); }catch(e){}
+  applyPiyasaColW();             // otomatik moda dön
+}
+function fitPiyasaNameCol(){ autoFitPiyasaCol(4,true); }   // "Kutu adına sığdır" butonu
 function initPiyasaResizable(){
   const t=document.getElementById('piyasaTable');
   if(!t) return;
-  loadPiyasaColW();
+  applyPiyasaColW();
   const ths=t.querySelectorAll('thead th');
   const cols=_piyasaCols();
   ths.forEach((th,i)=>{
     if(th.querySelector('.col-resizer')) return;   // zaten eklenmiş
     const grip=document.createElement('span');
     grip.className='col-resizer';
+    grip.title='Sürükle: genişliği ayarla · Çift tık: içeriğe sığdır';
     th.appendChild(grip);
-    let startX=0,startW=0;
+    let startX=0,startW=0,moved=false;
     const px=e=> e.touches&&e.touches[0]?e.touches[0].clientX:e.clientX;
     const onMove=e=>{
-      const nw=Math.max(45,startW+(px(e)-startX));
+      moved=true;
+      const nw=Math.max(PIYASA_COL_MIN,startW+(px(e)-startX));
       if(cols[i]) cols[i].style.width=nw+'px';
       if(e.cancelable) e.preventDefault();
     };
@@ -2474,11 +2517,11 @@ function initPiyasaResizable(){
       document.body.style.cursor='';
       document.body.style.userSelect='';
       grip.classList.remove('drag');
-      savePiyasaColW();
+      if(moved) savePiyasaColW();
     };
     const onDown=e=>{
       e.preventDefault(); e.stopPropagation();
-      startX=px(e);
+      moved=false; startX=px(e);
       startW=cols[i]?(parseInt(cols[i].style.width)||th.offsetWidth):th.offsetWidth;
       document.addEventListener('mousemove',onMove);
       document.addEventListener('mouseup',onUp);
@@ -2490,6 +2533,7 @@ function initPiyasaResizable(){
     };
     grip.addEventListener('mousedown',onDown);
     grip.addEventListener('touchstart',onDown,{passive:false});
+    grip.addEventListener('dblclick',e=>{ e.preventDefault(); e.stopPropagation(); autoFitPiyasaCol(i,true); });
   });
 }
 
