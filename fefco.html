@@ -1616,7 +1616,67 @@ function buildCols(ft){
   }
   tail.push({w:120,lbl:'Notlar',key:'_notlar'});
   tail.push({w:40,lbl:'',key:'_del'});
-  return [...FIXED_COLS_HEAD,...varCols,...tail];
+  return [{w:ADI_COL_W,lbl:'Kutu Adı',key:'_ad'},...varCols,...tail];
+}
+
+// ── HER FEFCO TİPİ TABLOSU: "Kutu Adı" SÜTUNU AYARLANABİLİR + İÇERİĞE SIĞAN ──
+// Tüm tiplerde ortak genişlik (localStorage'a kaydedilir). Başlıktaki turuncu
+// tutamaçtan sürükle → genişlik; çift tık → en uzun isme göre otomatik sığar.
+const ADI_COLW_KEY='fefco_adi_colw_v1';
+let ADI_COL_W=128;          // varsayılan; kayıt/otomatik ile güncellenir
+let _adiUserSet=false;
+(function(){ try{ const v=parseInt(localStorage.getItem(ADI_COLW_KEY)); if(v>=90&&v<=760){ ADI_COL_W=v; _adiUserSet=true; } }catch(e){} })();
+function saveAdiColW(){ try{ localStorage.setItem(ADI_COLW_KEY,String(ADI_COL_W)); }catch(e){} }
+// Tüm tiplerdeki en uzun kutu adına göre gereken genişliği hesaplar (kanvas ölçümü)
+function _adiAutoFitWidth(){
+  const cellFont="13px 'Barlow Condensed','Barlow',Arial,sans-serif";
+  let w=_measureText('Kutu Adı',"700 10px 'Barlow Condensed',Arial,sans-serif");
+  FEFCO_TYPES.forEach(ft=>{
+    (DATA[ft.id]||[]).forEach(r=>{ if(r&&r.ad) w=Math.max(w,_measureText(r.ad,cellFont)); });
+  });
+  return Math.min(560,Math.max(128,Math.ceil(w)+40));   // input + hücre iç boşluğu payı
+}
+// Ekrandaki tüm tip tablolarına güncel genişliği canlı uygular (yeniden render gerektirmez)
+function applyAdiColW(){
+  document.querySelectorAll('.fefco-card table').forEach(tbl=>{
+    const col=tbl.querySelector('colgroup col');
+    if(col){ col.style.width=ADI_COL_W+'px'; col.style.minWidth=ADI_COL_W+'px'; }
+    const base=parseInt(tbl.dataset.baseW);
+    if(base>=0) tbl.style.minWidth=(base+ADI_COL_W)+'px';
+  });
+}
+let _adiRz=null;
+function _adiRzX(e){ return e.touches&&e.touches[0]?e.touches[0].clientX:e.clientX; }
+function adiResizeStart(e){
+  e.preventDefault(); e.stopPropagation();
+  const th=e.target.closest('th'); const tbl=th.closest('table');
+  const col=tbl.querySelector('colgroup col');
+  _adiRz={ x:_adiRzX(e), w:(col&&parseInt(col.style.width))||th.offsetWidth, grip:e.target };
+  e.target.classList.add('drag');
+  document.addEventListener('mousemove',adiResizeMove);
+  document.addEventListener('mouseup',adiResizeEnd);
+  document.addEventListener('touchmove',adiResizeMove,{passive:false});
+  document.addEventListener('touchend',adiResizeEnd);
+  document.body.style.cursor='col-resize'; document.body.style.userSelect='none';
+}
+function adiResizeMove(e){
+  if(!_adiRz) return;
+  ADI_COL_W=Math.min(760,Math.max(90,Math.round(_adiRz.w+(_adiRzX(e)-_adiRz.x))));
+  applyAdiColW();
+  if(e.cancelable) e.preventDefault();
+}
+function adiResizeEnd(){
+  document.removeEventListener('mousemove',adiResizeMove);
+  document.removeEventListener('mouseup',adiResizeEnd);
+  document.removeEventListener('touchmove',adiResizeMove);
+  document.removeEventListener('touchend',adiResizeEnd);
+  document.body.style.cursor=''; document.body.style.userSelect='';
+  if(_adiRz&&_adiRz.grip) _adiRz.grip.classList.remove('drag');
+  _adiUserSet=true; saveAdiColW(); _adiRz=null;
+}
+function adiAutoFit(e){
+  if(e){ e.preventDefault(); e.stopPropagation(); }
+  ADI_COL_W=_adiAutoFitWidth(); _adiUserSet=true; saveAdiColW(); applyAdiColW();
 }
 
 // Hesaplanan hücre formatlayıcı (modül seviyesi)
@@ -1789,7 +1849,11 @@ function renderTable(ftId){
   const vars=ft._vars||[];
   const totalW=cols.reduce((s,col)=>s+col.w,0);
   const colGroupHtml=cols.map(col=>`<col style="width:${col.w}px;min-width:${col.w}px;">`).join('');
-  const thHtml=cols.map(col=>`<th${(col.key==='_brutm2'||col.key==='_bruttl')?' class="brut-col"':''}>${col.lbl}</th>`).join('');
+  const thHtml=cols.map(col=>{
+    if(col.key==='_ad')
+      return `<th class="adi-th">${col.lbl}<span class="col-resizer adi-resizer" title="Sürükle: sütun genişliği · Çift tık: en uzun isme sığdır" onmousedown="adiResizeStart(event)" ontouchstart="adiResizeStart(event)" ondblclick="adiAutoFit(event)"></span></th>`;
+    return `<th${(col.key==='_brutm2'||col.key==='_bruttl')?' class="brut-col"':''}>${col.lbl}</th>`;
+  }).join('');
 
   const aramaQ=getAramaQuery();
 
@@ -1882,7 +1946,7 @@ function renderTable(ftId){
   </div>
   ${pfBar}
   <div class="tbl-outer">
-    <table style="width:100%;min-width:${totalW}px;table-layout:fixed;">
+    <table data-base-w="${totalW-ADI_COL_W}" style="width:100%;min-width:${totalW}px;table-layout:fixed;">
       <colgroup>${colGroupHtml}</colgroup>
       <thead><tr>${thHtml}</tr></thead>
       <tbody>${tbHtml}</tbody>
@@ -2942,6 +3006,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   loadStok();                   // stok karton enleri + modu (render öncesi — nearPiyasa etkilenir)
   loadPiyasaTolerans();         // kaydedilen piyasa eni toleransını yükle (render öncesi)
   kalibInit();                 // önce kaydedilen kalibrasyonu yükle (öğrenilen formül + birebir veriler)
+  if(!_adiUserSet) ADI_COL_W=_adiAutoFitWidth();   // Kutu Adı sütununu en uzun isme göre otomatik aç (elle ayar yoksa)
   FEFCO_TYPES.forEach(ft=>renderTable(ft.id));   // render artık kalibrasyonu görüyor
   updateAll();
   initPiyasaResizable();        // piyasa özet tablosu sütunlarını sürüklenebilir yap + kayıtlı genişlikleri uygula
