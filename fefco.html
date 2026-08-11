@@ -966,14 +966,14 @@ body[dir="rtl"] .wrap, body[dir="rtl"] .lm-wrap{text-align:right;}
             <col><col><col><col><col><col><col><col>
           </colgroup>
           <thead><tr>
-            <th>Piyasa Karton Eni (mm)</th>
-            <th>Hesaplanan Eni (mm)</th>
-            <th>Toplam Eni (mm)</th>
-            <th>FEFCO Tipi</th>
-            <th>Kutu Adı</th>
-            <th>Kesim Yönü</th>
-            <th>Karton Boyu (mm)</th>
-            <th>Notlar</th>
+            <th data-i18n="pt_piyasaeni">Piyasa Karton Eni (mm)</th>
+            <th data-i18n="pt_hesaplanan">Hesaplanan Eni (mm)</th>
+            <th data-i18n="pt_toplam">Toplam Eni (mm)</th>
+            <th data-i18n="pt_fefcotipi">FEFCO Tipi</th>
+            <th data-i18n="pt_kutuadi">Kutu Adı</th>
+            <th data-i18n="pt_kesimyonu">Kesim Yönü</th>
+            <th data-i18n="pt_kartonboyu">Karton Boyu (mm)</th>
+            <th data-i18n="pt_notlar">Notlar</th>
           </tr></thead>
           <tbody id="piyasaBody"></tbody>
         </table>
@@ -1675,17 +1675,17 @@ function hesapla(ft,r){
 
 // Sabit ölçü sütunları
 const FIXED_COLS_HEAD=[{w:128,lbl:'Kutu Adı',key:'_ad'}];
-// Sabit hesap sütunları
+// Sabit hesap sütunları — etiketler t() ile dile göre çözülür (buildCols içinde)
 const FIXED_COLS_TAIL=[
-  {w:104,lbl:'Yön / Kesim',key:'_yon'},
-  {w:74,lbl:'Karton Eni',key:'_en'},{w:74,lbl:'Piyasa Eni',key:'_piyasa'},
-  {w:74,lbl:'Karton Boy',key:'_boy'},
-  {w:72,lbl:'Kalıp m²/Ad',key:'_m2a'},{w:56,lbl:'Adet',key:'_adet'},
-  {w:78,lbl:'Kalıp m²',key:'_totm2'},
-  {w:66,lbl:'Birim TL',key:'_fiyat'},{w:84,lbl:'Kalıp TL',key:'_tottl'},
-  {w:82,lbl:'BRÜT m²',key:'_brutm2'},{w:92,lbl:'BRÜT TL',key:'_bruttl'},
-  {w:56,lbl:'Fire %',key:'_fire'},{w:66,lbl:'Fire m²',key:'_firem2'},{w:74,lbl:'Fire TL',key:'_firetl'},
-  {w:64,lbl:'Rulo (m)',key:'_rulo'},
+  {w:104,tkey:'col_yon',key:'_yon'},
+  {w:74,tkey:'col_en',key:'_en'},{w:74,tkey:'col_piyasa',key:'_piyasa'},
+  {w:74,tkey:'col_boy',key:'_boy'},
+  {w:72,tkey:'col_m2a',key:'_m2a'},{w:56,tkey:'col_adet',key:'_adet'},
+  {w:78,tkey:'col_totm2',key:'_totm2'},
+  {w:66,tkey:'col_fiyat',key:'_fiyat'},{w:84,tkey:'col_tottl',key:'_tottl'},
+  {w:82,tkey:'col_brutm2',key:'_brutm2'},{w:92,tkey:'col_bruttl',key:'_bruttl'},
+  {w:56,tkey:'col_fire',key:'_fire'},{w:66,tkey:'col_firem2',key:'_firem2'},{w:74,tkey:'col_firetl',key:'_firetl'},
+  {w:64,tkey:'col_rulo',key:'_rulo'},
 ];
 
 // ft için dinamik sütun listesi oluştur
@@ -1693,22 +1693,22 @@ function buildCols(ft){
   const vars=ft._vars||extractAllVars(ft);
   const varCols=vars.map(v=>{
     let lbl=`${v} (mm)`;
-    if(v==='K') lbl='K Kulak';
-    else if(v==='K1') lbl='K1 Kulak';
-    else if(v==='K2') lbl='K2 Kulak';
-    else if(v==='T') lbl='T Kalınlık';
-    else if(v==='P') lbl='P Pay';
+    if(v==='K') lbl=t('col_var_K');
+    else if(v==='K1') lbl=t('col_var_K1');
+    else if(v==='K2') lbl=t('col_var_K2');
+    else if(v==='T') lbl=t('col_var_T');
+    else if(v==='P') lbl=t('col_var_P');
     const w=(v==='K'||v==='K1'||v==='K2')?64:(v==='T'||v==='P')?58:64;
     return {w, lbl, key:v};
   });
-  const tail=[...FIXED_COLS_TAIL];
+  const tail=FIXED_COLS_TAIL.map(c=>({w:c.w,lbl:t(c.tkey),key:c.key}));
   if(ft.isOzel){
-    tail.push({w:70,lbl:'Özel En',key:'_ozelEn'});
-    tail.push({w:70,lbl:'Özel Boy',key:'_ozelBoy'});
+    tail.push({w:70,lbl:t('col_ozelEn'),key:'_ozelEn'});
+    tail.push({w:70,lbl:t('col_ozelBoy'),key:'_ozelBoy'});
   }
-  tail.push({w:120,lbl:'Notlar',key:'_notlar'});
+  tail.push({w:120,lbl:t('col_notlar'),key:'_notlar'});
   tail.push({w:40,lbl:'',key:'_del'});
-  return [{w:ADI_COL_W,lbl:'Kutu Adı',key:'_ad'},...varCols,...tail];
+  return [{w:ADI_COL_W,lbl:t('col_ad'),key:'_ad'},...varCols,...tail];
 }
 
 // ── HER FEFCO TİPİ TABLOSU: "Kutu Adı" SÜTUNU AYARLANABİLİR + İÇERİĞE SIĞAN ──
@@ -1836,7 +1836,7 @@ function rowInner(ftId,i){
       onchange="editCell('${ftId}',${i},'${v}',+this.value)"></td>`;
   }).join('');
 
-  return `<td><input type="text" class="kutu-adi" value="${esc(row.ad)}" placeholder="kutu adı..."
+  return `<td><input type="text" class="kutu-adi" value="${esc(row.ad)}" placeholder="${esc(t('ph_kutuadi'))}"
   onchange="editText('${ftId}',${i},'ad',this.value)"></td>
 ${varCells}
 <td><select class="yon-sel" onchange="editCell('${ftId}',${i},'yon',this.value)">
@@ -1846,7 +1846,7 @@ ${varCells}
 <td id="cPi_${P}">${cc.pi}</td>
 <td id="cBoy_${P}">${cc.boy}</td>
 <td id="cM2_${P}">${cc.m2}</td>
-<td><input type="number" value="${row.adet||''}" placeholder="adet" min="0"
+<td><input type="number" value="${row.adet||''}" placeholder="${esc(t('ph_adet'))}" min="0"
   onchange="editCell('${ftId}',${i},'adet',+this.value)"></td>
 <td id="cTM2_${P}">${cc.tm2}</td>
 <td><input type="number" id="pPrice_${P}" class="row-price${fiyatManuel?' row-price-manual':''}" value="${fi}" step="0.1" min="0"
@@ -1863,7 +1863,7 @@ ${isOzel?`<td><input type="number" value="${row.ozelEn||''}" placeholder="mm" mi
   onchange="editCell('${ftId}',${i},'ozelEn',+this.value)"></td>
 <td><input type="number" value="${row.ozelBoy||''}" placeholder="mm" min="0"
   onchange="editCell('${ftId}',${i},'ozelBoy',+this.value)"></td>`:''}
-<td><input type="text" value="${esc(row.notlar||'')}" placeholder="not..."
+<td><input type="text" value="${esc(row.notlar||'')}" placeholder="${esc(t('ph_not'))}"
   onchange="editText('${ftId}',${i},'notlar',this.value)"></td>
 <td><button class="del-btn" onclick="delRow('${ftId}',${i})">✕</button></td>`;
 }
@@ -1980,10 +1980,10 @@ function renderTable(ftId){
   // Filtre çubuğu (chip'ler) — sadece birden fazla piyasa eni varsa anlamlı
   const pfBar = piyasaWidths.length ? `
     <div class="pf-bar">
-      <span class="pf-lbl">📦 Piyasa Eni Filtresi</span>
-      <button class="pf-chip ${sel.length===0?'on':''}" onclick="piyasaChip('${ftId}',null)">Tümü</button>
+      <span class="pf-lbl">${t('pf_lbl')}</span>
+      <button class="pf-chip ${sel.length===0?'on':''}" onclick="piyasaChip('${ftId}',null)">${t('pf_tumu')}</button>
       ${piyasaWidths.map(w=>`<button class="pf-chip ${sel.includes(w)?'on':''}" onclick="piyasaChip('${ftId}',${w})">${w} mm</button>`).join('')}
-      ${sel.length?`<span class="pf-info">${gorunen} kutu gösteriliyor</span>`:''}
+      ${sel.length?`<span class="pf-info">${gorunen} ${t('pf_info')}</span>`:''}
     </div>` : '';
 
   // Formula bar — tüm tipler için mevcut
@@ -1992,49 +1992,49 @@ function renderTable(ftId){
   const formulaHtml=`
     <div class="formula-row" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
       <span style="font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--orange);letter-spacing:1.5px;line-height:1.8;">
-        📐 DİKEY En: <b style="color:#60a5fa">${esc(ft.dikeyEn)}</b> &nbsp;|&nbsp; Boy: <b style="color:#60a5fa">${esc(ft.dikeyBoy)}</b><br>
-        🔄 YATAY En: <b style="color:#92D050">${esc(ft.yatayEn)}</b> &nbsp;|&nbsp; Boy: <b style="color:#92D050">${esc(ft.yatayBoy)}</b>
-        &nbsp;&nbsp;<span style="color:var(--muted);font-size:9px;">· Satır değişkenleri: <b style="color:#f0c040">${varsDisplay}</b></span>
+        📐 ${t('fb_dikey')} ${t('fb_en')}: <b style="color:#60a5fa">${esc(ft.dikeyEn)}</b> &nbsp;|&nbsp; ${t('fb_boy')}: <b style="color:#60a5fa">${esc(ft.dikeyBoy)}</b><br>
+        🔄 ${t('fb_yatay')} ${t('fb_en')}: <b style="color:#92D050">${esc(ft.yatayEn)}</b> &nbsp;|&nbsp; ${t('fb_boy')}: <b style="color:#92D050">${esc(ft.yatayBoy)}</b>
+        &nbsp;&nbsp;<span style="color:var(--muted);font-size:9px;">· ${t('fb_rowvars')}: <b style="color:#f0c040">${varsDisplay}</b></span>
       </span>
       <div style="display:flex;gap:6px;align-items:center;">
-        <button class="formula-toggle ${fOpen?'open':''}" onclick="toggleFormula('${ftId}')">✏️ Formül Düzenle</button>
-        <button class="formula-toggle" onclick="showTabModal('${ftId}')" style="font-size:9px;">⚙️ Sekme</button>
+        <button class="formula-toggle ${fOpen?'open':''}" onclick="toggleFormula('${ftId}')">${t('btn_formul')}</button>
+        <button class="formula-toggle" onclick="showTabModal('${ftId}')" style="font-size:9px;">${t('btn_sekme_sm')}</button>
       </div>
     </div>
     ${fOpen?`
     <div class="formula-row" style="flex-wrap:wrap;gap:12px;padding:14px 18px;background:rgba(96,165,250,.04);border-bottom:2px solid rgba(96,165,250,.15);">
       <div class="formula-group">
-        <div class="formula-label dikey-lbl">📐 DİKEY — En Formülü</div>
+        <div class="formula-label dikey-lbl">${t('ff_dikey_en')}</div>
         <input type="text" class="formula-inp dikey-inp" id="fde_${ftId}" value="${esc(ft.dikeyEn)}" placeholder="2*L+2*B+K+K+P">
-        <div class="formula-help">Herhangi büyük harf kullanılabilir · <b>K</b> / <b>K1</b> / <b>K2</b> = kulak payları · Formülde varsa tabloda sütun olarak çıkar</div>
+        <div class="formula-help">${t('ff_help')}</div>
       </div>
       <div class="formula-group">
-        <div class="formula-label dikey-lbl">📐 DİKEY — Boy Formülü</div>
+        <div class="formula-label dikey-lbl">${t('ff_dikey_boy')}</div>
         <input type="text" class="formula-inp dikey-inp" id="fdb_${ftId}" value="${esc(ft.dikeyBoy)}" placeholder="2*H+(L+B)/2+K+K+P">
       </div>
       <div class="formula-group">
-        <div class="formula-label yatay-lbl">🔄 YATAY — En Formülü</div>
+        <div class="formula-label yatay-lbl">${t('ff_yatay_en')}</div>
         <input type="text" class="formula-inp yatay-inp" id="fye_${ftId}" value="${esc(ft.yatayEn)}" placeholder="2*B+2*L+K+K+P">
       </div>
       <div class="formula-group">
-        <div class="formula-label yatay-lbl">🔄 YATAY — Boy Formülü</div>
+        <div class="formula-label yatay-lbl">${t('ff_yatay_boy')}</div>
         <input type="text" class="formula-inp yatay-inp" id="fyb_${ftId}" value="${esc(ft.yatayBoy)}" placeholder="2*H+(B+L)/2+K+K+P">
       </div>
-      <button class="formula-btn" onclick="applyFormula('${ftId}')">✅ UYGULA</button>
+      <button class="formula-btn" onclick="applyFormula('${ftId}')">${t('btn_uygula')}</button>
     </div>`:''}`;
 
   c.innerHTML=`<div class="fefco-card">
   <div class="fefco-header">
     <span class="fefco-tag">${ft.kod}</span>
     <span class="fefco-name">${ft.ad}</span>
-    <span class="fefco-formula">K=Kulak Payı &nbsp;|&nbsp; T=Karton Kalınlığı &nbsp;|&nbsp; P=Ek Pay &nbsp;|&nbsp; Değişkenler: ${varsDisplay}</span>
+    <span class="fefco-formula">${t('badge_legend')} ${varsDisplay}</span>
   </div>
   ${formulaHtml}
   <div class="price-row">
-    <label>BİRİM FİYAT (TL/m²)</label>
+    <label>${t('price_lbl')}</label>
     <input type="number" class="price-inp" id="fp_${ftId}" value="${gF(ftId)}" step="0.1" min="0"
       onchange="setDefaultFiyat('${ftId}',+this.value);renderTable('${ftId}');scheduleSummary()">
-    <span class="price-hint">← manuel değiştirilmemiş satırları günceller</span>
+    <span class="price-hint">${t('price_hint')}</span>
   </div>
   ${pfBar}
   <div class="tbl-outer">
@@ -2044,7 +2044,7 @@ function renderTable(ftId){
       <tbody>${tbHtml}</tbody>
     </table>
   </div>
-  <button class="add-row-btn" onclick="addRow('${ftId}')">＋ Satır Ekle</button>
+  <button class="add-row-btn" onclick="addRow('${ftId}')">${t('btn_satirekle')}</button>
 </div>`;
 }
 
@@ -4555,6 +4555,61 @@ const I18N_DEFAULTS = {
     lm_title:       'Dil Yönetimi',
     lm_desc:        'Seçili dil için tüm arayüz metinlerini düzenleyin. Değişiklikler anında uygulanır.',
     lm_save:        '💾 Kaydet',
+    col_ad:         'Kutu Adı',
+    col_yon:        'Yön / Kesim',
+    col_en:         'Karton Eni',
+    col_piyasa:     'Piyasa Eni',
+    col_boy:        'Karton Boy',
+    col_m2a:        'Kalıp m²/Ad',
+    col_adet:       'Adet',
+    col_totm2:      'Kalıp m²',
+    col_fiyat:      'Birim TL',
+    col_tottl:      'Kalıp TL',
+    col_brutm2:     'BRÜT m²',
+    col_bruttl:     'BRÜT TL',
+    col_fire:       'Fire %',
+    col_firem2:     'Fire m²',
+    col_firetl:     'Fire TL',
+    col_rulo:       'Rulo (m)',
+    col_ozelEn:     'Özel En',
+    col_ozelBoy:    'Özel Boy',
+    col_notlar:     'Notlar',
+    col_var_K:      'K Kulak',
+    col_var_K1:     'K1 Kulak',
+    col_var_K2:     'K2 Kulak',
+    col_var_T:      'T Kalınlık',
+    col_var_P:      'P Pay',
+    badge_legend:   'K=Kulak Payı  |  T=Karton Kalınlığı  |  P=Ek Pay  |  Değişkenler:',
+    fb_dikey:       'DİKEY',
+    fb_yatay:       'YATAY',
+    fb_en:          'En',
+    fb_boy:         'Boy',
+    fb_rowvars:     'Satır değişkenleri',
+    btn_formul:     '✏️ Formül Düzenle',
+    btn_sekme_sm:   '⚙️ Sekme',
+    ff_dikey_en:    '📐 DİKEY — En Formülü',
+    ff_dikey_boy:   '📐 DİKEY — Boy Formülü',
+    ff_yatay_en:    '🔄 YATAY — En Formülü',
+    ff_yatay_boy:   '🔄 YATAY — Boy Formülü',
+    ff_help:        'Herhangi büyük harf kullanılabilir · K / K1 / K2 = kulak payları · Formülde varsa tabloda sütun olarak çıkar',
+    btn_uygula:     '✅ UYGULA',
+    price_lbl:      'BİRİM FİYAT (TL/m²)',
+    price_hint:     '← manuel değiştirilmemiş satırları günceller',
+    pf_lbl:         '📦 Piyasa Eni Filtresi',
+    pf_tumu:        'Tümü',
+    pf_info:        'kutu gösteriliyor',
+    btn_satirekle:  '＋ Satır Ekle',
+    ph_kutuadi:     'kutu adı...',
+    ph_adet:        'adet',
+    ph_not:         'not...',
+    pt_piyasaeni:   'Piyasa Karton Eni (mm)',
+    pt_hesaplanan:  'Hesaplanan Eni (mm)',
+    pt_toplam:      'Toplam Eni (mm)',
+    pt_fefcotipi:   'FEFCO Tipi',
+    pt_kutuadi:     'Kutu Adı',
+    pt_kesimyonu:   'Kesim Yönü',
+    pt_kartonboyu:  'Karton Boyu (mm)',
+    pt_notlar:      'Notlar',
   },
   en: {
     hdr_sub:        'FEFCO Board Width Calculation System',
@@ -4594,6 +4649,61 @@ const I18N_DEFAULTS = {
     lm_title:       'Language Manager',
     lm_desc:        'Edit all interface texts for the selected language. Changes apply instantly.',
     lm_save:        '💾 Save',
+    col_ad:         'Box Name',
+    col_yon:        'Direction / Cut',
+    col_en:         'Board Width',
+    col_piyasa:     'Market Width',
+    col_boy:        'Board Length',
+    col_m2a:        'Blank m²/Pc',
+    col_adet:       'Qty',
+    col_totm2:      'Blank m²',
+    col_fiyat:      'Unit TL',
+    col_tottl:      'Blank TL',
+    col_brutm2:     'GROSS m²',
+    col_bruttl:     'GROSS TL',
+    col_fire:       'Waste %',
+    col_firem2:     'Waste m²',
+    col_firetl:     'Waste TL',
+    col_rulo:       'Roll (m)',
+    col_ozelEn:     'Custom Width',
+    col_ozelBoy:    'Custom Length',
+    col_notlar:     'Notes',
+    col_var_K:      'K Flap',
+    col_var_K1:     'K1 Flap',
+    col_var_K2:     'K2 Flap',
+    col_var_T:      'T Thickness',
+    col_var_P:      'P Margin',
+    badge_legend:   'K=Flap allowance  |  T=Board thickness  |  P=Extra margin  |  Variables:',
+    fb_dikey:       'VERTICAL',
+    fb_yatay:       'HORIZONTAL',
+    fb_en:          'Width',
+    fb_boy:         'Length',
+    fb_rowvars:     'Row variables',
+    btn_formul:     '✏️ Edit Formula',
+    btn_sekme_sm:   '⚙️ Tab',
+    ff_dikey_en:    '📐 VERTICAL — Width Formula',
+    ff_dikey_boy:   '📐 VERTICAL — Length Formula',
+    ff_yatay_en:    '🔄 HORIZONTAL — Width Formula',
+    ff_yatay_boy:   '🔄 HORIZONTAL — Length Formula',
+    ff_help:        'Any uppercase letter can be used · K / K1 / K2 = flap allowances · Appears as a column if used in the formula',
+    btn_uygula:     '✅ APPLY',
+    price_lbl:      'UNIT PRICE (TL/m²)',
+    price_hint:     '← updates rows not manually changed',
+    pf_lbl:         '📦 Market Width Filter',
+    pf_tumu:        'All',
+    pf_info:        'boxes shown',
+    btn_satirekle:  '＋ Add Row',
+    ph_kutuadi:     'box name...',
+    ph_adet:        'qty',
+    ph_not:         'note...',
+    pt_piyasaeni:   'Market Board Width (mm)',
+    pt_hesaplanan:  'Calculated Width (mm)',
+    pt_toplam:      'Total Width (mm)',
+    pt_fefcotipi:   'FEFCO Type',
+    pt_kutuadi:     'Box Name',
+    pt_kesimyonu:   'Cut Direction',
+    pt_kartonboyu:  'Board Length (mm)',
+    pt_notlar:      'Notes',
   },
   de: {
     hdr_sub:        'FEFCO Kartonbreiten-Berechnungssystem',
@@ -4633,6 +4743,61 @@ const I18N_DEFAULTS = {
     lm_title:       'Sprachverwaltung',
     lm_desc:        'Bearbeiten Sie alle Oberflächentexte für die gewählte Sprache. Änderungen werden sofort übernommen.',
     lm_save:        '💾 Speichern',
+    col_ad:         'Kartonname',
+    col_yon:        'Richtung / Schnitt',
+    col_en:         'Kartonbreite',
+    col_piyasa:     'Marktbreite',
+    col_boy:        'Kartonlänge',
+    col_m2a:        'Zuschnitt m²/St',
+    col_adet:       'Menge',
+    col_totm2:      'Zuschnitt m²',
+    col_fiyat:      'Preis TL',
+    col_tottl:      'Zuschnitt TL',
+    col_brutm2:     'BRUTTO m²',
+    col_bruttl:     'BRUTTO TL',
+    col_fire:       'Verschnitt %',
+    col_firem2:     'Verschnitt m²',
+    col_firetl:     'Verschnitt TL',
+    col_rulo:       'Rolle (m)',
+    col_ozelEn:     'Sonderbreite',
+    col_ozelBoy:    'Sonderlänge',
+    col_notlar:     'Notizen',
+    col_var_K:      'K Lasche',
+    col_var_K1:     'K1 Lasche',
+    col_var_K2:     'K2 Lasche',
+    col_var_T:      'T Dicke',
+    col_var_P:      'P Zugabe',
+    badge_legend:   'K=Laschenzugabe  |  T=Kartondicke  |  P=Zusatzzugabe  |  Variablen:',
+    fb_dikey:       'VERTIKAL',
+    fb_yatay:       'HORIZONTAL',
+    fb_en:          'Breite',
+    fb_boy:         'Länge',
+    fb_rowvars:     'Zeilenvariablen',
+    btn_formul:     '✏️ Formel bearbeiten',
+    btn_sekme_sm:   '⚙️ Tab',
+    ff_dikey_en:    '📐 VERTIKAL — Breitenformel',
+    ff_dikey_boy:   '📐 VERTIKAL — Längenformel',
+    ff_yatay_en:    '🔄 HORIZONTAL — Breitenformel',
+    ff_yatay_boy:   '🔄 HORIZONTAL — Längenformel',
+    ff_help:        'Jeder Großbuchstabe möglich · K / K1 / K2 = Laschenzugaben · Erscheint als Spalte, wenn in der Formel verwendet',
+    btn_uygula:     '✅ ANWENDEN',
+    price_lbl:      'STÜCKPREIS (TL/m²)',
+    price_hint:     '← aktualisiert nicht manuell geänderte Zeilen',
+    pf_lbl:         '📦 Marktbreiten-Filter',
+    pf_tumu:        'Alle',
+    pf_info:        'Kartons angezeigt',
+    btn_satirekle:  '＋ Zeile hinzufügen',
+    ph_kutuadi:     'Kartonname...',
+    ph_adet:        'Menge',
+    ph_not:         'Notiz...',
+    pt_piyasaeni:   'Marktkartonbreite (mm)',
+    pt_hesaplanan:  'Berechnete Breite (mm)',
+    pt_toplam:      'Gesamtbreite (mm)',
+    pt_fefcotipi:   'FEFCO-Typ',
+    pt_kutuadi:     'Kartonname',
+    pt_kesimyonu:   'Schnittrichtung',
+    pt_kartonboyu:  'Kartonlänge (mm)',
+    pt_notlar:      'Notizen',
   },
   fr: {
     hdr_sub:        'Système de calcul de largeur de carton FEFCO',
@@ -4672,6 +4837,61 @@ const I18N_DEFAULTS = {
     lm_title:       'Gestion des langues',
     lm_desc:        "Modifiez tous les textes de l'interface pour la langue sélectionnée. Les changements sont appliqués instantanément.",
     lm_save:        '💾 Enregistrer',
+    col_ad:         'Nom',
+    col_yon:        'Sens / Coupe',
+    col_en:         'Largeur carton',
+    col_piyasa:     'Largeur marché',
+    col_boy:        'Longueur carton',
+    col_m2a:        'Découpe m²/pc',
+    col_adet:       'Qté',
+    col_totm2:      'Découpe m²',
+    col_fiyat:      'Prix TL',
+    col_tottl:      'Découpe TL',
+    col_brutm2:     'BRUT m²',
+    col_bruttl:     'BRUT TL',
+    col_fire:       'Perte %',
+    col_firem2:     'Perte m²',
+    col_firetl:     'Perte TL',
+    col_rulo:       'Rouleau (m)',
+    col_ozelEn:     'Largeur perso.',
+    col_ozelBoy:    'Longueur perso.',
+    col_notlar:     'Notes',
+    col_var_K:      'K Rabat',
+    col_var_K1:     'K1 Rabat',
+    col_var_K2:     'K2 Rabat',
+    col_var_T:      'T Épaisseur',
+    col_var_P:      'P Marge',
+    badge_legend:   'K=Marge de rabat  |  T=Épaisseur  |  P=Marge suppl.  |  Variables :',
+    fb_dikey:       'VERTICAL',
+    fb_yatay:       'HORIZONTAL',
+    fb_en:          'Largeur',
+    fb_boy:         'Longueur',
+    fb_rowvars:     'Variables de ligne',
+    btn_formul:     '✏️ Modifier formule',
+    btn_sekme_sm:   '⚙️ Onglet',
+    ff_dikey_en:    '📐 VERTICAL — Formule largeur',
+    ff_dikey_boy:   '📐 VERTICAL — Formule longueur',
+    ff_yatay_en:    '🔄 HORIZONTAL — Formule largeur',
+    ff_yatay_boy:   '🔄 HORIZONTAL — Formule longueur',
+    ff_help:        'Toute lettre majuscule · K / K1 / K2 = marges de rabat · Apparaît en colonne si utilisée dans la formule',
+    btn_uygula:     '✅ APPLIQUER',
+    price_lbl:      'PRIX UNITAIRE (TL/m²)',
+    price_hint:     '← met à jour les lignes non modifiées manuellement',
+    pf_lbl:         '📦 Filtre largeur marché',
+    pf_tumu:        'Tous',
+    pf_info:        'boîtes affichées',
+    btn_satirekle:  '＋ Ajouter ligne',
+    ph_kutuadi:     'nom...',
+    ph_adet:        'qté',
+    ph_not:         'note...',
+    pt_piyasaeni:   'Largeur marché (mm)',
+    pt_hesaplanan:  'Largeur calculée (mm)',
+    pt_toplam:      'Largeur totale (mm)',
+    pt_fefcotipi:   'Type FEFCO',
+    pt_kutuadi:     'Nom',
+    pt_kesimyonu:   'Sens de coupe',
+    pt_kartonboyu:  'Longueur carton (mm)',
+    pt_notlar:      'Notes',
   },
   es: {
     hdr_sub:        'Sistema de cálculo de ancho de cartón FEFCO',
@@ -4711,6 +4931,61 @@ const I18N_DEFAULTS = {
     lm_title:       'Gestión de idiomas',
     lm_desc:        'Edite todos los textos de la interfaz para el idioma seleccionado. Los cambios se aplican al instante.',
     lm_save:        '💾 Guardar',
+    col_ad:         'Nombre',
+    col_yon:        'Dirección / Corte',
+    col_en:         'Ancho cartón',
+    col_piyasa:     'Ancho mercado',
+    col_boy:        'Largo cartón',
+    col_m2a:        'Molde m²/ud',
+    col_adet:       'Cant.',
+    col_totm2:      'Molde m²',
+    col_fiyat:      'Precio TL',
+    col_tottl:      'Molde TL',
+    col_brutm2:     'BRUTO m²',
+    col_bruttl:     'BRUTO TL',
+    col_fire:       'Merma %',
+    col_firem2:     'Merma m²',
+    col_firetl:     'Merma TL',
+    col_rulo:       'Rollo (m)',
+    col_ozelEn:     'Ancho pers.',
+    col_ozelBoy:    'Largo pers.',
+    col_notlar:     'Notas',
+    col_var_K:      'K Solapa',
+    col_var_K1:     'K1 Solapa',
+    col_var_K2:     'K2 Solapa',
+    col_var_T:      'T Grosor',
+    col_var_P:      'P Margen',
+    badge_legend:   'K=Margen solapa  |  T=Grosor  |  P=Margen extra  |  Variables:',
+    fb_dikey:       'VERTICAL',
+    fb_yatay:       'HORIZONTAL',
+    fb_en:          'Ancho',
+    fb_boy:         'Largo',
+    fb_rowvars:     'Variables de fila',
+    btn_formul:     '✏️ Editar fórmula',
+    btn_sekme_sm:   '⚙️ Pestaña',
+    ff_dikey_en:    '📐 VERTICAL — Fórmula de ancho',
+    ff_dikey_boy:   '📐 VERTICAL — Fórmula de largo',
+    ff_yatay_en:    '🔄 HORIZONTAL — Fórmula de ancho',
+    ff_yatay_boy:   '🔄 HORIZONTAL — Fórmula de largo',
+    ff_help:        'Cualquier letra mayúscula · K / K1 / K2 = márgenes de solapa · Aparece como columna si se usa en la fórmula',
+    btn_uygula:     '✅ APLICAR',
+    price_lbl:      'PRECIO UNIT. (TL/m²)',
+    price_hint:     '← actualiza filas no modificadas manualmente',
+    pf_lbl:         '📦 Filtro ancho mercado',
+    pf_tumu:        'Todos',
+    pf_info:        'cajas mostradas',
+    btn_satirekle:  '＋ Añadir fila',
+    ph_kutuadi:     'nombre...',
+    ph_adet:        'cant.',
+    ph_not:         'nota...',
+    pt_piyasaeni:   'Ancho mercado (mm)',
+    pt_hesaplanan:  'Ancho calculado (mm)',
+    pt_toplam:      'Ancho total (mm)',
+    pt_fefcotipi:   'Tipo FEFCO',
+    pt_kutuadi:     'Nombre',
+    pt_kesimyonu:   'Dirección de corte',
+    pt_kartonboyu:  'Largo cartón (mm)',
+    pt_notlar:      'Notas',
   },
   ar: {
     hdr_sub:        'نظام حساب عرض الكرتون FEFCO',
@@ -4750,6 +5025,61 @@ const I18N_DEFAULTS = {
     lm_title:       'إدارة اللغات',
     lm_desc:        'قم بتحرير جميع نصوص الواجهة للغة المختارة. تُطبق التغييرات فوراً.',
     lm_save:        '💾 حفظ',
+    col_ad:         'اسم الصندوق',
+    col_yon:        'الاتجاه / القص',
+    col_en:         'عرض الكرتون',
+    col_piyasa:     'عرض السوق',
+    col_boy:        'طول الكرتون',
+    col_m2a:        'قالب م²/قطعة',
+    col_adet:       'الكمية',
+    col_totm2:      'قالب م²',
+    col_fiyat:      'سعر الوحدة TL',
+    col_tottl:      'قالب TL',
+    col_brutm2:     'إجمالي م²',
+    col_bruttl:     'إجمالي TL',
+    col_fire:       'الهدر %',
+    col_firem2:     'الهدر م²',
+    col_firetl:     'الهدر TL',
+    col_rulo:       'لفة (م)',
+    col_ozelEn:     'عرض مخصص',
+    col_ozelBoy:    'طول مخصص',
+    col_notlar:     'ملاحظات',
+    col_var_K:      'K لسان',
+    col_var_K1:     'K1 لسان',
+    col_var_K2:     'K2 لسان',
+    col_var_T:      'T السماكة',
+    col_var_P:      'P هامش',
+    badge_legend:   'K=هامش اللسان  |  T=سماكة الكرتون  |  P=هامش إضافي  |  المتغيرات:',
+    fb_dikey:       'عمودي',
+    fb_yatay:       'أفقي',
+    fb_en:          'العرض',
+    fb_boy:         'الطول',
+    fb_rowvars:     'متغيرات الصف',
+    btn_formul:     '✏️ تحرير المعادلة',
+    btn_sekme_sm:   '⚙️ تبويب',
+    ff_dikey_en:    '📐 عمودي — معادلة العرض',
+    ff_dikey_boy:   '📐 عمودي — معادلة الطول',
+    ff_yatay_en:    '🔄 أفقي — معادلة العرض',
+    ff_yatay_boy:   '🔄 أفقي — معادلة الطول',
+    ff_help:        'يمكن استخدام أي حرف كبير · K / K1 / K2 = هوامش الألسنة · يظهر كعمود إذا استُخدم في المعادلة',
+    btn_uygula:     '✅ تطبيق',
+    price_lbl:      'سعر الوحدة (TL/م²)',
+    price_hint:     '← يحدّث الصفوف غير المعدّلة يدوياً',
+    pf_lbl:         '📦 تصفية عرض السوق',
+    pf_tumu:        'الكل',
+    pf_info:        'صناديق معروضة',
+    btn_satirekle:  '＋ إضافة صف',
+    ph_kutuadi:     'اسم الصندوق...',
+    ph_adet:        'الكمية',
+    ph_not:         'ملاحظة...',
+    pt_piyasaeni:   'عرض كرتون السوق (مم)',
+    pt_hesaplanan:  'العرض المحسوب (مم)',
+    pt_toplam:      'العرض الإجمالي (مم)',
+    pt_fefcotipi:   'نوع FEFCO',
+    pt_kutuadi:     'اسم الصندوق',
+    pt_kesimyonu:   'اتجاه القص',
+    pt_kartonboyu:  'طول الكرتون (مم)',
+    pt_notlar:      'ملاحظات',
   },
 };
 
@@ -4791,6 +5121,61 @@ const I18N_LABELS = {
   lm_title:       'Dil Mgr: Başlık',
   lm_desc:        'Dil Mgr: Açıklama',
   lm_save:        'Dil Mgr: Kaydet Butonu',
+  col_ad:         'Sütun: Kutu Adı',
+  col_yon:        'Sütun: Yön/Kesim',
+  col_en:         'Sütun: Karton Eni',
+  col_piyasa:     'Sütun: Piyasa Eni',
+  col_boy:        'Sütun: Karton Boy',
+  col_m2a:        'Sütun: Kalıp m²/Ad',
+  col_adet:       'Sütun: Adet',
+  col_totm2:      'Sütun: Kalıp m²',
+  col_fiyat:      'Sütun: Birim TL',
+  col_tottl:      'Sütun: Kalıp TL',
+  col_brutm2:     'Sütun: Brüt m²',
+  col_bruttl:     'Sütun: Brüt TL',
+  col_fire:       'Sütun: Fire %',
+  col_firem2:     'Sütun: Fire m²',
+  col_firetl:     'Sütun: Fire TL',
+  col_rulo:       'Sütun: Rulo',
+  col_ozelEn:     'Sütun: Özel En',
+  col_ozelBoy:    'Sütun: Özel Boy',
+  col_notlar:     'Sütun: Notlar',
+  col_var_K:      'Sütun: K Kulak',
+  col_var_K1:     'Sütun: K1 Kulak',
+  col_var_K2:     'Sütun: K2 Kulak',
+  col_var_T:      'Sütun: T Kalınlık',
+  col_var_P:      'Sütun: P Pay',
+  badge_legend:   'Kart: Değişken Açıklaması',
+  fb_dikey:       'Formül: DİKEY',
+  fb_yatay:       'Formül: YATAY',
+  fb_en:          'Formül: En',
+  fb_boy:         'Formül: Boy',
+  fb_rowvars:     'Formül: Satır Değişkenleri',
+  btn_formul:     'Buton: Formül Düzenle',
+  btn_sekme_sm:   'Buton: Sekme (küçük)',
+  ff_dikey_en:    'Formül Alanı: DİKEY En',
+  ff_dikey_boy:   'Formül Alanı: DİKEY Boy',
+  ff_yatay_en:    'Formül Alanı: YATAY En',
+  ff_yatay_boy:   'Formül Alanı: YATAY Boy',
+  ff_help:        'Formül Alanı: Yardım',
+  btn_uygula:     'Buton: Uygula',
+  price_lbl:      'Fiyat: Etiket',
+  price_hint:     'Fiyat: İpucu',
+  pf_lbl:         'Filtre: Başlık',
+  pf_tumu:        'Filtre: Tümü',
+  pf_info:        'Filtre: Bilgi',
+  btn_satirekle:  'Buton: Satır Ekle',
+  ph_kutuadi:     'Placeholder: Kutu Adı',
+  ph_adet:        'Placeholder: Adet',
+  ph_not:         'Placeholder: Not',
+  pt_piyasaeni:   'Piyasa Tablo: Piyasa Eni',
+  pt_hesaplanan:  'Piyasa Tablo: Hesaplanan',
+  pt_toplam:      'Piyasa Tablo: Toplam',
+  pt_fefcotipi:   'Piyasa Tablo: FEFCO Tipi',
+  pt_kutuadi:     'Piyasa Tablo: Kutu Adı',
+  pt_kesimyonu:   'Piyasa Tablo: Kesim Yönü',
+  pt_kartonboyu:  'Piyasa Tablo: Karton Boyu',
+  pt_notlar:      'Piyasa Tablo: Notlar',
 };
 
 // Kullanıcı özelleştirmeleri (localStorage'dan yüklenir)
@@ -4837,6 +5222,17 @@ function applyLang() {
   document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
 }
 
+// Dinamik olarak JS ile üretilen içerikleri (tablo başlıkları, formül satırı,
+// placeholder'lar vb.) yeni dile göre yeniden çizer.
+function i18nRefreshDynamic() {
+  try {
+    if (typeof FEFCO_TYPES !== 'undefined' && typeof renderTable === 'function') {
+      FEFCO_TYPES.forEach(ft => renderTable(ft.id));
+    }
+    if (typeof updateAll === 'function') updateAll();
+  } catch(e) {}
+}
+
 function setLang(lang) {
   const ls = document.getElementById('langSelect');
   const lm = document.getElementById('lmLangSelect');
@@ -4845,6 +5241,7 @@ function setLang(lang) {
   try { localStorage.setItem('orimak_i18n_lang', lang); } catch(e) {}
   lmCurrentLang = lang;
   applyLang();
+  i18nRefreshDynamic();
   lmRenderGrid(lang);
 }
 
@@ -4862,6 +5259,7 @@ function lmSwitchLang(lang) {
   if (ls) ls.value = lang;
   try { localStorage.setItem('orimak_i18n_lang', lang); } catch(e) {}
   applyLang();
+  i18nRefreshDynamic();
   lmRenderGrid(lang);
 }
 
@@ -4895,6 +5293,7 @@ function lmLiveUpdate(input) {
   if (!i18nCustom[lmCurrentLang]) i18nCustom[lmCurrentLang] = {};
   i18nCustom[lmCurrentLang][key] = val;
   applyLang();
+  i18nRefreshDynamic();
   const defVal = (I18N_DEFAULTS[lmCurrentLang] && I18N_DEFAULTS[lmCurrentLang][key]) || '';
   const isModified = val && val !== defVal;
   input.style.borderColor = isModified ? 'var(--orange)' : 'var(--border)';
@@ -4950,6 +5349,7 @@ window.addEventListener('DOMContentLoaded', () => {
     lmCurrentLang = savedLang;
   }
   applyLang();
+  if (savedLang && savedLang !== 'tr') i18nRefreshDynamic();
   lmRenderGrid(lmCurrentLang);
 });
 
