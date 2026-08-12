@@ -830,21 +830,21 @@ body[dir="rtl"] .wrap, body[dir="rtl"] .lm-wrap{text-align:right;}
   <div class="global-bar">
     <div class="gb-field">
       <div class="gb-lbl" data-i18n="gb_ara">Kutu Adı Ara</div>
-      <input type="text" class="gb-inp" id="aramaInput" placeholder="kutu adı..." oninput="aramaYap()" style="width:200px;">
+      <input type="text" class="gb-inp" id="aramaInput" placeholder="kutu adı..." data-i18n-ph="ph_kutuadi" oninput="aramaYap()" style="width:200px;">
     </div>
     <div class="gb-field">
       <div class="gb-lbl" data-i18n="gb_yon">⟲ Kesim Yönü (Komple)</div>
       <select class="gb-inp or" id="globalYonSel" style="width:170px;" title="Seçince TÜM kutu tiplerindeki TÜM satırların yönü bu değere çevrilir."
               onchange="setGlobalYon(this.value)">
-        <option value="">— Hepsini çevir —</option>
-        <option value="DİKEY">DİKEY</option>
-        <option value="YATAY">YATAY</option>
-        <option value="DİKEY İKİLİ">DİKEY İKİLİ</option>
-        <option value="YATAY İKİLİ">YATAY İKİLİ</option>
-        <option value="DİKEY 90°">DİKEY 90° (çevrilmiş)</option>
-        <option value="YATAY 90°">YATAY 90° (çevrilmiş)</option>
-        <option value="DİKEY 90° İKİLİ">DİKEY 90° İKİLİ</option>
-        <option value="YATAY 90° İKİLİ">YATAY 90° İKİLİ</option>
+        <option value="" data-i18n="yon_hepsini">— Hepsini çevir —</option>
+        <option value="DİKEY" data-i18n="yon_dikey">DİKEY</option>
+        <option value="YATAY" data-i18n="yon_yatay">YATAY</option>
+        <option value="DİKEY İKİLİ" data-i18n="yon_dikey_ikili">DİKEY İKİLİ</option>
+        <option value="YATAY İKİLİ" data-i18n="yon_yatay_ikili">YATAY İKİLİ</option>
+        <option value="DİKEY 90°" data-i18n="yon_dikey_90">DİKEY 90°</option>
+        <option value="YATAY 90°" data-i18n="yon_yatay_90">YATAY 90°</option>
+        <option value="DİKEY 90° İKİLİ" data-i18n="yon_dikey_90_ikili">DİKEY 90° İKİLİ</option>
+        <option value="YATAY 90° İKİLİ" data-i18n="yon_yatay_90_ikili">YATAY 90° İKİLİ</option>
       </select>
     </div>
     <div class="gb-field">
@@ -861,7 +861,7 @@ body[dir="rtl"] .wrap, body[dir="rtl"] .lm-wrap{text-align:right;}
       <button class="save-btn" data-i18n="btn_jsonopen" onclick="importJSON()" title="Daha önce kaydedilen JSON dosyasını aç">📂 JSON'dan Aç</button>
       <button class="save-btn" data-i18n="btn_pdf" onclick="openPdfMenu()" title="Kurumsal PDF raporları" style="background:rgba(245,166,35,.14);border-color:rgba(245,166,35,.45);color:var(--orange);font-weight:700;">📄 PDF Rapor</button>
       <button class="save-btn del" data-i18n="btn_clear" onclick="clearDataModal()" title="Veri temizle (tümü veya tek tip)">🗑️ Temizle</button>
-      <span id="saveMsg" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--green);opacity:0;transition:opacity .3s;white-space:nowrap;">💾 Kaydedildi!</span>
+      <span id="saveMsg" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--green);opacity:0;transition:opacity .3s;white-space:nowrap;" data-i18n="save_kaydedildi">💾 Kaydedildi!</span>
     </div>
   </div>
 
@@ -870,7 +870,7 @@ body[dir="rtl"] .wrap, body[dir="rtl"] .lm-wrap{text-align:right;}
     <div class="gb-field">
       <div class="gb-lbl" data-i18n="stok_enlerim">📦 Elimdeki Karton Enleri (mm)</div>
       <div style="display:flex;gap:6px;">
-        <input type="text" class="gb-inp" id="stokInp" placeholder="örn: 1100, 1300" style="width:160px;"
+        <input type="text" class="gb-inp" id="stokInp" placeholder="örn: 1100, 1300" data-i18n-ph="stok_ph" style="width:160px;"
                title="Elinizdeki karton enlerini girin. Virgül veya boşlukla ayırarak birden fazla girebilirsiniz."
                onkeydown="if(event.key==='Enter'){stokEkle();event.preventDefault();}">
         <button class="save-btn" data-i18n="btn_ekle" onclick="stokEkle()" style="background:var(--orange-dim);border-color:var(--orange-border);color:var(--orange);">＋ Ekle</button>
@@ -878,20 +878,20 @@ body[dir="rtl"] .wrap, body[dir="rtl"] .lm-wrap{text-align:right;}
     </div>
     <div class="gb-field" style="flex:1;min-width:200px;">
       <div class="gb-lbl" data-i18n="stok_enler">Stoktaki Enler</div>
-      <div class="stok-chips" id="stokChips"><span class="stok-empty-hint">Henüz karton eni girilmedi — piyasa enleri (100'ün katları) kullanılıyor</span></div>
+      <div class="stok-chips" id="stokChips"><span class="stok-empty-hint" data-i18n="stok_emptyhint">Henüz karton eni girilmedi — piyasa enleri (100'ün katları) kullanılıyor</span></div>
     </div>
     <div class="gb-field">
       <div class="gb-lbl" data-i18n="stok_mod">Hesap Modu</div>
       <div class="stok-toggle" id="stokToggle" onclick="stokToggle()"
            title="Açıkken tüm hesaplar piyasa enleri yerine SADECE stoktaki karton enlerine göre yapılır. Sığmayan kutular kırmızı 'SIĞMAZ' olarak işaretlenir.">
-        <span class="dot"></span><span id="stokToggleLbl">PİYASA ENLERİ</span>
+        <span class="dot"></span><span id="stokToggleLbl" data-i18n="stok_piyasaenleri">PİYASA ENLERİ</span>
       </div>
     </div>
     <div class="gb-field">
       <div class="gb-lbl" data-i18n="stok_dondur">⟳ 90° Döndürme</div>
       <label class="opt90-lbl" title="Açıkken optimizasyon kalıbı rulo üzerinde 90° çevirmeyi de dener (en ↔ boy). Çok ciddi tasarruf sağlayabilir ANCAK oluk (flüt) yönü döner — kutu mukavemeti değişir.">
         <input type="checkbox" id="izin90" checked onchange="showSaveMsg(this.checked?'⟳ 90° döndürme denenecek':'⟳ 90° döndürme kapalı')">
-        <span>Denensin (oluk yönü döner!)</span>
+        <span data-i18n="stok_denensin">Denensin (oluk yönü döner!)</span>
       </label>
     </div>
     <div style="margin-left:auto;display:flex;align-items:flex-end;">
@@ -921,20 +921,20 @@ body[dir="rtl"] .wrap, body[dir="rtl"] .lm-wrap{text-align:right;}
     <div class="ozet-wrap">
       <h2 data-i18n="h_ozet">📊 Genel Toplam Özeti</h2>
       <div class="ozet-legend">
-        <span><b style="color:#38bdf8">BRÜT</b> = fiilen satın alınan karton (rulo eni payı × kalıp boyu) — <b>karton faturasının karşılığı</b>, teklif ve sipariş bu sayıyla verilir.</span>
-        <span><b style="color:#4ade80">ÜRÜNE GİDEN</b> + <b style="color:#f87171">FİRE</b> = BRÜT. Bu iki kalem birbirine <u>eklenmez</u>, brütü paylaşır.</span>
-        <span><b style="color:var(--muted)">KALIP ALANI</b> (en × boy) yalnızca tasarım kıyaslaması içindir; satın alınan miktardan küçüktür, maliyet olarak kullanılmaz.</span>
+        <span data-i18n="oz_legend1"><b style="color:#38bdf8">BRÜT</b> = fiilen satın alınan karton (rulo eni payı × kalıp boyu) — <b>karton faturasının karşılığı</b>, teklif ve sipariş bu sayıyla verilir.</span>
+        <span data-i18n="oz_legend2"><b style="color:#4ade80">ÜRÜNE GİDEN</b> + <b style="color:#f87171">FİRE</b> = BRÜT. Bu iki kalem birbirine <u>eklenmez</u>, brütü paylaşır.</span>
+        <span data-i18n="oz_legend3"><b style="color:var(--muted)">KALIP ALANI</b> (en × boy) yalnızca tasarım kıyaslaması içindir; satın alınan miktardan küçüktür, maliyet olarak kullanılmaz.</span>
       </div>
       <div class="ozet-grid" id="ozetGrid"></div>
       <div class="ozet-total">
-        <div><div class="ot-lbl">Satın Alınan Karton (Brüt)</div><div class="ot-val" style="color:#38bdf8" id="ozetBrutM2">0,00 m²</div></div>
-        <div><div class="ot-lbl">Genel Toplam Maliyet (Brüt)</div><div class="ot-val" style="color:#F59E0B" id="ozetTL">0,00 TL</div></div>
-        <div><div class="ot-lbl">Toplam Rulo</div><div class="ot-val" style="color:#60a5fa" id="ozetRulo">0,0 m</div></div>
+        <div><div class="ot-lbl" data-i18n="oz_satinalinan">Satın Alınan Karton (Brüt)</div><div class="ot-val" style="color:#38bdf8" id="ozetBrutM2">0,00 m²</div></div>
+        <div><div class="ot-lbl" data-i18n="oz_genetoplam">Genel Toplam Maliyet (Brüt)</div><div class="ot-val" style="color:#F59E0B" id="ozetTL">0,00 TL</div></div>
+        <div><div class="ot-lbl" data-i18n="oz_toplamrulo">Toplam Rulo</div><div class="ot-val" style="color:#60a5fa" id="ozetRulo">0,0 m</div></div>
       </div>
       <div class="ozet-total" style="margin-top:10px;">
-        <div><div class="ot-lbl">Ürüne Giden Malzeme</div><div class="ot-val" style="color:#4ade80;font-size:20px;" id="ozetNetTL">0,00 TL</div></div>
-        <div><div class="ot-lbl">Fire Maliyeti</div><div class="ot-val" style="color:#f87171;font-size:20px;" id="ozetFireTL">0,00 TL</div></div>
-        <div><div class="ot-lbl">Kalıp Alanı (bilgi)</div><div class="ot-val" style="color:var(--muted);font-size:20px;" id="ozetM2">0,00 m²</div></div>
+        <div><div class="ot-lbl" data-i18n="oz_urunegiden">Ürüne Giden Malzeme</div><div class="ot-val" style="color:#4ade80;font-size:20px;" id="ozetNetTL">0,00 TL</div></div>
+        <div><div class="ot-lbl" data-i18n="oz_firemaliyet">Fire Maliyeti</div><div class="ot-val" style="color:#f87171;font-size:20px;" id="ozetFireTL">0,00 TL</div></div>
+        <div><div class="ot-lbl" data-i18n="oz_kalipalani">Kalıp Alanı (bilgi)</div><div class="ot-val" style="color:var(--muted);font-size:20px;" id="ozetM2">0,00 m²</div></div>
       </div>
       <div class="ozet-esitlik" id="ozetEsitlik"></div>
     </div>
@@ -947,18 +947,18 @@ body[dir="rtl"] .wrap, body[dir="rtl"] .lm-wrap{text-align:right;}
   <div class="section" id="sec-piyasa">
     <div class="piyasa-wrap">
       <h2 data-i18n="h_piyasa">📦 Piyasa Karton Eni → Kutu Eşleşmesi Özeti</h2>
-      <div class="piyasa-hint">⚠️ Kutulara L, B, H bilgisi girdikçe otomatik güncellenir. Sadece dolu kutular listelenir.</div>
+      <div class="piyasa-hint" data-i18n="pi_hint">⚠️ Kutulara L, B, H bilgisi girdikçe otomatik güncellenir. Sadece dolu kutular listelenir.</div>
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
-        <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;color:var(--orange);text-transform:uppercase;">Piyasa eni filtresi:</span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;color:var(--orange);text-transform:uppercase;" data-i18n="pi_filtre">Piyasa eni filtresi:</span>
         <select id="piyasaFilter" class="gb-inp" style="width:240px;" onchange="piyasaSetFilter(this.value)"></select>
-        <button class="save-btn" onclick="piyasaSetFilter('')" title="Filtreyi kaldır" style="background:var(--orange-dim);border-color:var(--orange-border);color:var(--orange);">Tümünü Göster</button>
+        <button class="save-btn" onclick="piyasaSetFilter('')" title="Filtreyi kaldır" data-i18n="pi_tumunugoster" style="background:var(--orange-dim);border-color:var(--orange-border);color:var(--orange);">Tümünü Göster</button>
         <span id="piyasaFilterInfo" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--muted);"></span>
-        <button class="save-btn" onclick="pdfPiyasa()" title="Bu sekmeyi (filtre uygulanmışsa filtreli haliyle) PDF rapor olarak al" style="margin-left:auto;background:rgba(245,166,35,.14);border-color:rgba(245,166,35,.45);color:var(--orange);font-weight:700;">📄 Bu Sekmeyi PDF Al</button>
+        <button class="save-btn" onclick="pdfPiyasa()" title="Bu sekmeyi (filtre uygulanmışsa filtreli haliyle) PDF rapor olarak al" style="margin-left:auto;background:rgba(245,166,35,.14);border-color:rgba(245,166,35,.45);color:var(--orange);font-weight:700;" data-i18n="pi_pdfbtn">📄 Bu Sekmeyi PDF Al</button>
       </div>
       <div class="piyasa-hint" style="margin:0 0 12px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
-        <span>↔️ Turuncu tutamaçtan <b style="color:var(--muted);">sürükleyerek</b> sütun genişliğini ayarlayın · tutamaca <b style="color:var(--muted);">çift tıklayınca</b> içeriğe sığar. Kutu Adı sütunu varsayılan olarak en uzun isme göre açılır.</span>
-        <button class="save-btn" onclick="fitPiyasaNameCol()" title="Kutu Adı sütununu en uzun isme göre genişlet" style="padding:3px 9px;font-size:10px;">↔ Kutu adına sığdır</button>
-        <button class="save-btn" onclick="resetPiyasaColW()" title="Otomatik genişliğe dön" style="padding:3px 9px;font-size:10px;">↺ Sıfırla</button>
+        <span data-i18n="pi_hint2">↔️ Turuncu tutamaçtan <b style="color:var(--muted);">sürükleyerek</b> sütun genişliğini ayarlayın · tutamaca <b style="color:var(--muted);">çift tıklayınca</b> içeriğe sığar. Kutu Adı sütunu varsayılan olarak en uzun isme göre açılır.</span>
+        <button class="save-btn" onclick="fitPiyasaNameCol()" title="Kutu Adı sütununu en uzun isme göre genişlet" data-i18n="pi_sigdir" style="padding:3px 9px;font-size:10px;">↔ Kutu adına sığdır</button>
+        <button class="save-btn" onclick="resetPiyasaColW()" title="Otomatik genişliğe dön" data-i18n="pi_sifirla" style="padding:3px 9px;font-size:10px;">↺ Sıfırla</button>
       </div>
       <div class="tbl-outer">
         <table id="piyasaTable">
@@ -986,10 +986,10 @@ body[dir="rtl"] .wrap, body[dir="rtl"] .lm-wrap{text-align:right;}
     <div class="fire-wrap">
       <h2 data-i18n="h_fire">🔥 Fire Analizi — Piyasa Eni Etkisi</h2>
       <div class="fire-legend">
-        <span class="fl fl-ok">● ≤5% — İdeal</span>
-        <span class="fl fl-warn">● 5–12% — Dikkat</span>
-        <span class="fl fl-bad">● &gt;12% — Yüksek Fire</span>
-        <div class="fire-hint">Karton Eni hesaplanan değere yakın olduğunda fire düşük kalır. Piyasada mevcut bir sonraki boy seçildiğinde fire nasıl arttığını aşağıda görebilirsiniz.</div>
+        <span class="fl fl-ok" data-i18n="fr_ideal">● ≤5% — İdeal</span>
+        <span class="fl fl-warn" data-i18n="fr_dikkat">● 5–12% — Dikkat</span>
+        <span class="fl fl-bad" data-i18n="fr_yuksek">● &gt;12% — Yüksek Fire</span>
+        <div class="fire-hint" data-i18n="fr_hint">Karton Eni hesaplanan değere yakın olduğunda fire düşük kalır. Piyasada mevcut bir sonraki boy seçildiğinde fire nasıl arttığını aşağıda görebilirsiniz.</div>
       </div>
       <div id="fireGrid"></div>
     </div>
@@ -1000,18 +1000,18 @@ body[dir="rtl"] .wrap, body[dir="rtl"] .lm-wrap{text-align:right;}
     <div class="fire-wrap">
       <h2 data-i18n="h_kalib">🎯 Fire Kalibrasyon — Gerçek Veriden Formül Öğrenme</h2>
       <div class="info-box">
-        <strong>Nasıl çalışır?</strong><br>
-        1) Aşağıda FEFCO tipi seçin.<br>
-        2) Bildiğiniz kutu ölçülerini ve <strong>gerçek fire yüzdesini</strong> girin (en az 2 örnek).<br>
-        3) "Kalibre Et" butonuna basın — sistem verilerinize en uygun fire katsayılarını öğrenir.<br>
-        4) Sonra yeni ölçüler girdiğinizde öğrenilen formülle fire tahmini yapılır.<br>
+        <strong data-i18n="kl_nasil">Nasıl çalışır?</strong><br>
+        <span data-i18n="kl_s1">1) Aşağıda FEFCO tipi seçin.</span><br>
+        <span data-i18n="kl_s2">2) Bildiğiniz kutu ölçülerini ve <strong>gerçek fire yüzdesini</strong> girin (en az 2 örnek).</span><br>
+        <span data-i18n="kl_s3">3) "Kalibre Et" butonuna basın — sistem verilerinize en uygun fire katsayılarını öğrenir.</span><br>
+        <span data-i18n="kl_s4">4) Sonra yeni ölçüler girdiğinizde öğrenilen formülle fire tahmini yapılır.</span><br>
         <br>
-        <strong>Not:</strong> Kalibrasyon her FEFCO tipi için ayrı yapılır ve kaydedilir. Buraya ölçtüğün <strong>gerçek TOPLAM fire yüzdesini</strong> gir (piyasa eni firesi dahil — yani üretimde gördüğün gerçek fire). Sistem her örnek için piyasa eni payını otomatik düşüp işleme firesini öğrenir, tahminde tekrar ekler; böylece çift sayım olmaz ve sonuç senin girdiğin gerçek toplamla örtüşür.
+        <span data-i18n="kl_not"><strong>Not:</strong> Kalibrasyon her FEFCO tipi için ayrı yapılır ve kaydedilir. Buraya ölçtüğün <strong>gerçek TOPLAM fire yüzdesini</strong> gir (piyasa eni firesi dahil — yani üretimde gördüğün gerçek fire). Sistem her örnek için piyasa eni payını otomatik düşüp işleme firesini öğrenir, tahminde tekrar ekler; böylece çift sayım olmaz ve sonuç senin girdiğin gerçek toplamla örtüşür.</span>
       </div>
 
       <!-- FEFCO Tipi Seçimi -->
       <div style="margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-        <label class="gb-lbl" style="margin-bottom:0;">FEFCO Tipi</label>
+        <label class="gb-lbl" style="margin-bottom:0;" data-i18n="kl_fefcotipi">FEFCO Tipi</label>
         <select id="kalibFefco" class="gb-inp" style="width:220px;" onchange="kalibSelectType()"></select>
         <span style="font-size:11px;color:var(--muted);letter-spacing:1px;" id="kalibFormulInfo"></span>
       </div>
@@ -1020,17 +1020,17 @@ body[dir="rtl"] .wrap, body[dir="rtl"] .lm-wrap{text-align:right;}
       <div class="fefco-card" id="kalibCard">
         <div class="fefco-header">
           <span class="fefco-tag" id="kalibTag">—</span>
-          <span class="fefco-name" id="kalibName">Tip seçin</span>
+          <span class="fefco-name" id="kalibName" data-i18n="kl_tipsecin">Tip seçin</span>
           <div class="fefco-formula" id="kalibFormula"></div>
         </div>
 
         <div style="padding:12px 18px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <label style="font-size:11px;color:var(--muted);letter-spacing:1.5px;">YÖN</label>
+          <label style="font-size:11px;color:var(--muted);letter-spacing:1.5px;" data-i18n="kl_yon">YÖN</label>
           <select id="kalibYon" class="gb-inp" style="width:110px;" onchange="kalibUpdateAll()">
-            <option value="DİKEY">DİKEY</option>
-            <option value="YATAY">YATAY</option>
+            <option value="DİKEY" data-i18n="yon_dikey">DİKEY</option>
+            <option value="YATAY" data-i18n="yon_yatay">YATAY</option>
           </select>
-          <button class="formula-btn" onclick="kalibAddRow()" style="margin-left:auto;">＋ Örnek Ekle</button>
+          <button class="formula-btn" onclick="kalibAddRow()" data-i18n="kl_ornekekle" style="margin-left:auto;">＋ Örnek Ekle</button>
         </div>
 
         <div class="tbl-outer">
@@ -1041,8 +1041,8 @@ body[dir="rtl"] .wrap, body[dir="rtl"] .lm-wrap{text-align:right;}
         </div>
 
         <div style="padding:14px 18px;border-top:1px solid var(--border);display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-          <button class="formula-btn" style="background:rgba(146,208,80,.15);border-color:rgba(146,208,80,.4);color:#92D050;font-size:12px;padding:8px 20px;" onclick="kalibRun()">🎯 KALİBRE ET</button>
-          <button class="formula-btn" onclick="kalibClear()">🗑 Temizle</button>
+          <button class="formula-btn" style="background:rgba(146,208,80,.15);border-color:rgba(146,208,80,.4);color:#92D050;font-size:12px;padding:8px 20px;" onclick="kalibRun()" data-i18n="kl_kalibreet">🎯 KALİBRE ET</button>
+          <button class="formula-btn" onclick="kalibClear()" data-i18n="kl_temizle">🗑 Temizle</button>
           <span style="font-size:11px;color:var(--muted);margin-left:auto;" id="kalibStatus"></span>
         </div>
       </div>
@@ -1052,12 +1052,12 @@ body[dir="rtl"] .wrap, body[dir="rtl"] .lm-wrap{text-align:right;}
         <div class="fefco-card">
           <div class="fefco-header" style="background:linear-gradient(90deg,rgba(146,208,80,.1),var(--dark));">
             <span class="fefco-tag" style="background:#92D050;">SONUÇ</span>
-            <span class="fefco-name">Öğrenilen Fire Katsayıları</span>
+            <span class="fefco-name" data-i18n="kl_ogrenilen">Öğrenilen Fire Katsayıları</span>
           </div>
           <div style="padding:16px 18px;">
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;" id="kalibKatsayilar"></div>
             <div style="margin-top:14px;padding:12px 16px;background:rgba(245,166,35,.06);border:1px solid var(--orange-border);border-radius:8px;">
-              <div style="font-size:11px;color:var(--orange);letter-spacing:1.5px;margin-bottom:6px;">ÖĞRENİLEN FORMÜL</div>
+              <div style="font-size:11px;color:var(--orange);letter-spacing:1.5px;margin-bottom:6px;" data-i18n="kl_ogrformul">ÖĞRENİLEN FORMÜL</div>
               <div style="font-family:'Barlow Condensed',monospace;font-size:14px;color:var(--text);line-height:1.8;" id="kalibFormulSonuc"></div>
             </div>
             <div style="margin-top:12px;" id="kalibAccuracy"></div>
@@ -1070,11 +1070,11 @@ body[dir="rtl"] .wrap, body[dir="rtl"] .lm-wrap{text-align:right;}
         <div class="fefco-card">
           <div class="fefco-header" style="background:linear-gradient(90deg,rgba(96,165,250,.1),var(--dark));">
             <span class="fefco-tag" style="background:#60a5fa;color:#1a1a1a;">TAHMİN</span>
-            <span class="fefco-name">Yeni Kutu Fire Tahmini</span>
+            <span class="fefco-name" data-i18n="kl_yenitahmin">Yeni Kutu Fire Tahmini</span>
           </div>
           <div style="padding:14px 18px;">
             <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px;" id="kalibPredInputs"></div>
-            <button class="formula-btn" style="background:rgba(96,165,250,.15);border-color:rgba(96,165,250,.4);color:#60a5fa;" onclick="kalibPredCalc()">📐 Hesapla</button>
+            <button class="formula-btn" style="background:rgba(96,165,250,.15);border-color:rgba(96,165,250,.4);color:#60a5fa;" onclick="kalibPredCalc()" data-i18n="kl_hesapla">📐 Hesapla</button>
             <div id="kalibPredResult" style="margin-top:14px;"></div>
           </div>
         </div>
@@ -1098,9 +1098,9 @@ body[dir="rtl"] .wrap, body[dir="rtl"] .lm-wrap{text-align:right;}
             <option value="ar">🇸🇦 العربية</option>
           </select>
           <button class="lm-btn primary" id="lmSaveBtn" onclick="lmSave()" data-i18n="lm_save">💾 Kaydet</button>
-          <button class="lm-btn danger" onclick="lmReset()">↺ Sıfırla</button>
-          <button class="lm-btn" onclick="lmExport()">📤 Dışa Aktar</button>
-          <label class="lm-btn" style="cursor:pointer;">📥 İçe Aktar<input type="file" accept=".json" style="display:none" onchange="lmImport(this.files[0])"></label>
+          <button class="lm-btn danger" onclick="lmReset()" data-i18n="lm_sifirla">↺ Sıfırla</button>
+          <button class="lm-btn" onclick="lmExport()" data-i18n="lm_disaaktar">📤 Dışa Aktar</button>
+          <label class="lm-btn" style="cursor:pointer;"><span data-i18n="lm_iceaktar">📥 İçe Aktar</span><input type="file" accept=".json" style="display:none" onchange="lmImport(this.files[0])"></label>
         </div>
       </div>
       <div class="lm-body">
@@ -1115,9 +1115,9 @@ body[dir="rtl"] .wrap, body[dir="rtl"] .lm-wrap{text-align:right;}
 
 <!-- Yedek uyarı toast -->
 <div id="yedekUyari">
-  <span id="yedekUyariMsg">⚠️ Yaptığınız değişiklikler kaybolabilir! Lütfen JSON olarak kaydedin.</span>
+  <span id="yedekUyariMsg" data-i18n="yu_msg">⚠️ Yaptığınız değişiklikler kaybolabilir! Lütfen JSON olarak kaydedin.</span>
   <button onclick="exportJSON();hideYedekUyari()">💾 JSON Olarak Kaydet</button>
-  <button onclick="hideYedekUyari()" style="background:var(--surface);color:var(--muted);border:1px solid var(--dim);">Kapat</button>
+  <button onclick="hideYedekUyari()" data-i18n="yu_kapat" style="background:var(--surface);color:var(--muted);border:1px solid var(--dim);">Kapat</button>
 </div>
 
 <script>
@@ -1312,6 +1312,10 @@ const YON_LISTESI=[
   'DİKEY 90° İKİLİ','YATAY 90° İKİLİ'
 ];
 
+// YÖN değerinin aktif dildeki GÖRÜNEN etiketi (value hep Türkçe kalır — veri bozulmaz)
+const _YON_KEY={'DİKEY':'yon_dikey','YATAY':'yon_yatay','DİKEY İKİLİ':'yon_dikey_ikili','YATAY İKİLİ':'yon_yatay_ikili','DİKEY 90°':'yon_dikey_90','YATAY 90°':'yon_yatay_90','DİKEY 90° İKİLİ':'yon_dikey_90_ikili','YATAY 90° İKİLİ':'yon_yatay_90_ikili'};
+function yonLabel(y){ return (typeof t==='function' && _YON_KEY[y]) ? t(_YON_KEY[y]) : y; }
+
 // Dışarıdan (Excel) gelen yön/kesim metnini standart değere çevirir:
 //  "YATAY"/"DİKEY" temel yön + "90°" (döndürme) + "İKİLİ" (çift / 2 / double).
 function parseYon(s){
@@ -1443,39 +1447,39 @@ function showTabModal(editId){
   bg.className='modal-bg';
   bg.innerHTML=`
     <div class="modal-box">
-      <h3>${existing?'Sekme Düzenle':'Yeni Sekme Ekle'}</h3>
+      <h3>${existing?t('md_sekmeduzenle'):t('md_yenisekme')}</h3>
       <div class="modal-field">
-        <label>Kod (örn: FEFCO 0500 veya ÖZEL-2)</label>
+        <label>${t('md_kod')}</label>
         <input id="m-kod" value="${esc(existing?existing.kod:'')}" placeholder="FEFCO 0500">
       </div>
       <div class="modal-field">
-        <label>Ad</label>
-        <input id="m-ad" value="${esc(existing?existing.ad:'')}" placeholder="Kutu adı...">
+        <label>${t('md_ad')}</label>
+        <input id="m-ad" value="${esc(existing?existing.ad:'')}" placeholder="${esc(t('ph_kutuadi'))}">
       </div>
       <div class="modal-field">
-        <label>📐 DİKEY — En Formülü</label>
+        <label>${t('ff_dikey_en')}</label>
         <input id="m-de" value="${esc(existing?existing.dikeyEn:'2*L+2*B+K+K+P')}" placeholder="2*L+2*B+K+K+P">
-        <div class="modal-hint">Herhangi büyük harf · <b>K</b> / <b>K1</b> / <b>K2</b> = kulak payları · Formülde varsa tabloda sütun olarak çıkar, her satırda ayrı girilebilir</div>
+        <div class="modal-hint">${t('md_hint')}</div>
       </div>
       <div class="modal-field">
-        <label>📐 DİKEY — Boy Formülü</label>
+        <label>${t('ff_dikey_boy')}</label>
         <input id="m-db" value="${esc(existing?existing.dikeyBoy:'2*H+(L+B)/2+K+K+P')}" placeholder="2*H+(L+B)/2+K+K+P">
       </div>
       <div class="modal-field">
-        <label>🔄 YATAY — En Formülü</label>
+        <label>${t('ff_yatay_en')}</label>
         <input id="m-ye" value="${esc(existing?existing.yatayEn:'2*B+2*L+K+K+P')}" placeholder="2*B+2*L+K+K+P">
       </div>
       <div class="modal-field">
-        <label>🔄 YATAY — Boy Formülü</label>
+        <label>${t('ff_yatay_boy')}</label>
         <input id="m-yb" value="${esc(existing?existing.yatayBoy:'2*H+(B+L)/2+K+K+P')}" placeholder="2*H+(B+L)/2+K+K+P">
       </div>
       <div class="modal-field" style="display:flex;align-items:center;gap:10px;">
         <input type="checkbox" id="m-ozel" style="width:auto;" ${existing&&existing.isOzel?'checked':''}>
-        <label style="margin-bottom:0;cursor:pointer;" for="m-ozel">ÖZEL mod — Özel En / Boy sütunları da göster</label>
+        <label style="margin-bottom:0;cursor:pointer;" for="m-ozel">${t('md_ozelmod')}</label>
       </div>
       <div class="modal-btns">
-        <button class="modal-btn cancel" id="m-cancel">İptal</button>
-        <button class="modal-btn ok" id="m-ok">${existing?'Kaydet':'Ekle'}</button>
+        <button class="modal-btn cancel" id="m-cancel">${t('md_iptal')}</button>
+        <button class="modal-btn ok" id="m-ok">${existing?t('md_kaydet'):t('md_ekle')}</button>
       </div>
     </div>`;
   document.body.appendChild(bg);
@@ -1840,7 +1844,7 @@ function rowInner(ftId,i){
   onchange="editText('${ftId}',${i},'ad',this.value)"></td>
 ${varCells}
 <td><select class="yon-sel" onchange="editCell('${ftId}',${i},'yon',this.value)">
-  ${YON_LISTESI.map(y=>`<option${row.yon===y?' selected':''}>${y}</option>`).join('')}
+  ${YON_LISTESI.map(y=>`<option value="${y}"${row.yon===y?' selected':''}>${yonLabel(y)}</option>`).join('')}
 </select></td>
 <td id="cEn_${P}">${cc.en}</td>
 <td id="cPi_${P}">${cc.pi}</td>
@@ -2219,13 +2223,13 @@ function stokRender(){
   if(chips){
     chips.innerHTML=STOK_ENLERI.length
       ?STOK_ENLERI.map(v=>`<span class="stok-chip">${v} mm<button onclick="stokSil(${v})" title="Kaldır">✕</button></span>`).join('')
-      :'<span class="stok-empty-hint">Henüz karton eni girilmedi — piyasa enleri (100\'ün katları) kullanılıyor</span>';
+      :`<span class="stok-empty-hint">${t('stok_emptyhint')}</span>`;
   }
   const tg=document.getElementById('stokToggle');
   const lbl=document.getElementById('stokToggleLbl');
   if(tg){
     tg.classList.toggle('on',STOK_MODU);
-    if(lbl)lbl.textContent=STOK_MODU?'STOK ENLERİ AKTİF':'PİYASA ENLERİ';
+    if(lbl)lbl.textContent=STOK_MODU?t('stok_stokmodu'):t('stok_piyasaenleri');
   }
 }
 
@@ -2863,22 +2867,22 @@ function clearDataModal(){
   const opts=FEFCO_TYPES.map(ft=>`<option value="${ft.id}"${ft.id===cur?' selected':''}>${esc(ft.kod)}${ft.ad?' – '+esc(ft.ad.split('(')[0].trim()):''}</option>`).join('');
   bg.innerHTML=`
     <div class="modal-box">
-      <h3>🗑️ Veri Temizle</h3>
+      <h3>${t('clr_baslik')}</h3>
       <div class="modal-field">
-        <label>Sadece bir kutu tipinin girilen ölçülerini sil</label>
-        <select id="clr-type" class="gb-inp" style="width:100%;">${opts||'<option value="">— Tip yok —</option>'}</select>
-        <div class="modal-hint">Seçilen sekmedeki tüm satırlar/ölçüler temizlenir; sekme, formül ve diğer tipler korunur.</div>
+        <label>${t('clr_tektip')}</label>
+        <select id="clr-type" class="gb-inp" style="width:100%;">${opts||`<option value="">${t('clr_tipyok')}</option>`}</select>
+        <div class="modal-hint">${t('clr_hint1')}</div>
       </div>
       <div class="modal-btns" style="justify-content:flex-start;">
-        <button class="modal-btn" id="clr-one" style="background:var(--orange-dim);border-color:var(--orange-border);color:var(--orange);">Seçili Tipin Ölçülerini Sil</button>
+        <button class="modal-btn" id="clr-one" style="background:var(--orange-dim);border-color:var(--orange-border);color:var(--orange);">${t('clr_secilisil')}</button>
       </div>
       <div class="modal-field" style="border-top:1px solid var(--border);padding-top:14px;margin-top:6px;">
-        <label style="color:#f87171;">Tehlikeli alan</label>
-        <div class="modal-hint">Aşağıdaki seçenek <b>bütün</b> sekmelerdeki tüm verileri siler ve uygulamayı varsayılana döndürür.</div>
+        <label style="color:#f87171;">${t('clr_tehlikeli')}</label>
+        <div class="modal-hint">${t('clr_hint2')}</div>
       </div>
       <div class="modal-btns" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
-        <button class="modal-btn" id="clr-all" style="background:rgba(192,0,0,.15);border-color:rgba(192,0,0,.4);color:#f87171;">⚠️ TÜM Verileri Sil</button>
-        <button class="modal-btn cancel" id="clr-cancel">İptal</button>
+        <button class="modal-btn" id="clr-all" style="background:rgba(192,0,0,.15);border-color:rgba(192,0,0,.4);color:#f87171;">${t('clr_tumsil')}</button>
+        <button class="modal-btn cancel" id="clr-cancel">${t('md_iptal')}</button>
       </div>
     </div>`;
   document.body.appendChild(bg);
@@ -4141,7 +4145,7 @@ function _kpi(val,lbl,cls){
 // Yazdırma penceresini açar
 function _openReport(title, bodyHTML, landscape){
   const w=window.open('','_blank');
-  if(!w){ alert('Açılır pencere engellendi. Lütfen bu sayfa için pop-up iznini açın.'); return; }
+  if(!w){ alert(t('p_popupengel')); return; }
   const css = ''
    + '@page{size:A4 '+(landscape?'landscape':'portrait')+';margin:11mm 9mm 15mm 9mm;}'
    + '*{box-sizing:border-box;}'
@@ -4178,14 +4182,14 @@ function _openReport(title, bodyHTML, landscape){
    + '@media screen{body{background:#525659;}.sheet{background:#fff;max-width:'+(landscape?'1180px':'880px')+';margin:18px auto;padding:26px 30px 40px;box-shadow:0 0 24px rgba(0,0,0,.45);}.doc-footer{position:static;border:none;color:#bbb;margin-top:24px;}}'
    + '@media print{.no-print{display:none;}.sheet{padding:0;}}';
 
-  const html = '<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>'+esc(title)+'</title>'
+  const html = '<!DOCTYPE html><html lang="'+i18nCurrentLang()+'" dir="'+(i18nCurrentLang()==='ar'?'rtl':'ltr')+'"><head><meta charset="UTF-8"><title>'+esc(title)+'</title>'
    + '<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">'
    + '<style>'+css+'</style></head><body>'
-   + '<div class="no-print"><button class="pr" onclick="window.print()">🖨️ Yazdır / PDF Kaydet</button>'
-   + '<button class="cl" onclick="window.close()">Kapat</button>'
-   + '<span class="hint">İpucu: Açılan pencerede <b>Hedef → "PDF olarak kaydet"</b> seçin. Renkli arka plan için <b>"Arka plan grafikleri"</b> işaretli olsun.</span></div>'
+   + '<div class="no-print"><button class="pr" onclick="window.print()">'+t('p_yazdir')+'</button>'
+   + '<button class="cl" onclick="window.close()">'+t('p_kapat')+'</button>'
+   + '<span class="hint">'+t('p_ipucu')+'</span></div>'
    + '<div class="sheet">'+bodyHTML+'</div>'
-   + '<div class="doc-footer"><span>ORİMAK MAKİNA · FEFCO Karton Eni Hesaplama Sistemi</span><span>'+_trDate()+'</span></div>'
+   + '<div class="doc-footer"><span>'+t('p_footer')+'</span><span>'+_trDate()+'</span></div>'
    + '<script>window.addEventListener("load",function(){setTimeout(function(){try{window.print();}catch(e){}},450);});<\/script>'
    + '</body></html>';
 
@@ -4195,9 +4199,9 @@ function _openReport(title, bodyHTML, landscape){
 // ---------- 1) KUTU TİPİ DETAY RAPORU ----------
 function pdfKutuDetay(){
   const types=_typesWithData();
-  if(!types.length){ alert('Önce en az bir kutuya L, B, H ölçüsü girin.'); return; }
+  if(!types.length){ alert(t('p_onceolcu')); return; }
 
-  let body=_docHeader('Kutu Tipi Detay Raporu','Her Kutu Tipi · Ölçü · Maliyet · Fire Dökümü');
+  let body=_docHeader(t('p_t_kutudetay'),t('p_st_kutudetay'));
 
   types.forEach((ft,idx)=>{
     const st=_typeStats(ft);
@@ -4206,31 +4210,31 @@ function pdfKutuDetay(){
 
     body+='<div class="'+(idx>0?'page-break':'')+'">';
     body+='<div class="sec-title"><span class="kod">'+esc(ft.kod)+'</span> — '+esc(ft.ad)+'</div>';
-    body+='<div class="formula">Formül (En × Boy): '+esc(dikey)+'</div>';
+    body+='<div class="formula">'+t('p_formul')+' '+esc(dikey)+'</div>';
 
     // KPI
     body+='<div class="kpi-row">'
-      + _kpi(_n(st.tAdet,0),'Toplam Adet','blue')
-      + _kpi(_n(st.tBrutM2,2)+' m²','Satın Alınan Karton','blue')
-      + _kpi(_n(st.tBrutTL,2)+' TL','Brüt Maliyet','orange')
-      + _kpi(_n(st.tNetTL,2)+' TL','Ürüne Giden','green')
-      + _kpi(_n(st.firePct,1)+' %','Fire Oranı', st.firePct<=5?'green':st.firePct<=12?'orange':'red')
-      + _kpi(_n(st.tFireTL,2)+' TL','Fire Maliyeti','red')
+      + _kpi(_n(st.tAdet,0),t('p_toplamadet'),'blue')
+      + _kpi(_n(st.tBrutM2,2)+' m²',t('p_satinalinan'),'blue')
+      + _kpi(_n(st.tBrutTL,2)+' TL',t('p_brutmaliyet'),'orange')
+      + _kpi(_n(st.tNetTL,2)+' TL',t('p_urunegiden'),'green')
+      + _kpi(_n(st.firePct,1)+' %',t('p_fireorani'), st.firePct<=5?'green':st.firePct<=12?'orange':'red')
+      + _kpi(_n(st.tFireTL,2)+' TL',t('p_firemaliyeti'),'red')
       + '</div>';
 
     // Tablo başlığı
-    let head='<thead><tr><th class="l">Kutu Adı</th>';
+    let head='<thead><tr><th class="l">'+t('p_kutuadi')+'</th>';
     vars.forEach(v=>head+='<th>'+esc(_varLbl(v))+'</th>');
-    head+='<th class="c">Yön</th><th>Adet</th><th>K.Eni</th><th>Piyasa Eni</th><th>K.Boy</th>'
-        +'<th>Kalıp m²/Ad</th><th>Kalıp m²</th><th>Br.TL</th><th>BRÜT m²</th><th>BRÜT TL</th>'
-        +'<th>Fire %</th><th>Fire m²</th><th>Fire TL</th><th>Rulo m</th></tr></thead>';
+    head+='<th class="c">'+t('p_yon')+'</th><th>'+t('p_adet')+'</th><th>'+t('p_keni')+'</th><th>'+t('p_piyasaeni')+'</th><th>'+t('p_kboy')+'</th>'
+        +'<th>'+t('p_kalipm2ad')+'</th><th>'+t('p_kalipm2')+'</th><th>'+t('p_brtl')+'</th><th>'+t('p_brutm2')+'</th><th>'+t('p_bruttl')+'</th>'
+        +'<th>'+t('p_fireyuzde')+'</th><th>'+t('p_firem2')+'</th><th>'+t('p_firetl')+'</th><th>'+t('p_rulom')+'</th></tr></thead>';
 
     let rowsHtml='';
     st.rows.forEach(x=>{
       const h=x.h, cls=_fireCls(h.fireOran);
       rowsHtml+='<tr><td class="l">'+(esc(x.r.ad)||'—')+'</td>';
       x.varVals.forEach(vv=>rowsHtml+='<td>'+_n(vv,0)+'</td>');
-      rowsHtml+='<td class="c">'+esc(x.r.yon||'DİKEY')+'</td>'
+      rowsHtml+='<td class="c">'+esc(yonLabel(x.r.yon||'DİKEY'))+'</td>'
         +'<td>'+_n(x.adet,0)+'</td>'
         +'<td>'+_n(h.en,0)+'</td>'
         +'<td><b>'+_n(h.piyasa,0)+'</b></td>'
@@ -4247,7 +4251,7 @@ function pdfKutuDetay(){
     });
 
     const colspanVars=vars.length;
-    let foot='<tfoot><tr><td class="l">TOPLAM ('+st.rows.length+' ölçü)</td>'
+    let foot='<tfoot><tr><td class="l">'+t('p_toplam')+' ('+st.rows.length+' '+t('p_olcu')+')</td>'
       + '<td colspan="'+(colspanVars+1)+'"></td>'
       + '<td>'+_n(st.tAdet,0)+'</td>'
       + '<td colspan="4"></td>'
@@ -4264,23 +4268,23 @@ function pdfKutuDetay(){
 
     // Bu tipe ait piyasa karton eni kullanımı
     const usage=_piyasaUsage([ft]);
-    body+='<div class="sec-title" style="font-size:12px;margin-top:10px;">Piyasa Karton Eni Kullanımı — '+esc(ft.kod)+'</div>';
-    let uHead='<thead><tr><th>Piyasa Eni (mm)</th><th>Kullanılan Ölçü</th><th>Toplam Adet</th><th>BRÜT m²</th><th>BRÜT TL</th><th>Fire m²</th><th>Fire TL</th></tr></thead>';
+    body+='<div class="sec-title" style="font-size:12px;margin-top:10px;">'+t('p_piyasakullanim')+' '+esc(ft.kod)+'</div>';
+    let uHead='<thead><tr><th>'+t('p_piyasaeni')+' (mm)</th><th>'+t('p_kullanilanolcu')+'</th><th>'+t('p_toplamadet')+'</th><th>'+t('p_brutm2')+'</th><th>'+t('p_bruttl')+'</th><th>'+t('p_firem2')+'</th><th>'+t('p_firetl')+'</th></tr></thead>';
     let uRows='';
     usage.forEach(u=>{
-      uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' ölçü</td><td>'+_n(u.adet,0)+'</td><td><b>'+_n(u.brutM2,2)+'</b></td><td><b>'+_n(u.brutTL,2)+'</b></td><td>'+_n(u.fireM2,3)+'</td><td>'+_n(u.fireTL,2)+'</td></tr>';
+      uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' '+t('p_olcu')+'</td><td>'+_n(u.adet,0)+'</td><td><b>'+_n(u.brutM2,2)+'</b></td><td><b>'+_n(u.brutTL,2)+'</b></td><td>'+_n(u.fireM2,3)+'</td><td>'+_n(u.fireTL,2)+'</td></tr>';
     });
     body+='<table>'+uHead+'<tbody>'+uRows+'</tbody></table>';
     body+='</div>';
   });
 
-  _openReport('ORİMAK · Kutu Tipi Detay Raporu', body, true);
+  _openReport(t('p_ttl_kutudetay'), body, true);
 }
 
 // ---------- 2) FİRE ANALİZİ RAPORU ----------
 function pdfFire(){
   const types=_typesWithData();
-  if(!types.length){ alert('Önce en az bir kutuya L, B, H ölçüsü girin.'); return; }
+  if(!types.length){ alert(t('p_onceolcu')); return; }
 
   let gBrutM2=0,gBrutTL=0,gNetTL=0,gFireM2=0,gFireTL=0;
   const statList=types.map(ft=>{ const st=_typeStats(ft);
@@ -4288,21 +4292,21 @@ function pdfFire(){
     return {ft,st}; });
   const gFirePct = gBrutM2>0 ? gFireM2/gBrutM2*100 : 0;
 
-  let body=_docHeader('Fire Analizi Raporu','İşleme + Piyasa Eni Firesi · Fire Maliyeti');
+  let body=_docHeader(t('p_t_fire'),t('p_st_fire'));
 
   body+='<div class="kpi-row">'
-    + _kpi(_n(gBrutM2,2)+' m²','Satın Alınan Karton','blue')
-    + _kpi(_n(gFireM2,2)+' m²','Toplam Fire','red')
-    + _kpi(_n(gFirePct,1)+' %','Genel Fire Oranı', gFirePct<=5?'green':gFirePct<=12?'orange':'red')
-    + _kpi(_n(gFireTL,2)+' TL','Toplam Fire Maliyeti','red')
-    + _kpi(_n(gBrutTL,2)+' TL','Brüt Maliyet','orange')
-    + _kpi(_n(gNetTL,2)+' TL','Ürüne Giden','green')
+    + _kpi(_n(gBrutM2,2)+' m²',t('p_satinalinan'),'blue')
+    + _kpi(_n(gFireM2,2)+' m²',t('p_toplamfire'),'red')
+    + _kpi(_n(gFirePct,1)+' %',t('p_genelfireorani'), gFirePct<=5?'green':gFirePct<=12?'orange':'red')
+    + _kpi(_n(gFireTL,2)+' TL',t('p_toplamfiremaliyet'),'red')
+    + _kpi(_n(gBrutTL,2)+' TL',t('p_brutmaliyet'),'orange')
+    + _kpi(_n(gNetTL,2)+' TL',t('p_urunegiden'),'green')
     + '</div>';
 
   // Tip bazında fire
-  body+='<div class="sec-title">Kutu Tipi Bazında Fire Dökümü</div>';
-  let head='<thead><tr><th class="l">FEFCO Tipi</th><th class="l">Ad</th><th>Ölçü</th><th>Adet</th>'
-    +'<th>İşleme Fire %</th><th>Piyasa Eni Fire %</th><th>Toplam Fire %</th><th>Fire m²</th><th>Fire TL</th></tr></thead>';
+  body+='<div class="sec-title">'+t('p_tipbazfire')+'</div>';
+  let head='<thead><tr><th class="l">'+t('p_fefcotipi')+'</th><th class="l">'+t('p_ad')+'</th><th>'+t('p_olcu')+'</th><th>'+t('p_adet')+'</th>'
+    +'<th>'+t('p_islemefire')+'</th><th>'+t('p_piyasaenifire')+'</th><th>'+t('p_toplamfireyuzde')+'</th><th>'+t('p_firem2')+'</th><th>'+t('p_firetl')+'</th></tr></thead>';
   let rows='';
   statList.forEach(({ft,st})=>{
     const cls=_fireCls(st.firePct);
@@ -4315,35 +4319,33 @@ function pdfFire(){
       +'<td>'+_n(st.tFireM2,3)+'</td>'
       +'<td>'+_n(st.tFireTL,2)+'</td></tr>';
   });
-  let foot='<tfoot><tr><td class="l" colspan="2">GENEL TOPLAM</td><td></td><td></td><td></td><td></td>'
+  let foot='<tfoot><tr><td class="l" colspan="2">'+t('p_geneltoplam')+'</td><td></td><td></td><td></td><td></td>'
     +'<td>'+_n(gFirePct,1)+'%</td><td>'+_n(gFireM2,3)+'</td><td>'+_n(gFireTL,2)+'</td></tr></tfoot>';
   body+='<table>'+head+'<tbody>'+rows+'</tbody>'+foot+'</table>';
 
   // Piyasa eni bazında fire
   const usage=_piyasaUsage(types);
-  body+='<div class="sec-title">Piyasa Karton Eni Bazında Fire Dağılımı</div>';
-  let uHead='<thead><tr><th>Piyasa Eni (mm)</th><th>Kullanılan Ölçü</th><th>Toplam Adet</th><th>BRÜT m²</th><th>Fire m²</th><th>Fire %</th><th>Fire Maliyeti TL</th></tr></thead>';
+  body+='<div class="sec-title">'+t('p_piyasabazfire')+'</div>';
+  let uHead='<thead><tr><th>'+t('p_piyasaeni')+' (mm)</th><th>'+t('p_kullanilanolcu')+'</th><th>'+t('p_toplamadet')+'</th><th>'+t('p_brutm2')+'</th><th>'+t('p_firem2')+'</th><th>'+t('p_fireyuzde')+'</th><th>'+t('p_firemaliyettl')+'</th></tr></thead>';
   let uRows=''; let uM2=0,uFireM2=0,uFireTL=0,uAdet=0,uOlcu=0;
   usage.forEach(u=>{
     const p=u.brutM2>0?u.fireM2/u.brutM2*100:0;
     uM2+=u.brutM2;uFireM2+=u.fireM2;uFireTL+=u.fireTL;uAdet+=u.adet;uOlcu+=u.olcu;
-    uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' ölçü</td><td>'+_n(u.adet,0)+'</td><td>'+_n(u.brutM2,2)+'</td><td>'+_n(u.fireM2,3)+'</td>'
+    uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' '+t('p_olcu')+'</td><td>'+_n(u.adet,0)+'</td><td>'+_n(u.brutM2,2)+'</td><td>'+_n(u.fireM2,3)+'</td>'
       +'<td><span class="fire-badge '+_fireCls(p)+'">'+_n(p,1)+'%</span></td><td>'+_n(u.fireTL,2)+'</td></tr>';
   });
-  let uFoot='<tfoot><tr><td>TOPLAM</td><td>'+_n(uOlcu,0)+' ölçü</td><td>'+_n(uAdet,0)+'</td><td>'+_n(uM2,2)+'</td><td>'+_n(uFireM2,3)+'</td><td>'+_n(uM2>0?uFireM2/uM2*100:0,1)+'%</td><td>'+_n(uFireTL,2)+'</td></tr></tfoot>';
+  let uFoot='<tfoot><tr><td>'+t('p_toplam')+'</td><td>'+_n(uOlcu,0)+' '+t('p_olcu')+'</td><td>'+_n(uAdet,0)+'</td><td>'+_n(uM2,2)+'</td><td>'+_n(uFireM2,3)+'</td><td>'+_n(uM2>0?uFireM2/uM2*100:0,1)+'%</td><td>'+_n(uFireTL,2)+'</td></tr></tfoot>';
   body+='<table>'+uHead+'<tbody>'+uRows+'</tbody>'+uFoot+'</table>';
 
-  body+='<p class="note">Fire = İşleme firesi (kesim/slot ağzı kaybı) + Piyasa eni firesi (hesaplanan en ile rulo eni arasındaki şerit kaybı). '
-    +'Tüm fire yüzdeleri SATIN ALINAN (brüt) kartona göre hesaplanır; bu nedenle işleme % + piyasa eni % = toplam % eşitliği her satırda sağlanır. '
-    +'Fire oranı ≤ %5 düşük, %5–12 orta, &gt; %12 yüksek olarak değerlendirilir.</p>';
+  body+='<p class="note">'+t('p_firenote')+'</p>';
 
-  _openReport('ORİMAK · Fire Analizi Raporu', body, false);
+  _openReport(t('p_ttl_fire'), body, false);
 }
 
 // ---------- 3) KURUMSAL GENEL RAPOR ----------
 function pdfKurumsal(){
   const types=_typesWithData();
-  if(!types.length){ alert('Önce en az bir kutuya L, B, H ölçüsü girin.'); return; }
+  if(!types.length){ alert(t('p_onceolcu')); return; }
 
   let gM2=0,gBrutM2=0,gBrutTL=0,gNetTL=0,gRulo=0,gFireM2=0,gFireTL=0,gAdet=0,gSigmaz=0;
   const statList=types.map(ft=>{
@@ -4354,25 +4356,25 @@ function pdfKurumsal(){
   });
   const gFirePct=gBrutM2>0?gFireM2/gBrutM2*100:0;
 
-  let body=_docHeader('Kurumsal Üretim & Maliyet Raporu','Genel Özet · Üretim · Maliyet · Fire · Karton Eni');
+  let body=_docHeader(t('p_t_kurumsal'),t('p_st_kurumsal'));
 
   body+='<div class="kpi-row">'
-    + _kpi(_n(gAdet,0),'Toplam Adet','blue')
-    + _kpi(_n(gBrutM2,2)+' m²','Satın Alınan Karton','blue')
-    + _kpi(_n(gBrutTL,2)+' TL','BRÜT MALİYET','orange')
-    + _kpi(_n(gRulo,1)+' m','Toplam Rulo','blue')
+    + _kpi(_n(gAdet,0),t('p_toplamadet'),'blue')
+    + _kpi(_n(gBrutM2,2)+' m²',t('p_satinalinan'),'blue')
+    + _kpi(_n(gBrutTL,2)+' TL',t('p_brutmaliyet'),'orange')
+    + _kpi(_n(gRulo,1)+' m',t('p_toplamrulo'),'blue')
     + '</div>';
   body+='<div class="kpi-row">'
-    + _kpi(_n(gNetTL,2)+' TL','Ürüne Giden','green')
-    + _kpi(_n(gFireM2,2)+' m²','Toplam Fire','red')
-    + _kpi(_n(gFireTL,2)+' TL','Toplam Fire Maliyeti','red')
-    + _kpi(_n(gFirePct,1)+' %','Genel Fire Oranı', gFirePct<=5?'green':gFirePct<=12?'orange':'red')
+    + _kpi(_n(gNetTL,2)+' TL',t('p_urunegiden'),'green')
+    + _kpi(_n(gFireM2,2)+' m²',t('p_toplamfire'),'red')
+    + _kpi(_n(gFireTL,2)+' TL',t('p_toplamfiremaliyet'),'red')
+    + _kpi(_n(gFirePct,1)+' %',t('p_genelfireorani'), gFirePct<=5?'green':gFirePct<=12?'orange':'red')
     + '</div>';
 
   // Kutu tipi bazında özet
-  body+='<div class="sec-title">Kutu Tipi Bazında Özet</div>';
-  let head='<thead><tr><th class="l">FEFCO Tipi</th><th class="l">Ad</th><th>Adet</th><th>BRÜT m²</th>'
-    +'<th>BRÜT Maliyet TL</th><th>Fire %</th><th>Fire m²</th><th>Fire TL</th><th>Rulo m</th></tr></thead>';
+  body+='<div class="sec-title">'+t('p_tipbazozet')+'</div>';
+  let head='<thead><tr><th class="l">'+t('p_fefcotipi')+'</th><th class="l">'+t('p_ad')+'</th><th>'+t('p_adet')+'</th><th>'+t('p_brutm2')+'</th>'
+    +'<th>'+t('p_brutmaliyettl')+'</th><th>'+t('p_fireyuzde')+'</th><th>'+t('p_firem2')+'</th><th>'+t('p_firetl')+'</th><th>'+t('p_rulom')+'</th></tr></thead>';
   let rows='';
   statList.forEach(({ft,st})=>{
     rows+='<tr><td class="l"><b>'+esc(ft.kod)+'</b></td><td class="l">'+esc(ft.ad)+'</td>'
@@ -4384,31 +4386,28 @@ function pdfKurumsal(){
       +'<td>'+_n(st.tFireTL,2)+'</td>'
       +'<td>'+_n(st.tRulo,1)+'</td></tr>';
   });
-  let foot='<tfoot><tr><td class="l" colspan="2">GENEL TOPLAM</td>'
+  let foot='<tfoot><tr><td class="l" colspan="2">'+t('p_geneltoplam')+'</td>'
     +'<td>'+_n(gAdet,0)+'</td><td>'+_n(gBrutM2,2)+'</td><td>'+_n(gBrutTL,2)+'</td>'
     +'<td>'+_n(gFirePct,1)+'%</td><td>'+_n(gFireM2,3)+'</td><td>'+_n(gFireTL,2)+'</td><td>'+_n(gRulo,1)+'</td></tr></tfoot>';
   body+='<table>'+head+'<tbody>'+rows+'</tbody>'+foot+'</table>';
 
   // Piyasa karton eni kullanım dağılımı
   const usage=_piyasaUsage(types);
-  body+='<div class="sec-title">Piyasa Karton Eni Kullanım Dağılımı</div>';
-  body+='<div class="formula" style="margin-left:0;">Hangi piyasa karton eninden kaç farklı ölçü ve kaç adet kutu üretiliyor:</div>';
-  let uHead='<thead><tr><th>Piyasa Eni (mm)</th><th>Kullanılan Ölçü Sayısı</th><th>Toplam Adet</th><th>BRÜT m² (satın alınan)</th><th>Fire m²</th><th>Tahmini Fire Maliyeti TL</th></tr></thead>';
+  body+='<div class="sec-title">'+t('p_piyasakullanimdagilim')+'</div>';
+  body+='<div class="formula" style="margin-left:0;">'+t('p_kullanimaciklama')+'</div>';
+  let uHead='<thead><tr><th>'+t('p_piyasaeni')+' (mm)</th><th>'+t('p_kullanilanolcusayisi')+'</th><th>'+t('p_toplamadet')+'</th><th>'+t('p_brutm2satin')+'</th><th>'+t('p_firem2')+'</th><th>'+t('p_tahminifiremaliyet')+'</th></tr></thead>';
   let uRows=''; let uM2=0,uFireM2=0,uFireTL=0,uAdet=0,uOlcu=0;
   usage.forEach(u=>{
     uM2+=u.brutM2;uFireM2+=u.fireM2;uFireTL+=u.fireTL;uAdet+=u.adet;uOlcu+=u.olcu;
-    uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' ölçü</td><td>'+_n(u.adet,0)+'</td><td>'+_n(u.brutM2,2)+'</td><td>'+_n(u.fireM2,3)+'</td><td>'+_n(u.fireTL,2)+'</td></tr>';
+    uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' '+t('p_olcu')+'</td><td>'+_n(u.adet,0)+'</td><td>'+_n(u.brutM2,2)+'</td><td>'+_n(u.fireM2,3)+'</td><td>'+_n(u.fireTL,2)+'</td></tr>';
   });
-  let uFoot='<tfoot><tr><td>TOPLAM</td><td>'+_n(uOlcu,0)+' ölçü</td><td>'+_n(uAdet,0)+'</td><td>'+_n(uM2,2)+'</td><td>'+_n(uFireM2,3)+'</td><td>'+_n(uFireTL,2)+'</td></tr></tfoot>';
+  let uFoot='<tfoot><tr><td>'+t('p_toplam')+'</td><td>'+_n(uOlcu,0)+' '+t('p_olcu')+'</td><td>'+_n(uAdet,0)+'</td><td>'+_n(uM2,2)+'</td><td>'+_n(uFireM2,3)+'</td><td>'+_n(uFireTL,2)+'</td></tr></tfoot>';
   body+='<table>'+uHead+'<tbody>'+uRows+'</tbody>'+uFoot+'</table>';
 
-  body+='<p class="note">Bu rapor mevcut girilen tüm kutu ölçüleri üzerinden otomatik hesaplanmıştır. '
-    +'<b>BRÜT maliyet = fiilen satın alınan karton (rulo eni payı × kalıp boyu) × birim TL</b> — yani karton faturasının karşılığıdır. '
-    +'Ürüne giden + Fire = Brüt eşitliği her satırda sağlanır; bu iki kalem birbirine EKLENMEZ, brütü paylaşır. '
-    +'Kalıp alanı (en × boy) yalnızca bilgi amaçlıdır ve satın alınan miktardan küçüktür.'
-    +(gSigmaz?' <b>UYARI: '+_n(gSigmaz,0)+' ölçü stoktaki karton enlerine sığmadığı için toplamlara dahil edilmemiştir.</b>':'')+'</p>';
+  body+='<p class="note">'+t('p_kurumsalnote')
+    +(gSigmaz?' <b>'+t('p_uyari_pre')+' '+_n(gSigmaz,0)+' '+t('p_uyari_post')+'</b>':'')+'</p>';
 
-  _openReport('ORİMAK · Kurumsal Genel Rapor', body, false);
+  _openReport(t('p_ttl_kurumsal'), body, false);
 }
 
 // ---------- 4) PİYASA KARTON ENİ ÖZETİ RAPORU ----------
@@ -4419,16 +4418,16 @@ function pdfPiyasa(){
   FEFCO_TYPES.forEach(ft=>{
     (DATA[ft.id]||[]).forEach(r=>{ const h=hesapla(ft,r); if(!h) return; items.push({ft,r,h}); });
   });
-  if(!items.length){ alert('Önce en az bir kutuya L, B, H ölçüsü girin.'); return; }
+  if(!items.length){ alert(t('p_onceolcu')); return; }
 
   const groups={};
   items.forEach(it=>{ (groups[it.h.piyasa]=groups[it.h.piyasa]||[]).push(it); });
   const widths=Object.keys(groups).map(Number).sort((a,b)=>a-b);
   const filtered = _piyasaFilter!=='' && widths.includes(Number(_piyasaFilter));
-  const subt = filtered ? ('Filtre: '+_piyasaFilter+' mm '+((STOK_MODU&&STOK_ENLERI.length)?'stok':'piyasa')+' eni')
-                        : 'Piyasa Karton Eni → Kutu Eşleşmesi · Tüm Enler';
+  const subt = filtered ? (t('p_filtre')+' '+_piyasaFilter+' mm '+((STOK_MODU&&STOK_ENLERI.length)?t('p_stok'):t('p_piyasa'))+' '+t('p_eni'))
+                        : t('p_piyasaesle');
 
-  let body=_docHeader('Piyasa Karton Eni Özeti', subt);
+  let body=_docHeader(t('p_t_piyasa'), subt);
 
   // KPI
   let gKutu=0,gBrutM2=0,gBrutTL=0,gSig=0,shownW=0;
@@ -4438,38 +4437,38 @@ function pdfPiyasa(){
     groups[w].forEach(it=>{ gKutu++; if(it.h.sigmaz){gSig++;} else {gBrutM2+=it.h.brutTop; gBrutTL+=it.h.brutTL;} });
   });
   body+='<div class="kpi-row">'
-    + _kpi(_n(gKutu,0),'Toplam Kutu','blue')
-    + _kpi(_n(shownW,0),'Farklı Piyasa Eni','blue')
-    + _kpi(_n(gBrutM2,2)+' m²','Satın Alınan Karton','orange')
-    + _kpi(_n(gBrutTL,2)+' TL','Brüt Maliyet','orange')
-    + (gSig?_kpi(_n(gSig,0),'Stoğa Sığmayan','red'):'')
+    + _kpi(_n(gKutu,0),t('p_toplamkutu'),'blue')
+    + _kpi(_n(shownW,0),t('p_farklipiyasa'),'blue')
+    + _kpi(_n(gBrutM2,2)+' m²',t('p_satinalinan'),'orange')
+    + _kpi(_n(gBrutTL,2)+' TL',t('p_brutmaliyet'),'orange')
+    + (gSig?_kpi(_n(gSig,0),t('p_stogasigmayan'),'red'):'')
     + '</div>';
 
   // Tablo (piyasa enine göre gruplu)
   let head='<thead><tr>'
-    + '<th>Piyasa Eni (mm)</th><th>Hesaplanan Eni (mm)</th><th>Toplam Eni (mm)</th>'
-    + '<th class="l">FEFCO</th><th class="l">Kutu Adı</th><th class="c">Kesim Yönü</th>'
-    + '<th>Karton Boyu (mm)</th><th class="l">Notlar</th></tr></thead>';
+    + '<th>'+t('p_piyasaeni')+' (mm)</th><th>'+t('p_hesaplanani')+'</th><th>'+t('p_toplameni')+'</th>'
+    + '<th class="l">FEFCO</th><th class="l">'+t('p_kutuadi')+'</th><th class="c">'+t('p_kesimyonu')+'</th>'
+    + '<th>'+t('p_kartonboyu')+'</th><th class="l">'+t('p_notlar')+'</th></tr></thead>';
   let rows='';
   widths.forEach(w=>{
     if(filtered && String(w)!==String(_piyasaFilter)) return;
     const list=groups[w];
     let tBrut=0,tBrutTL=0;
     list.forEach(it=>{ if(!it.h.sigmaz){ tBrut+=it.h.brutTop; tBrutTL+=it.h.brutTL; } });
-    const lbl = w>0 ? (_n(w,0)+' mm '+((STOK_MODU&&STOK_ENLERI.length)?'stok':'piyasa')+' eni') : 'STOĞA SIĞMAYAN KUTULAR';
+    const lbl = w>0 ? (_n(w,0)+' mm '+((STOK_MODU&&STOK_ENLERI.length)?t('p_stok'):t('p_piyasa'))+' '+t('p_eni')) : t('p_stogasigmayankutular');
     rows+='<tr><td colspan="8" style="text-align:left;font-weight:800;font-family:\'Barlow Condensed\',Arial,sans-serif;letter-spacing:.4px;padding:5px 8px;'
       + 'background:'+(w>0?'#fbf2df':'#fde9e9')+';color:'+(w>0?'#b06f00':'#c00000')+';border-left:4px solid '+(w>0?'#F5A623':'#c00000')+';">'
-      + '📦 '+esc(lbl)+' &nbsp;·&nbsp; '+list.length+' kutu'
-      + (w>0?' &nbsp;·&nbsp; satın alınan '+_n(tBrut,2)+' m² · '+_n(tBrutTL,2)+' TL':' &nbsp;·&nbsp; maliyete dahil değil')
+      + '📦 '+esc(lbl)+' &nbsp;·&nbsp; '+list.length+' '+t('p_kutu')
+      + (w>0?' &nbsp;·&nbsp; '+t('p_satinalinankisa')+' '+_n(tBrut,2)+' m² · '+_n(tBrutTL,2)+' TL':' &nbsp;·&nbsp; '+t('p_maliyetedahildegil'))
       + '</td></tr>';
     list.forEach(({ft,r,h})=>{
       rows+='<tr>'
-        + '<td>'+(h.sigmaz?'SIĞMAZ':_n(h.piyasa,0))+(h.ikili?' <b style="color:#1565c0">(2×)</b>':'')+'</td>'
+        + '<td>'+(h.sigmaz?t('p_sigmaz'):_n(h.piyasa,0))+(h.ikili?' <b style="color:#1565c0">(2×)</b>':'')+'</td>'
         + '<td>'+_n(h.en,0)+'</td>'
         + '<td>'+(h.sigmaz?'—':_n(h.piyasa,0))+'</td>'
         + '<td class="l"><b>'+esc(ft.kod)+'</b></td>'
         + '<td class="l">'+(esc(r.ad)||'—')+'</td>'
-        + '<td class="c">'+esc(r.yon||'')+'</td>'
+        + '<td class="c">'+esc(yonLabel(r.yon||''))+'</td>'
         + '<td>'+_n(h.boy,0)+'</td>'
         + '<td class="l">'+esc(r.notlar||'')+'</td>'
       + '</tr>';
@@ -4477,13 +4476,11 @@ function pdfPiyasa(){
   });
   body+='<table>'+head+'<tbody>'+rows+'</tbody></table>';
 
-  body+='<p class="note">Bu rapor kutuları <b>piyasa karton enine</b> göre gruplar. '
-    + '“Hesaplanan Eni” kutunun gerçekte gerektirdiği en; “Piyasa / Toplam Eni” ise fiilen satın alınan ruloya yuvarlanmış değerdir. '
-    + 'Her grubun başlığında o enden kesilen kutu sayısı ile satın alınan toplam karton (m² ve TL) gösterilir.'
-    + (filtered?' Rapor yalnızca <b>'+esc(_piyasaFilter)+' mm</b> piyasa enini içerecek şekilde filtrelenmiştir.':'')
+  body+='<p class="note">'+t('p_piyasanote')
+    + (filtered?' <b>'+esc(_piyasaFilter)+' mm</b>':'')
     + '</p>';
 
-  _openReport('ORİMAK · Piyasa Karton Eni Özeti', body, true);
+  _openReport(t('p_ttl_piyasa'), body, true);
 }
 
 // ---------- PDF MENÜSÜ ----------
@@ -4492,20 +4489,20 @@ function openPdfMenu(){
   bg.className='modal-bg';
   bg.innerHTML=
     '<div class="modal-box" style="min-width:440px;max-width:520px;">'
-    + '<h3>📄 PDF Rapor Çıktısı</h3>'
+    + '<h3>'+t('pm_baslik')+'</h3>'
     + '<p style="font-family:\'Barlow Condensed\',sans-serif;font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6;">'
-    + 'Rapor türünü seçin. Açılan önizleme penceresinde <b style="color:var(--orange)">Yazdır → Hedef: "PDF olarak kaydet"</b> ile dosyayı indirin.</p>'
+    + t('pm_aciklama')+'</p>'
     + '<div style="display:flex;flex-direction:column;gap:10px;">'
-    + '<button class="save-btn pdf-opt" onclick="this.closest(\'.modal-bg\').remove();pdfKutuDetay();">📦 Kutu Tipi Detay Raporu'
-    + '<span>Her kutu tipi ayrı sayfada · tüm ölçüler, maliyet, fire ve karton eni kullanımı</span></button>'
-    + '<button class="save-btn pdf-opt" onclick="this.closest(\'.modal-bg\').remove();pdfFire();">🔥 Fire Analizi Raporu'
-    + '<span>İşleme + piyasa eni firesi, fire maliyeti, karton eni bazında fire dağılımı</span></button>'
-    + '<button class="save-btn pdf-opt" onclick="this.closest(\'.modal-bg\').remove();pdfKurumsal();">🏭 Kurumsal Genel Rapor'
-    + '<span>Kapsamlı: üretim, maliyet, fire, fire maliyeti ve karton eni kullanım dağılımı</span></button>'
-    + '<button class="save-btn pdf-opt" onclick="this.closest(\'.modal-bg\').remove();pdfPiyasa();">📦 Piyasa Karton Eni Özeti'
-    + '<span>Hangi kutu hangi piyasa enini kullanıyor · piyasa enine göre gruplu eşleşme listesi</span></button>'
+    + '<button class="save-btn pdf-opt" onclick="this.closest(\'.modal-bg\').remove();pdfKutuDetay();">'+t('pm_kutudetay')
+    + '<span>'+t('pm_kutudetay_sub')+'</span></button>'
+    + '<button class="save-btn pdf-opt" onclick="this.closest(\'.modal-bg\').remove();pdfFire();">'+t('pm_fire')
+    + '<span>'+t('pm_fire_sub')+'</span></button>'
+    + '<button class="save-btn pdf-opt" onclick="this.closest(\'.modal-bg\').remove();pdfKurumsal();">'+t('pm_kurumsal')
+    + '<span>'+t('pm_kurumsal_sub')+'</span></button>'
+    + '<button class="save-btn pdf-opt" onclick="this.closest(\'.modal-bg\').remove();pdfPiyasa();">'+t('pm_piyasa')
+    + '<span>'+t('pm_piyasa_sub')+'</span></button>'
     + '</div>'
-    + '<div class="modal-btns"><button class="modal-btn cancel" onclick="this.closest(\'.modal-bg\').remove();">Kapat</button></div>'
+    + '<div class="modal-btns"><button class="modal-btn cancel" onclick="this.closest(\'.modal-bg\').remove();">'+t('p_kapat')+'</button></div>'
     + '</div>';
   bg.addEventListener('click',e=>{ if(e.target===bg) bg.remove(); });
   document.body.appendChild(bg);
@@ -4555,6 +4552,177 @@ const I18N_DEFAULTS = {
     lm_title:       'Dil Yönetimi',
     lm_desc:        'Seçili dil için tüm arayüz metinlerini düzenleyin. Değişiklikler anında uygulanır.',
     lm_save:        '💾 Kaydet',
+    p_uyari_pre:     'UYARI:',
+    p_uyari_post:    'ölçü stoktaki karton enlerine sığmadığı için toplamlara dahil edilmemiştir.',
+    p_toplamadet:          'Toplam Adet',
+    p_satinalinan:         'Satın Alınan Karton',
+    p_brutmaliyet:         'Brüt Maliyet',
+    p_urunegiden:          'Ürüne Giden',
+    p_fireorani:           'Fire Oranı',
+    p_firemaliyeti:        'Fire Maliyeti',
+    p_toplamfire:          'Toplam Fire',
+    p_genelfireorani:      'Genel Fire Oranı',
+    p_toplamfiremaliyet:   'Toplam Fire Maliyeti',
+    p_toplamrulo:          'Toplam Rulo',
+    p_toplamkutu:          'Toplam Kutu',
+    p_farklipiyasa:        'Farklı Piyasa Eni',
+    p_stogasigmayan:       'Stoğa Sığmayan',
+    p_kutuadi:             'Kutu Adı',
+    p_yon:                 'Yön',
+    p_adet:                'Adet',
+    p_keni:                'K.Eni',
+    p_piyasaeni:           'Piyasa Eni',
+    p_kboy:                'K.Boy',
+    p_kalipm2ad:           'Kalıp m²/Ad',
+    p_kalipm2:             'Kalıp m²',
+    p_brtl:                'Br.TL',
+    p_brutm2:              'BRÜT m²',
+    p_bruttl:              'BRÜT TL',
+    p_fireyuzde:           'Fire %',
+    p_firem2:              'Fire m²',
+    p_firetl:              'Fire TL',
+    p_rulom:               'Rulo m',
+    p_formul:              'Formül (En × Boy):',
+    p_toplam:              'TOPLAM',
+    p_olcu:                'ölçü',
+    p_piyasakullanim:      'Piyasa Karton Eni Kullanımı —',
+    p_kullanilanolcu:      'Kullanılan Ölçü',
+    p_fefcotipi:           'FEFCO Tipi',
+    p_ad:                  'Ad',
+    p_islemefire:          'İşleme Fire %',
+    p_piyasaenifire:       'Piyasa Eni Fire %',
+    p_toplamfireyuzde:     'Toplam Fire %',
+    p_geneltoplam:         'GENEL TOPLAM',
+    p_tipbazfire:          'Kutu Tipi Bazında Fire Dökümü',
+    p_piyasabazfire:       'Piyasa Karton Eni Bazında Fire Dağılımı',
+    p_firemaliyettl:       'Fire Maliyeti TL',
+    p_firenote:            'Fire = İşleme firesi (kesim/slot ağzı kaybı) + Piyasa eni firesi (hesaplanan en ile rulo eni arasındaki şerit kaybı). Tüm fire yüzdeleri SATIN ALINAN (brüt) kartona göre hesaplanır; bu nedenle işleme % + piyasa eni % = toplam % eşitliği her satırda sağlanır. Fire oranı ≤ %5 düşük, %5–12 orta, &gt; %12 yüksek olarak değerlendirilir.',
+    p_tipbazozet:          'Kutu Tipi Bazında Özet',
+    p_brutmaliyettl:       'BRÜT Maliyet TL',
+    p_piyasakullanimdagilim: 'Piyasa Karton Eni Kullanım Dağılımı',
+    p_kullanimaciklama:    'Hangi piyasa karton eninden kaç farklı ölçü ve kaç adet kutu üretiliyor:',
+    p_kullanilanolcusayisi: 'Kullanılan Ölçü Sayısı',
+    p_brutm2satin:         'BRÜT m² (satın alınan)',
+    p_tahminifiremaliyet:  'Tahmini Fire Maliyeti TL',
+    p_kurumsalnote:        'Bu rapor mevcut girilen tüm kutu ölçüleri üzerinden otomatik hesaplanmıştır. <b>BRÜT maliyet = fiilen satın alınan karton (rulo eni payı × kalıp boyu) × birim TL</b> — yani karton faturasının karşılığıdır. Ürüne giden + Fire = Brüt eşitliği her satırda sağlanır; bu iki kalem birbirine EKLENMEZ, brütü paylaşır. Kalıp alanı (en × boy) yalnızca bilgi amaçlıdır ve satın alınan miktardan küçüktür.',
+    p_hesaplanani:         'Hesaplanan Eni (mm)',
+    p_toplameni:           'Toplam Eni (mm)',
+    p_kesimyonu:           'Kesim Yönü',
+    p_kartonboyu:          'Karton Boyu (mm)',
+    p_notlar:              'Notlar',
+    p_stogasigmayankutular: 'STOĞA SIĞMAYAN KUTULAR',
+    p_kutu:                'kutu',
+    p_satinalinankisa:     'satın alınan',
+    p_maliyetedahildegil:  'maliyete dahil değil',
+    p_sigmaz:              'SIĞMAZ',
+    p_piyasanote:          'Bu rapor kutuları <b>piyasa karton enine</b> göre gruplar. “Hesaplanan Eni” kutunun gerçekte gerektirdiği en; “Piyasa / Toplam Eni” ise fiilen satın alınan ruloya yuvarlanmış değerdir. Her grubun başlığında o enden kesilen kutu sayısı ile satın alınan toplam karton (m² ve TL) gösterilir.',
+    p_filtre:              'Filtre:',
+    p_stok:                'stok',
+    p_piyasa:              'piyasa',
+    p_eni:                 'eni',
+    p_piyasaesle:          'Piyasa Karton Eni → Kutu Eşleşmesi · Tüm Enler',
+    p_t_kutudetay:         'Kutu Tipi Detay Raporu',
+    p_st_kutudetay:        'Her Kutu Tipi · Ölçü · Maliyet · Fire Dökümü',
+    p_ttl_kutudetay:       'ORİMAK · Kutu Tipi Detay Raporu',
+    p_t_fire:              'Fire Analizi Raporu',
+    p_st_fire:             'İşleme + Piyasa Eni Firesi · Fire Maliyeti',
+    p_ttl_fire:            'ORİMAK · Fire Analizi Raporu',
+    p_t_kurumsal:          'Kurumsal Üretim & Maliyet Raporu',
+    p_st_kurumsal:         'Genel Özet · Üretim · Maliyet · Fire · Karton Eni',
+    p_ttl_kurumsal:        'ORİMAK · Kurumsal Genel Rapor',
+    p_t_piyasa:            'Piyasa Karton Eni Özeti',
+    p_ttl_piyasa:          'ORİMAK · Piyasa Karton Eni Özeti',
+    p_yazdir:              '🖨️ Yazdır / PDF Kaydet',
+    p_kapat:               'Kapat',
+    p_ipucu:               'İpucu: Açılan pencerede <b>Hedef → "PDF olarak kaydet"</b> seçin. Renkli arka plan için <b>"Arka plan grafikleri"</b> işaretli olsun.',
+    p_footer:              'ORİMAK MAKİNA · FEFCO Karton Eni Hesaplama Sistemi',
+    p_popupengel:          'Açılır pencere engellendi. Lütfen bu sayfa için pop-up iznini açın.',
+    p_onceolcu:            'Önce en az bir kutuya L, B, H ölçüsü girin.',
+    pm_baslik:             '📄 PDF Rapor Çıktısı',
+    pm_aciklama:           'Rapor türünü seçin. Açılan önizleme penceresinde <b style="color:var(--orange)">Yazdır → Hedef: "PDF olarak kaydet"</b> ile dosyayı indirin.',
+    pm_kutudetay:          '📦 Kutu Tipi Detay Raporu',
+    pm_kutudetay_sub:      'Her kutu tipi ayrı sayfada · tüm ölçüler, maliyet, fire ve karton eni kullanımı',
+    pm_fire:               '🔥 Fire Analizi Raporu',
+    pm_fire_sub:           'İşleme + piyasa eni firesi, fire maliyeti, karton eni bazında fire dağılımı',
+    pm_kurumsal:           '🏭 Kurumsal Genel Rapor',
+    pm_kurumsal_sub:       'Kapsamlı: üretim, maliyet, fire, fire maliyeti ve karton eni kullanım dağılımı',
+    pm_piyasa:             '📦 Piyasa Karton Eni Özeti',
+    pm_piyasa_sub:         'Hangi kutu hangi piyasa enini kullanıyor · piyasa enine göre gruplu eşleşme listesi',
+    md_yenisekme:          'Yeni Sekme Ekle',
+    md_sekmeduzenle:       'Sekme Düzenle',
+    md_kod:                'Kod (örn: FEFCO 0500 veya ÖZEL-2)',
+    md_ad:                 'Ad',
+    md_hint:               'Herhangi büyük harf · <b>K</b> / <b>K1</b> / <b>K2</b> = kulak payları · Formülde varsa tabloda sütun olarak çıkar, her satırda ayrı girilebilir',
+    md_ozelmod:            'ÖZEL mod — Özel En / Boy sütunları da göster',
+    md_iptal:              'İptal',
+    md_kaydet:             'Kaydet',
+    md_ekle:               'Ekle',
+    clr_baslik:            '🗑️ Veri Temizle',
+    clr_tektip:            'Sadece bir kutu tipinin girilen ölçülerini sil',
+    clr_tipyok:            '— Tip yok —',
+    clr_hint1:             'Seçilen sekmedeki tüm satırlar/ölçüler temizlenir; sekme, formül ve diğer tipler korunur.',
+    clr_secilisil:         'Seçili Tipin Ölçülerini Sil',
+    clr_tehlikeli:         'Tehlikeli alan',
+    clr_hint2:             'Aşağıdaki seçenek <b>bütün</b> sekmelerdeki tüm verileri siler ve uygulamayı varsayılana döndürür.',
+    clr_tumsil:            '⚠️ TÜM Verileri Sil',
+    oz_legend1:        '<b style="color:#38bdf8">BRÜT</b> = fiilen satın alınan karton (rulo eni payı × kalıp boyu) — <b>karton faturasının karşılığı</b>, teklif ve sipariş bu sayıyla verilir.',
+    oz_legend2:        '<b style="color:#4ade80">ÜRÜNE GİDEN</b> + <b style="color:#f87171">FİRE</b> = BRÜT. Bu iki kalem birbirine <u>eklenmez</u>, brütü paylaşır.',
+    oz_legend3:        '<b style="color:var(--muted)">KALIP ALANI</b> (en × boy) yalnızca tasarım kıyaslaması içindir; satın alınan miktardan küçüktür, maliyet olarak kullanılmaz.',
+    oz_satinalinan:    'Satın Alınan Karton (Brüt)',
+    oz_genetoplam:     'Genel Toplam Maliyet (Brüt)',
+    oz_toplamrulo:     'Toplam Rulo',
+    oz_urunegiden:     'Ürüne Giden Malzeme',
+    oz_firemaliyet:    'Fire Maliyeti',
+    oz_kalipalani:     'Kalıp Alanı (bilgi)',
+    pi_hint:           '⚠️ Kutulara L, B, H bilgisi girdikçe otomatik güncellenir. Sadece dolu kutular listelenir.',
+    pi_filtre:         'Piyasa eni filtresi:',
+    pi_tumunugoster:   'Tümünü Göster',
+    pi_pdfbtn:         '📄 Bu Sekmeyi PDF Al',
+    pi_hint2:          '↔️ Turuncu tutamaçtan <b style="color:var(--muted);">sürükleyerek</b> sütun genişliğini ayarlayın · tutamaca <b style="color:var(--muted);">çift tıklayınca</b> içeriğe sığar. Kutu Adı sütunu varsayılan olarak en uzun isme göre açılır.',
+    pi_sigdir:         '↔ Kutu adına sığdır',
+    pi_sifirla:        '↺ Sıfırla',
+    fr_ideal:          '● ≤5% — İdeal',
+    fr_dikkat:         '● 5–12% — Dikkat',
+    fr_yuksek:         '● &gt;12% — Yüksek Fire',
+    fr_hint:           'Karton Eni hesaplanan değere yakın olduğunda fire düşük kalır. Piyasada mevcut bir sonraki boy seçildiğinde fire nasıl arttığını aşağıda görebilirsiniz.',
+    kl_nasil:          'Nasıl çalışır?',
+    kl_s1:             '1) Aşağıda FEFCO tipi seçin.',
+    kl_s2:             '2) Bildiğiniz kutu ölçülerini ve <strong>gerçek fire yüzdesini</strong> girin (en az 2 örnek).',
+    kl_s3:             '3) "Kalibre Et" butonuna basın — sistem verilerinize en uygun fire katsayılarını öğrenir.',
+    kl_s4:             '4) Sonra yeni ölçüler girdiğinizde öğrenilen formülle fire tahmini yapılır.',
+    kl_not:            '<strong>Not:</strong> Kalibrasyon her FEFCO tipi için ayrı yapılır ve kaydedilir. Buraya ölçtüğün <strong>gerçek TOPLAM fire yüzdesini</strong> gir (piyasa eni firesi dahil — yani üretimde gördüğün gerçek fire). Sistem her örnek için piyasa eni payını otomatik düşüp işleme firesini öğrenir, tahminde tekrar ekler; böylece çift sayım olmaz ve sonuç senin girdiğin gerçek toplamla örtüşür.',
+    kl_fefcotipi:      'FEFCO Tipi',
+    kl_tipsecin:       'Tip seçin',
+    kl_yon:            'YÖN',
+    kl_ornekekle:      '＋ Örnek Ekle',
+    kl_kalibreet:      '🎯 KALİBRE ET',
+    kl_temizle:        '🗑 Temizle',
+    kl_sonuc:          'SONUÇ',
+    kl_ogrenilen:      'Öğrenilen Fire Katsayıları',
+    kl_ogrformul:      'ÖĞRENİLEN FORMÜL',
+    kl_tahmin:         'TAHMİN',
+    kl_yenitahmin:     'Yeni Kutu Fire Tahmini',
+    kl_hesapla:        '📐 Hesapla',
+    stok_ph:           'örn: 1100, 1300',
+    stok_piyasaenleri: 'PİYASA ENLERİ',
+    stok_stokmodu:     'STOK ENLERİ',
+    stok_denensin:     'Denensin (oluk yönü döner!)',
+    stok_emptyhint:    'Henüz karton eni girilmedi — piyasa enleri (100\'ün katları) kullanılıyor',
+    save_kaydedildi:   '💾 Kaydedildi!',
+    yu_msg:            '⚠️ Yaptığınız değişiklikler kaybolabilir! Lütfen JSON olarak kaydedin.',
+    yu_kapat:          'Kapat',
+    lm_sifirla:        '↺ Sıfırla',
+    lm_disaaktar:      '📤 Dışa Aktar',
+    lm_iceaktar:       '📥 İçe Aktar',
+    yon_dikey:         'DİKEY',
+    yon_yatay:         'YATAY',
+    yon_dikey_ikili:   'DİKEY İKİLİ',
+    yon_yatay_ikili:   'YATAY İKİLİ',
+    yon_dikey_90:      'DİKEY 90°',
+    yon_yatay_90:      'YATAY 90°',
+    yon_dikey_90_ikili: 'DİKEY 90° İKİLİ',
+    yon_yatay_90_ikili: 'YATAY 90° İKİLİ',
+    yon_hepsini:       '— Hepsini çevir —',
     col_ad:         'Kutu Adı',
     col_yon:        'Yön / Kesim',
     col_en:         'Karton Eni',
@@ -4649,6 +4817,177 @@ const I18N_DEFAULTS = {
     lm_title:       'Language Manager',
     lm_desc:        'Edit all interface texts for the selected language. Changes apply instantly.',
     lm_save:        '💾 Save',
+    p_uyari_pre:     'WARNING:',
+    p_uyari_post:    'entries were excluded from totals because they do not fit the stock board widths.',
+    p_toplamadet:          'Total Qty',
+    p_satinalinan:         'Purchased Board',
+    p_brutmaliyet:         'Gross Cost',
+    p_urunegiden:          'Used in Product',
+    p_fireorani:           'Waste Rate',
+    p_firemaliyeti:        'Waste Cost',
+    p_toplamfire:          'Total Waste',
+    p_genelfireorani:      'Overall Waste Rate',
+    p_toplamfiremaliyet:   'Total Waste Cost',
+    p_toplamrulo:          'Total Roll',
+    p_toplamkutu:          'Total Boxes',
+    p_farklipiyasa:        'Distinct Market Widths',
+    p_stogasigmayan:       'Not Fitting Stock',
+    p_kutuadi:             'Box Name',
+    p_yon:                 'Direction',
+    p_adet:                'Qty',
+    p_keni:                'B.Width',
+    p_piyasaeni:           'Market Width',
+    p_kboy:                'B.Length',
+    p_kalipm2ad:           'Blank m²/Pc',
+    p_kalipm2:             'Blank m²',
+    p_brtl:                'U.TL',
+    p_brutm2:              'GROSS m²',
+    p_bruttl:              'GROSS TL',
+    p_fireyuzde:           'Waste %',
+    p_firem2:              'Waste m²',
+    p_firetl:              'Waste TL',
+    p_rulom:               'Roll m',
+    p_formul:              'Formula (Width × Length):',
+    p_toplam:              'TOTAL',
+    p_olcu:                'entries',
+    p_piyasakullanim:      'Market Board Width Usage —',
+    p_kullanilanolcu:      'Entries Used',
+    p_fefcotipi:           'FEFCO Type',
+    p_ad:                  'Name',
+    p_islemefire:          'Processing Waste %',
+    p_piyasaenifire:       'Market Width Waste %',
+    p_toplamfireyuzde:     'Total Waste %',
+    p_geneltoplam:         'GRAND TOTAL',
+    p_tipbazfire:          'Waste Breakdown by Box Type',
+    p_piyasabazfire:       'Waste Distribution by Market Width',
+    p_firemaliyettl:       'Waste Cost TL',
+    p_firenote:            'Waste = Processing waste (cut/slot loss) + Market-width waste (strip loss between calculated width and roll width). All waste percentages are computed on the PURCHASED (gross) board; thus processing % + market-width % = total % holds per row. A waste rate ≤ 5% is low, 5–12% medium, &gt; 12% high.',
+    p_tipbazozet:          'Summary by Box Type',
+    p_brutmaliyettl:       'GROSS Cost TL',
+    p_piyasakullanimdagilim: 'Market Board Width Usage Distribution',
+    p_kullanimaciklama:    'How many distinct entries and boxes are produced from each market board width:',
+    p_kullanilanolcusayisi: 'Distinct Entries',
+    p_brutm2satin:         'GROSS m² (purchased)',
+    p_tahminifiremaliyet:  'Est. Waste Cost TL',
+    p_kurumsalnote:        'This report is computed automatically from all entered box dimensions. <b>GROSS cost = board actually purchased (roll width share × blank length) × unit TL</b> — the invoice equivalent. Used-in-product + Waste = Gross holds per row; these two are NOT added, they share the gross. Blank area (width × length) is informational and smaller than the purchased amount.',
+    p_hesaplanani:         'Calculated Width (mm)',
+    p_toplameni:           'Total Width (mm)',
+    p_kesimyonu:           'Cut Direction',
+    p_kartonboyu:          'Board Length (mm)',
+    p_notlar:              'Notes',
+    p_stogasigmayankutular: 'BOXES NOT FITTING STOCK',
+    p_kutu:                'boxes',
+    p_satinalinankisa:     'purchased',
+    p_maliyetedahildegil:  'not included in cost',
+    p_sigmaz:              'NO FIT',
+    p_piyasanote:          'This report groups boxes by <b>market board width</b>. "Calculated Width" is the width the box truly needs; "Market / Total Width" is the value rounded to the roll actually purchased. Each group header shows the number of boxes cut from that width and the total purchased board (m² and TL).',
+    p_filtre:              'Filter:',
+    p_stok:                'stock',
+    p_piyasa:              'market',
+    p_eni:                 'width',
+    p_piyasaesle:          'Market Board Width → Box Match · All Widths',
+    p_t_kutudetay:         'Box Type Detail Report',
+    p_st_kutudetay:        'Each Box Type · Dimensions · Cost · Waste',
+    p_ttl_kutudetay:       'ORİMAK · Box Type Detail Report',
+    p_t_fire:              'Waste Analysis Report',
+    p_st_fire:             'Processing + Market-Width Waste · Waste Cost',
+    p_ttl_fire:            'ORİMAK · Waste Analysis Report',
+    p_t_kurumsal:          'Corporate Production & Cost Report',
+    p_st_kurumsal:         'Overview · Production · Cost · Waste · Board Width',
+    p_ttl_kurumsal:        'ORİMAK · Corporate Overview Report',
+    p_t_piyasa:            'Market Board Width Summary',
+    p_ttl_piyasa:          'ORİMAK · Market Board Width Summary',
+    p_yazdir:              '🖨️ Print / Save PDF',
+    p_kapat:               'Close',
+    p_ipucu:               'Tip: In the dialog, choose <b>Destination → "Save as PDF"</b>. Enable <b>"Background graphics"</b> for colors.',
+    p_footer:              'ORİMAK MAKİNA · FEFCO Board Width Calculation System',
+    p_popupengel:          'Pop-up blocked. Please allow pop-ups for this page.',
+    p_onceolcu:            'First enter L, B, H for at least one box.',
+    pm_baslik:             '📄 PDF Report Output',
+    pm_aciklama:           'Choose a report type. In the preview window, download via <b style="color:var(--orange)">Print → Destination: "Save as PDF"</b>.',
+    pm_kutudetay:          '📦 Box Type Detail Report',
+    pm_kutudetay_sub:      'Each box type on its own page · all dimensions, cost, waste and board width usage',
+    pm_fire:               '🔥 Waste Analysis Report',
+    pm_fire_sub:           'Processing + market-width waste, waste cost, distribution by board width',
+    pm_kurumsal:           '🏭 Corporate Overview Report',
+    pm_kurumsal_sub:       'Comprehensive: production, cost, waste, waste cost and board width usage',
+    pm_piyasa:             '📦 Market Board Width Summary',
+    pm_piyasa_sub:         'Which box uses which market width · match list grouped by width',
+    md_yenisekme:          'Add New Tab',
+    md_sekmeduzenle:       'Edit Tab',
+    md_kod:                'Code (e.g. FEFCO 0500 or CUSTOM-2)',
+    md_ad:                 'Name',
+    md_hint:               'Any uppercase letter · <b>K</b> / <b>K1</b> / <b>K2</b> = flap allowances · Appears as a column if used, editable per row',
+    md_ozelmod:            'CUSTOM mode — also show Custom Width / Length columns',
+    md_iptal:              'Cancel',
+    md_kaydet:             'Save',
+    md_ekle:               'Add',
+    clr_baslik:            '🗑️ Clear Data',
+    clr_tektip:            'Delete entries of just one box type',
+    clr_tipyok:            '— No type —',
+    clr_hint1:             'All rows/entries in the selected tab are cleared; the tab, formula and other types are kept.',
+    clr_secilisil:         'Delete Selected Type\'s Entries',
+    clr_tehlikeli:         'Danger zone',
+    clr_hint2:             'The option below deletes all data in <b>every</b> tab and resets the app to defaults.',
+    clr_tumsil:            '⚠️ Delete ALL Data',
+    oz_legend1:        '<b style="color:#38bdf8">GROSS</b> = board actually purchased (roll width share × blank length) — <b>the invoice equivalent</b>; quotes and orders use this figure.',
+    oz_legend2:        '<b style="color:#4ade80">USED IN PRODUCT</b> + <b style="color:#f87171">WASTE</b> = GROSS. These two are <u>not added</u> together; they share the gross.',
+    oz_legend3:        '<b style="color:var(--muted)">BLANK AREA</b> (width × length) is only for design comparison; smaller than the purchased amount and not used as cost.',
+    oz_satinalinan:    'Purchased Board (Gross)',
+    oz_genetoplam:     'Grand Total Cost (Gross)',
+    oz_toplamrulo:     'Total Roll',
+    oz_urunegiden:     'Material Used in Product',
+    oz_firemaliyet:    'Waste Cost',
+    oz_kalipalani:     'Blank Area (info)',
+    pi_hint:           '⚠️ Updates automatically as you enter L, B, H for boxes. Only filled boxes are listed.',
+    pi_filtre:         'Market width filter:',
+    pi_tumunugoster:   'Show All',
+    pi_pdfbtn:         '📄 Export This Tab as PDF',
+    pi_hint2:          '↔️ <b style="color:var(--muted);">Drag</b> the orange handle to adjust column width · <b style="color:var(--muted);">double-click</b> it to fit content. The Box Name column opens to the longest name by default.',
+    pi_sigdir:         '↔ Fit to box name',
+    pi_sifirla:        '↺ Reset',
+    fr_ideal:          '● ≤5% — Ideal',
+    fr_dikkat:         '● 5–12% — Caution',
+    fr_yuksek:         '● &gt;12% — High Waste',
+    fr_hint:           'Waste stays low when the board width is close to the calculated value. Below you can see how waste increases when the next available market width is chosen.',
+    kl_nasil:          'How does it work?',
+    kl_s1:             '1) Select a FEFCO type below.',
+    kl_s2:             '2) Enter known box dimensions and the <strong>actual waste percentage</strong> (at least 2 samples).',
+    kl_s3:             '3) Click "Calibrate" — the system learns the waste coefficients best fitting your data.',
+    kl_s4:             '4) Then, when you enter new dimensions, waste is predicted with the learned formula.',
+    kl_not:            '<strong>Note:</strong> Calibration is done and saved separately for each FEFCO type. Enter the <strong>actual TOTAL waste percentage</strong> you measured (including market-width waste — i.e. the real waste seen in production). For each sample the system automatically subtracts the market-width share and learns the processing waste, then re-adds it in prediction; so there is no double counting and the result matches your entered total.',
+    kl_fefcotipi:      'FEFCO Type',
+    kl_tipsecin:       'Select a type',
+    kl_yon:            'DIRECTION',
+    kl_ornekekle:      '＋ Add Sample',
+    kl_kalibreet:      '🎯 CALIBRATE',
+    kl_temizle:        '🗑 Clear',
+    kl_sonuc:          'RESULT',
+    kl_ogrenilen:      'Learned Waste Coefficients',
+    kl_ogrformul:      'LEARNED FORMULA',
+    kl_tahmin:         'PREDICTION',
+    kl_yenitahmin:     'New Box Waste Prediction',
+    kl_hesapla:        '📐 Calculate',
+    stok_ph:           'e.g. 1100, 1300',
+    stok_piyasaenleri: 'MARKET WIDTHS',
+    stok_stokmodu:     'STOCK WIDTHS',
+    stok_denensin:     'Try it (flute direction rotates!)',
+    stok_emptyhint:    'No board width entered yet — market widths (multiples of 100) are used',
+    save_kaydedildi:   '💾 Saved!',
+    yu_msg:            '⚠️ Your changes may be lost! Please save as JSON.',
+    yu_kapat:          'Close',
+    lm_sifirla:        '↺ Reset',
+    lm_disaaktar:      '📤 Export',
+    lm_iceaktar:       '📥 Import',
+    yon_dikey:         'VERTICAL',
+    yon_yatay:         'HORIZONTAL',
+    yon_dikey_ikili:   'VERTICAL DOUBLE',
+    yon_yatay_ikili:   'HORIZONTAL DOUBLE',
+    yon_dikey_90:      'VERTICAL 90°',
+    yon_yatay_90:      'HORIZONTAL 90°',
+    yon_dikey_90_ikili: 'VERTICAL 90° DOUBLE',
+    yon_yatay_90_ikili: 'HORIZONTAL 90° DOUBLE',
+    yon_hepsini:       '— Convert all —',
     col_ad:         'Box Name',
     col_yon:        'Direction / Cut',
     col_en:         'Board Width',
@@ -4743,6 +5082,177 @@ const I18N_DEFAULTS = {
     lm_title:       'Sprachverwaltung',
     lm_desc:        'Bearbeiten Sie alle Oberflächentexte für die gewählte Sprache. Änderungen werden sofort übernommen.',
     lm_save:        '💾 Speichern',
+    p_uyari_pre:     'WARNUNG:',
+    p_uyari_post:    'Maße wurden von den Summen ausgeschlossen, da sie nicht in die Lagerbreiten passen.',
+    p_toplamadet:          'Gesamtmenge',
+    p_satinalinan:         'Gekaufter Karton',
+    p_brutmaliyet:         'Bruttokosten',
+    p_urunegiden:          'Ins Produkt',
+    p_fireorani:           'Verschnittquote',
+    p_firemaliyeti:        'Verschnittkosten',
+    p_toplamfire:          'Gesamtverschnitt',
+    p_genelfireorani:      'Gesamt-Verschnittquote',
+    p_toplamfiremaliyet:   'Gesamt-Verschnittkosten',
+    p_toplamrulo:          'Gesamtrolle',
+    p_toplamkutu:          'Kartons gesamt',
+    p_farklipiyasa:        'Versch. Marktbreiten',
+    p_stogasigmayan:       'Passt nicht ins Lager',
+    p_kutuadi:             'Kartonname',
+    p_yon:                 'Richtung',
+    p_adet:                'Menge',
+    p_keni:                'K.Breite',
+    p_piyasaeni:           'Marktbreite',
+    p_kboy:                'K.Länge',
+    p_kalipm2ad:           'Zuschnitt m²/St',
+    p_kalipm2:             'Zuschnitt m²',
+    p_brtl:                'P.TL',
+    p_brutm2:              'BRUTTO m²',
+    p_bruttl:              'BRUTTO TL',
+    p_fireyuzde:           'Verschnitt %',
+    p_firem2:              'Verschnitt m²',
+    p_firetl:              'Verschnitt TL',
+    p_rulom:               'Rolle m',
+    p_formul:              'Formel (Breite × Länge):',
+    p_toplam:              'GESAMT',
+    p_olcu:                'Maße',
+    p_piyasakullanim:      'Marktkartonbreiten-Nutzung —',
+    p_kullanilanolcu:      'Verwendete Maße',
+    p_fefcotipi:           'FEFCO-Typ',
+    p_ad:                  'Name',
+    p_islemefire:          'Verarbeitungsverschnitt %',
+    p_piyasaenifire:       'Marktbreiten-Verschnitt %',
+    p_toplamfireyuzde:     'Gesamtverschnitt %',
+    p_geneltoplam:         'GESAMTSUMME',
+    p_tipbazfire:          'Verschnitt nach Kartontyp',
+    p_piyasabazfire:       'Verschnittverteilung nach Marktbreite',
+    p_firemaliyettl:       'Verschnittkosten TL',
+    p_firenote:            'Verschnitt = Verarbeitungsverschnitt (Schnitt-/Schlitzverlust) + Marktbreiten-Verschnitt (Streifenverlust zwischen berechneter Breite und Rollenbreite). Alle Prozentsätze basieren auf dem GEKAUFTEN (Brutto-)Karton; daher gilt pro Zeile Verarbeitung % + Marktbreite % = Gesamt %. ≤ 5% niedrig, 5–12% mittel, &gt; 12% hoch.',
+    p_tipbazozet:          'Zusammenfassung nach Kartontyp',
+    p_brutmaliyettl:       'BRUTTO-Kosten TL',
+    p_piyasakullanimdagilim: 'Verteilung der Marktbreiten-Nutzung',
+    p_kullanimaciklama:    'Wie viele Maße und Kartons je Marktbreite produziert werden:',
+    p_kullanilanolcusayisi: 'Anzahl Maße',
+    p_brutm2satin:         'BRUTTO m² (gekauft)',
+    p_tahminifiremaliyet:  'Gesch. Verschnittkosten TL',
+    p_kurumsalnote:        'Dieser Bericht wird automatisch aus allen eingegebenen Maßen berechnet. <b>BRUTTO-Kosten = tatsächlich gekaufter Karton (Rollenbreitenanteil × Zuschnittlänge) × Stück-TL</b> — das Rechnungsäquivalent. Ins Produkt + Verschnitt = Brutto pro Zeile; beide werden NICHT addiert, sie teilen das Brutto. Zuschnittfläche ist nur informativ und kleiner als die Kaufmenge.',
+    p_hesaplanani:         'Berechnete Breite (mm)',
+    p_toplameni:           'Gesamtbreite (mm)',
+    p_kesimyonu:           'Schnittrichtung',
+    p_kartonboyu:          'Kartonlänge (mm)',
+    p_notlar:              'Notizen',
+    p_stogasigmayankutular: 'KARTONS PASSEN NICHT INS LAGER',
+    p_kutu:                'Kartons',
+    p_satinalinankisa:     'gekauft',
+    p_maliyetedahildegil:  'nicht in Kosten enthalten',
+    p_sigmaz:              'PASST NICHT',
+    p_piyasanote:          'Dieser Bericht gruppiert Kartons nach <b>Marktkartonbreite</b>. „Berechnete Breite“ ist die tatsächlich benötigte Breite; „Markt-/Gesamtbreite“ ist der auf die gekaufte Rolle gerundete Wert. Jede Gruppenüberschrift zeigt die Kartonanzahl und den gekauften Karton (m² und TL).',
+    p_filtre:              'Filter:',
+    p_stok:                'Lager',
+    p_piyasa:              'Markt',
+    p_eni:                 'Breite',
+    p_piyasaesle:          'Marktkartonbreite → Karton-Zuordnung · Alle Breiten',
+    p_t_kutudetay:         'Kartontyp-Detailbericht',
+    p_st_kutudetay:        'Jeder Kartontyp · Maße · Kosten · Verschnitt',
+    p_ttl_kutudetay:       'ORİMAK · Kartontyp-Detailbericht',
+    p_t_fire:              'Verschnittanalyse-Bericht',
+    p_st_fire:             'Verarbeitung + Marktbreiten-Verschnitt · Kosten',
+    p_ttl_fire:            'ORİMAK · Verschnittanalyse-Bericht',
+    p_t_kurumsal:          'Produktions- & Kostenbericht',
+    p_st_kurumsal:         'Übersicht · Produktion · Kosten · Verschnitt · Breite',
+    p_ttl_kurumsal:        'ORİMAK · Unternehmens-Gesamtbericht',
+    p_t_piyasa:            'Marktkartonbreiten-Übersicht',
+    p_ttl_piyasa:          'ORİMAK · Marktkartonbreiten-Übersicht',
+    p_yazdir:              '🖨️ Drucken / PDF speichern',
+    p_kapat:               'Schließen',
+    p_ipucu:               'Tipp: Wählen Sie im Dialog <b>Ziel → „Als PDF speichern“</b>. Für Farben <b>„Hintergrundgrafiken“</b> aktivieren.',
+    p_footer:              'ORİMAK MAKİNA · FEFCO Kartonbreiten-Berechnungssystem',
+    p_popupengel:          'Pop-up blockiert. Bitte Pop-ups für diese Seite erlauben.',
+    p_onceolcu:            'Geben Sie zuerst L, B, H für mind. einen Karton ein.',
+    pm_baslik:             '📄 PDF-Berichtausgabe',
+    pm_aciklama:           'Wählen Sie einen Berichtstyp. Im Vorschaufenster über <b style="color:var(--orange)">Drucken → Ziel: „Als PDF speichern“</b> herunterladen.',
+    pm_kutudetay:          '📦 Kartontyp-Detailbericht',
+    pm_kutudetay_sub:      'Jeder Kartontyp auf eigener Seite · alle Maße, Kosten, Verschnitt und Breitennutzung',
+    pm_fire:               '🔥 Verschnittanalyse-Bericht',
+    pm_fire_sub:           'Verarbeitung + Marktbreiten-Verschnitt, Kosten, Verteilung nach Breite',
+    pm_kurumsal:           '🏭 Unternehmens-Gesamtbericht',
+    pm_kurumsal_sub:       'Umfassend: Produktion, Kosten, Verschnitt und Breitennutzung',
+    pm_piyasa:             '📦 Marktkartonbreiten-Übersicht',
+    pm_piyasa_sub:         'Welcher Karton welche Marktbreite nutzt · nach Breite gruppiert',
+    md_yenisekme:          'Neuen Tab hinzufügen',
+    md_sekmeduzenle:       'Tab bearbeiten',
+    md_kod:                'Code (z.B. FEFCO 0500 oder SPEZIAL-2)',
+    md_ad:                 'Name',
+    md_hint:               'Jeder Großbuchstabe · <b>K</b> / <b>K1</b> / <b>K2</b> = Laschenzugaben · Erscheint als Spalte, je Zeile editierbar',
+    md_ozelmod:            'SPEZIAL-Modus — auch Sonderbreite/-länge anzeigen',
+    md_iptal:              'Abbrechen',
+    md_kaydet:             'Speichern',
+    md_ekle:               'Hinzufügen',
+    clr_baslik:            '🗑️ Daten löschen',
+    clr_tektip:            'Nur die Maße eines Kartontyps löschen',
+    clr_tipyok:            '— Kein Typ —',
+    clr_hint1:             'Alle Zeilen/Maße im gewählten Tab werden gelöscht; Tab, Formel und andere Typen bleiben.',
+    clr_secilisil:         'Maße des gewählten Typs löschen',
+    clr_tehlikeli:         'Gefahrenzone',
+    clr_hint2:             'Die Option unten löscht alle Daten in <b>allen</b> Tabs und setzt die App zurück.',
+    clr_tumsil:            '⚠️ ALLE Daten löschen',
+    oz_legend1:        '<b style="color:#38bdf8">BRUTTO</b> = tatsächlich gekaufter Karton (Rollenbreitenanteil × Zuschnittlänge) — <b>Rechnungsäquivalent</b>; Angebote und Bestellungen nutzen diese Zahl.',
+    oz_legend2:        '<b style="color:#4ade80">INS PRODUKT</b> + <b style="color:#f87171">VERSCHNITT</b> = BRUTTO. Diese beiden werden <u>nicht addiert</u>; sie teilen sich das Brutto.',
+    oz_legend3:        '<b style="color:var(--muted)">ZUSCHNITTFLÄCHE</b> (Breite × Länge) dient nur dem Designvergleich; kleiner als die Kaufmenge, nicht als Kosten verwendet.',
+    oz_satinalinan:    'Gekaufter Karton (Brutto)',
+    oz_genetoplam:     'Gesamtkosten (Brutto)',
+    oz_toplamrulo:     'Gesamtrolle',
+    oz_urunegiden:     'Material ins Produkt',
+    oz_firemaliyet:    'Verschnittkosten',
+    oz_kalipalani:     'Zuschnittfläche (Info)',
+    pi_hint:           '⚠️ Aktualisiert sich automatisch, sobald L, B, H eingegeben werden. Nur ausgefüllte Kartons werden gelistet.',
+    pi_filtre:         'Marktbreiten-Filter:',
+    pi_tumunugoster:   'Alle anzeigen',
+    pi_pdfbtn:         '📄 Diesen Tab als PDF',
+    pi_hint2:          '↔️ <b style="color:var(--muted);">Ziehen</b> Sie den orangen Griff zur Breitenanpassung · <b style="color:var(--muted);">Doppelklick</b> passt an den Inhalt an. Die Spalte Kartonname öffnet standardmäßig zum längsten Namen.',
+    pi_sigdir:         '↔ An Kartonnamen anpassen',
+    pi_sifirla:        '↺ Zurücksetzen',
+    fr_ideal:          '● ≤5% — Ideal',
+    fr_dikkat:         '● 5–12% — Achtung',
+    fr_yuksek:         '● &gt;12% — Hoher Verschnitt',
+    fr_hint:           'Der Verschnitt bleibt gering, wenn die Kartonbreite nahe am berechneten Wert liegt. Unten sehen Sie, wie der Verschnitt bei Wahl der nächsten Marktbreite steigt.',
+    kl_nasil:          'Wie funktioniert es?',
+    kl_s1:             '1) Wählen Sie unten einen FEFCO-Typ.',
+    kl_s2:             '2) Geben Sie bekannte Kartonmaße und den <strong>tatsächlichen Verschnitt-Prozentsatz</strong> ein (mind. 2 Beispiele).',
+    kl_s3:             '3) Klicken Sie auf „Kalibrieren“ — das System lernt die am besten passenden Verschnittkoeffizienten.',
+    kl_s4:             '4) Bei neuen Maßen wird der Verschnitt mit der gelernten Formel vorhergesagt.',
+    kl_not:            '<strong>Hinweis:</strong> Die Kalibrierung erfolgt und wird für jeden FEFCO-Typ separat gespeichert. Geben Sie den gemessenen <strong>tatsächlichen GESAMT-Verschnitt</strong> ein (inkl. Marktbreiten-Verschnitt). Für jedes Beispiel zieht das System den Marktbreitenanteil automatisch ab und lernt den Verarbeitungsverschnitt, fügt ihn bei der Vorhersage wieder hinzu; keine Doppelzählung.',
+    kl_fefcotipi:      'FEFCO-Typ',
+    kl_tipsecin:       'Typ wählen',
+    kl_yon:            'RICHTUNG',
+    kl_ornekekle:      '＋ Beispiel hinzufügen',
+    kl_kalibreet:      '🎯 KALIBRIEREN',
+    kl_temizle:        '🗑 Löschen',
+    kl_sonuc:          'ERGEBNIS',
+    kl_ogrenilen:      'Gelernte Verschnittkoeffizienten',
+    kl_ogrformul:      'GELERNTE FORMEL',
+    kl_tahmin:         'VORHERSAGE',
+    kl_yenitahmin:     'Verschnittvorhersage neuer Karton',
+    kl_hesapla:        '📐 Berechnen',
+    stok_ph:           'z.B. 1100, 1300',
+    stok_piyasaenleri: 'MARKTBREITEN',
+    stok_stokmodu:     'LAGERBREITEN',
+    stok_denensin:     'Versuchen (Wellenrichtung dreht sich!)',
+    stok_emptyhint:    'Noch keine Kartonbreite — Marktbreiten (Vielfache von 100) werden verwendet',
+    save_kaydedildi:   '💾 Gespeichert!',
+    yu_msg:            '⚠️ Ihre Änderungen könnten verloren gehen! Bitte als JSON speichern.',
+    yu_kapat:          'Schließen',
+    lm_sifirla:        '↺ Zurücksetzen',
+    lm_disaaktar:      '📤 Exportieren',
+    lm_iceaktar:       '📥 Importieren',
+    yon_dikey:         'VERTIKAL',
+    yon_yatay:         'HORIZONTAL',
+    yon_dikey_ikili:   'VERTIKAL DOPPELT',
+    yon_yatay_ikili:   'HORIZONTAL DOPPELT',
+    yon_dikey_90:      'VERTIKAL 90°',
+    yon_yatay_90:      'HORIZONTAL 90°',
+    yon_dikey_90_ikili: 'VERTIKAL 90° DOPPELT',
+    yon_yatay_90_ikili: 'HORIZONTAL 90° DOPPELT',
+    yon_hepsini:       '— Alle umwandeln —',
     col_ad:         'Kartonname',
     col_yon:        'Richtung / Schnitt',
     col_en:         'Kartonbreite',
@@ -4837,6 +5347,177 @@ const I18N_DEFAULTS = {
     lm_title:       'Gestion des langues',
     lm_desc:        "Modifiez tous les textes de l'interface pour la langue sélectionnée. Les changements sont appliqués instantanément.",
     lm_save:        '💾 Enregistrer',
+    p_uyari_pre:     'AVERTISSEMENT :',
+    p_uyari_post:    'mesures ont été exclues des totaux car elles ne rentrent pas dans les largeurs stock.',
+    p_toplamadet:          'Qté totale',
+    p_satinalinan:         'Carton acheté',
+    p_brutmaliyet:         'Coût brut',
+    p_urunegiden:          'Dans le produit',
+    p_fireorani:           'Taux de perte',
+    p_firemaliyeti:        'Coût des pertes',
+    p_toplamfire:          'Perte totale',
+    p_genelfireorani:      'Taux de perte global',
+    p_toplamfiremaliyet:   'Coût total des pertes',
+    p_toplamrulo:          'Rouleau total',
+    p_toplamkutu:          'Boîtes totales',
+    p_farklipiyasa:        'Largeurs marché distinctes',
+    p_stogasigmayan:       'Ne rentre pas en stock',
+    p_kutuadi:             'Nom',
+    p_yon:                 'Sens',
+    p_adet:                'Qté',
+    p_keni:                'L.carton',
+    p_piyasaeni:           'Largeur marché',
+    p_kboy:                'Lg.carton',
+    p_kalipm2ad:           'Découpe m²/pc',
+    p_kalipm2:             'Découpe m²',
+    p_brtl:                'Px.TL',
+    p_brutm2:              'BRUT m²',
+    p_bruttl:              'BRUT TL',
+    p_fireyuzde:           'Perte %',
+    p_firem2:              'Perte m²',
+    p_firetl:              'Perte TL',
+    p_rulom:               'Rouleau m',
+    p_formul:              'Formule (Largeur × Longueur) :',
+    p_toplam:              'TOTAL',
+    p_olcu:                'mesures',
+    p_piyasakullanim:      'Utilisation largeur marché —',
+    p_kullanilanolcu:      'Mesures utilisées',
+    p_fefcotipi:           'Type FEFCO',
+    p_ad:                  'Nom',
+    p_islemefire:          'Perte traitement %',
+    p_piyasaenifire:       'Perte largeur marché %',
+    p_toplamfireyuzde:     'Perte totale %',
+    p_geneltoplam:         'TOTAL GÉNÉRAL',
+    p_tipbazfire:          'Répartition perte par type',
+    p_piyasabazfire:       'Répartition perte par largeur marché',
+    p_firemaliyettl:       'Coût perte TL',
+    p_firenote:            'Perte = Perte de traitement (coupe/rainure) + Perte de largeur marché (bande entre largeur calculée et largeur rouleau). Tous les pourcentages sont calculés sur le carton ACHETÉ (brut) ; ainsi traitement % + largeur marché % = total % par ligne. ≤ 5% faible, 5–12% moyen, &gt; 12% élevé.',
+    p_tipbazozet:          'Résumé par type',
+    p_brutmaliyettl:       'Coût BRUT TL',
+    p_piyasakullanimdagilim: 'Répartition d\'utilisation largeur marché',
+    p_kullanimaciklama:    'Combien de mesures et de boîtes par largeur marché :',
+    p_kullanilanolcusayisi: 'Nombre de mesures',
+    p_brutm2satin:         'BRUT m² (acheté)',
+    p_tahminifiremaliyet:  'Coût perte estimé TL',
+    p_kurumsalnote:        'Ce rapport est calculé automatiquement à partir de toutes les dimensions saisies. <b>Coût BRUT = carton réellement acheté (part largeur rouleau × longueur découpe) × TL unitaire</b> — l\'équivalent facture. Dans le produit + Perte = Brut par ligne ; ces deux ne s\'ADDITIONNENT pas, ils partagent le brut. La surface découpe est informative et inférieure à la quantité achetée.',
+    p_hesaplanani:         'Largeur calculée (mm)',
+    p_toplameni:           'Largeur totale (mm)',
+    p_kesimyonu:           'Sens de coupe',
+    p_kartonboyu:          'Longueur carton (mm)',
+    p_notlar:              'Notes',
+    p_stogasigmayankutular: 'BOÎTES HORS STOCK',
+    p_kutu:                'boîtes',
+    p_satinalinankisa:     'acheté',
+    p_maliyetedahildegil:  'non inclus dans le coût',
+    p_sigmaz:              'HORS',
+    p_piyasanote:          'Ce rapport groupe les boîtes par <b>largeur marché</b>. « Largeur calculée » est la largeur réellement requise ; « Largeur marché / totale » est arrondie au rouleau acheté. Chaque en-tête indique le nombre de boîtes et le carton acheté (m² et TL).',
+    p_filtre:              'Filtre :',
+    p_stok:                'stock',
+    p_piyasa:              'marché',
+    p_eni:                 'largeur',
+    p_piyasaesle:          'Largeur marché → Correspondance · Toutes largeurs',
+    p_t_kutudetay:         'Rapport détaillé par type',
+    p_st_kutudetay:        'Chaque type · Dimensions · Coût · Perte',
+    p_ttl_kutudetay:       'ORİMAK · Rapport détaillé par type',
+    p_t_fire:              'Rapport d\'analyse des pertes',
+    p_st_fire:             'Traitement + largeur marché · Coût',
+    p_ttl_fire:            'ORİMAK · Rapport d\'analyse des pertes',
+    p_t_kurumsal:          'Rapport production & coût',
+    p_st_kurumsal:         'Aperçu · Production · Coût · Perte · Largeur',
+    p_ttl_kurumsal:        'ORİMAK · Rapport général',
+    p_t_piyasa:            'Résumé largeur marché',
+    p_ttl_piyasa:          'ORİMAK · Résumé largeur marché',
+    p_yazdir:              '🖨️ Imprimer / PDF',
+    p_kapat:               'Fermer',
+    p_ipucu:               'Astuce : Choisissez <b>Destination → « Enregistrer en PDF »</b>. Activez <b>« Graphiques d\'arrière-plan »</b> pour les couleurs.',
+    p_footer:              'ORİMAK MAKİNA · Système de calcul de largeur FEFCO',
+    p_popupengel:          'Pop-up bloqué. Autorisez les pop-ups pour cette page.',
+    p_onceolcu:            'Saisissez d\'abord L, B, H pour au moins une boîte.',
+    pm_baslik:             '📄 Sortie rapport PDF',
+    pm_aciklama:           'Choisissez un type de rapport. Dans l\'aperçu, téléchargez via <b style="color:var(--orange)">Imprimer → Destination : « Enregistrer en PDF »</b>.',
+    pm_kutudetay:          '📦 Rapport détaillé par type',
+    pm_kutudetay_sub:      'Chaque type sur sa page · dimensions, coût, perte et usage largeur',
+    pm_fire:               '🔥 Rapport d\'analyse des pertes',
+    pm_fire_sub:           'Traitement + perte largeur marché, coût, répartition par largeur',
+    pm_kurumsal:           '🏭 Rapport général',
+    pm_kurumsal_sub:       'Complet : production, coût, perte et usage largeur',
+    pm_piyasa:             '📦 Résumé largeur marché',
+    pm_piyasa_sub:         'Quelle boîte utilise quelle largeur · liste groupée par largeur',
+    md_yenisekme:          'Ajouter un onglet',
+    md_sekmeduzenle:       'Modifier l\'onglet',
+    md_kod:                'Code (ex : FEFCO 0500 ou PERSO-2)',
+    md_ad:                 'Nom',
+    md_hint:               'Toute majuscule · <b>K</b> / <b>K1</b> / <b>K2</b> = marges de rabat · Colonne si utilisée, éditable par ligne',
+    md_ozelmod:            'Mode PERSO — afficher aussi largeur/longueur perso',
+    md_iptal:              'Annuler',
+    md_kaydet:             'Enregistrer',
+    md_ekle:               'Ajouter',
+    clr_baslik:            '🗑️ Effacer les données',
+    clr_tektip:            'Supprimer les mesures d\'un seul type',
+    clr_tipyok:            '— Aucun type —',
+    clr_hint1:             'Toutes les lignes/mesures de l\'onglet sont effacées ; l\'onglet, la formule et les autres types restent.',
+    clr_secilisil:         'Supprimer les mesures du type',
+    clr_tehlikeli:         'Zone dangereuse',
+    clr_hint2:             'L\'option ci-dessous supprime toutes les données de <b>tous</b> les onglets et réinitialise l\'app.',
+    clr_tumsil:            '⚠️ Tout supprimer',
+    oz_legend1:        '<b style="color:#38bdf8">BRUT</b> = carton réellement acheté (part de largeur de rouleau × longueur découpe) — <b>équivalent facture</b> ; devis et commandes utilisent ce chiffre.',
+    oz_legend2:        '<b style="color:#4ade80">DANS LE PRODUIT</b> + <b style="color:#f87171">PERTE</b> = BRUT. Ces deux ne s\'additionnent <u>pas</u> ; ils partagent le brut.',
+    oz_legend3:        '<b style="color:var(--muted)">SURFACE DÉCOUPE</b> (largeur × longueur) sert uniquement à la comparaison de conception ; inférieure à la quantité achetée, non utilisée comme coût.',
+    oz_satinalinan:    'Carton acheté (Brut)',
+    oz_genetoplam:     'Coût total général (Brut)',
+    oz_toplamrulo:     'Rouleau total',
+    oz_urunegiden:     'Matière dans le produit',
+    oz_firemaliyet:    'Coût des pertes',
+    oz_kalipalani:     'Surface découpe (info)',
+    pi_hint:           '⚠️ Se met à jour automatiquement dès la saisie de L, B, H. Seules les boîtes remplies sont listées.',
+    pi_filtre:         'Filtre largeur marché :',
+    pi_tumunugoster:   'Tout afficher',
+    pi_pdfbtn:         '📄 Exporter cet onglet en PDF',
+    pi_hint2:          '↔️ <b style="color:var(--muted);">Faites glisser</b> la poignée orange pour ajuster la largeur · <b style="color:var(--muted);">double-clic</b> pour ajuster au contenu. La colonne Nom s\'ouvre par défaut au nom le plus long.',
+    pi_sigdir:         '↔ Ajuster au nom',
+    pi_sifirla:        '↺ Réinitialiser',
+    fr_ideal:          '● ≤5% — Idéal',
+    fr_dikkat:         '● 5–12% — Attention',
+    fr_yuksek:         '● &gt;12% — Perte élevée',
+    fr_hint:           'La perte reste faible lorsque la largeur du carton est proche de la valeur calculée. Ci-dessous, voyez comment la perte augmente avec la largeur marché suivante.',
+    kl_nasil:          'Comment ça marche ?',
+    kl_s1:             '1) Sélectionnez un type FEFCO ci-dessous.',
+    kl_s2:             '2) Saisissez des dimensions connues et le <strong>pourcentage de perte réel</strong> (au moins 2 exemples).',
+    kl_s3:             '3) Cliquez sur « Calibrer » — le système apprend les coefficients de perte adaptés à vos données.',
+    kl_s4:             '4) Ensuite, pour de nouvelles dimensions, la perte est prédite avec la formule apprise.',
+    kl_not:            '<strong>Note :</strong> La calibration est faite et enregistrée séparément pour chaque type FEFCO. Saisissez le <strong>pourcentage de perte TOTAL réel</strong> mesuré (perte de largeur marché incluse). Pour chaque exemple, le système soustrait automatiquement la part de largeur marché et apprend la perte de traitement, puis la rajoute lors de la prédiction ; aucun double comptage.',
+    kl_fefcotipi:      'Type FEFCO',
+    kl_tipsecin:       'Sélectionner un type',
+    kl_yon:            'SENS',
+    kl_ornekekle:      '＋ Ajouter exemple',
+    kl_kalibreet:      '🎯 CALIBRER',
+    kl_temizle:        '🗑 Effacer',
+    kl_sonuc:          'RÉSULTAT',
+    kl_ogrenilen:      'Coefficients de perte appris',
+    kl_ogrformul:      'FORMULE APPRISE',
+    kl_tahmin:         'PRÉDICTION',
+    kl_yenitahmin:     'Prédiction de perte nouvelle boîte',
+    kl_hesapla:        '📐 Calculer',
+    stok_ph:           'ex : 1100, 1300',
+    stok_piyasaenleri: 'LARGEURS MARCHÉ',
+    stok_stokmodu:     'LARGEURS STOCK',
+    stok_denensin:     'Essayer (le sens de cannelure tourne !)',
+    stok_emptyhint:    'Aucune largeur saisie — largeurs marché (multiples de 100) utilisées',
+    save_kaydedildi:   '💾 Enregistré !',
+    yu_msg:            '⚠️ Vos modifications peuvent être perdues ! Enregistrez en JSON.',
+    yu_kapat:          'Fermer',
+    lm_sifirla:        '↺ Réinitialiser',
+    lm_disaaktar:      '📤 Exporter',
+    lm_iceaktar:       '📥 Importer',
+    yon_dikey:         'VERTICAL',
+    yon_yatay:         'HORIZONTAL',
+    yon_dikey_ikili:   'VERTICAL DOUBLE',
+    yon_yatay_ikili:   'HORIZONTAL DOUBLE',
+    yon_dikey_90:      'VERTICAL 90°',
+    yon_yatay_90:      'HORIZONTAL 90°',
+    yon_dikey_90_ikili: 'VERTICAL 90° DOUBLE',
+    yon_yatay_90_ikili: 'HORIZONTAL 90° DOUBLE',
+    yon_hepsini:       '— Tout convertir —',
     col_ad:         'Nom',
     col_yon:        'Sens / Coupe',
     col_en:         'Largeur carton',
@@ -4931,6 +5612,177 @@ const I18N_DEFAULTS = {
     lm_title:       'Gestión de idiomas',
     lm_desc:        'Edite todos los textos de la interfaz para el idioma seleccionado. Los cambios se aplican al instante.',
     lm_save:        '💾 Guardar',
+    p_uyari_pre:     'ADVERTENCIA:',
+    p_uyari_post:    'medidas se excluyeron de los totales porque no caben en los anchos de stock.',
+    p_toplamadet:          'Cant. total',
+    p_satinalinan:         'Cartón comprado',
+    p_brutmaliyet:         'Costo bruto',
+    p_urunegiden:          'En producto',
+    p_fireorani:           'Tasa de merma',
+    p_firemaliyeti:        'Costo de merma',
+    p_toplamfire:          'Merma total',
+    p_genelfireorani:      'Tasa de merma global',
+    p_toplamfiremaliyet:   'Costo total de merma',
+    p_toplamrulo:          'Rollo total',
+    p_toplamkutu:          'Cajas totales',
+    p_farklipiyasa:        'Anchos mercado distintos',
+    p_stogasigmayan:       'No cabe en stock',
+    p_kutuadi:             'Nombre',
+    p_yon:                 'Dirección',
+    p_adet:                'Cant.',
+    p_keni:                'A.cartón',
+    p_piyasaeni:           'Ancho mercado',
+    p_kboy:                'Lg.cartón',
+    p_kalipm2ad:           'Molde m²/ud',
+    p_kalipm2:             'Molde m²',
+    p_brtl:                'Pr.TL',
+    p_brutm2:              'BRUTO m²',
+    p_bruttl:              'BRUTO TL',
+    p_fireyuzde:           'Merma %',
+    p_firem2:              'Merma m²',
+    p_firetl:              'Merma TL',
+    p_rulom:               'Rollo m',
+    p_formul:              'Fórmula (Ancho × Largo):',
+    p_toplam:              'TOTAL',
+    p_olcu:                'medidas',
+    p_piyasakullanim:      'Uso ancho de mercado —',
+    p_kullanilanolcu:      'Medidas usadas',
+    p_fefcotipi:           'Tipo FEFCO',
+    p_ad:                  'Nombre',
+    p_islemefire:          'Merma proceso %',
+    p_piyasaenifire:       'Merma ancho mercado %',
+    p_toplamfireyuzde:     'Merma total %',
+    p_geneltoplam:         'TOTAL GENERAL',
+    p_tipbazfire:          'Merma por tipo de caja',
+    p_piyasabazfire:       'Distribución merma por ancho mercado',
+    p_firemaliyettl:       'Costo merma TL',
+    p_firenote:            'Merma = Merma de proceso (corte/ranura) + Merma de ancho de mercado (tira entre ancho calculado y ancho de rollo). Todos los porcentajes se calculan sobre el cartón COMPRADO (bruto); así proceso % + ancho mercado % = total % por fila. ≤ 5% baja, 5–12% media, &gt; 12% alta.',
+    p_tipbazozet:          'Resumen por tipo',
+    p_brutmaliyettl:       'Costo BRUTO TL',
+    p_piyasakullanimdagilim: 'Distribución de uso ancho mercado',
+    p_kullanimaciklama:    'Cuántas medidas y cajas por cada ancho de mercado:',
+    p_kullanilanolcusayisi: 'Nº de medidas',
+    p_brutm2satin:         'BRUTO m² (comprado)',
+    p_tahminifiremaliyet:  'Costo merma est. TL',
+    p_kurumsalnote:        'Este informe se calcula automáticamente a partir de todas las dimensiones introducidas. <b>Costo BRUTO = cartón realmente comprado (parte ancho rollo × largo molde) × TL unitario</b> — el equivalente de factura. En producto + Merma = Bruto por fila; estos dos NO se suman, comparten el bruto. El área de molde es informativa y menor que la cantidad comprada.',
+    p_hesaplanani:         'Ancho calculado (mm)',
+    p_toplameni:           'Ancho total (mm)',
+    p_kesimyonu:           'Dirección de corte',
+    p_kartonboyu:          'Largo cartón (mm)',
+    p_notlar:              'Notas',
+    p_stogasigmayankutular: 'CAJAS QUE NO CABEN',
+    p_kutu:                'cajas',
+    p_satinalinankisa:     'comprado',
+    p_maliyetedahildegil:  'no incluido en costo',
+    p_sigmaz:              'NO CABE',
+    p_piyasanote:          'Este informe agrupa las cajas por <b>ancho de mercado</b>. "Ancho calculado" es el ancho realmente necesario; "Ancho mercado / total" es el valor redondeado al rollo comprado. Cada encabezado muestra el número de cajas y el cartón comprado (m² y TL).',
+    p_filtre:              'Filtro:',
+    p_stok:                'stock',
+    p_piyasa:              'mercado',
+    p_eni:                 'ancho',
+    p_piyasaesle:          'Ancho mercado → Coincidencia · Todos los anchos',
+    p_t_kutudetay:         'Informe detallado por tipo',
+    p_st_kutudetay:        'Cada tipo · Medidas · Costo · Merma',
+    p_ttl_kutudetay:       'ORİMAK · Informe detallado por tipo',
+    p_t_fire:              'Informe de análisis de merma',
+    p_st_fire:             'Proceso + ancho mercado · Costo',
+    p_ttl_fire:            'ORİMAK · Informe de análisis de merma',
+    p_t_kurumsal:          'Informe producción & costo',
+    p_st_kurumsal:         'Resumen · Producción · Costo · Merma · Ancho',
+    p_ttl_kurumsal:        'ORİMAK · Informe general',
+    p_t_piyasa:            'Resumen ancho de mercado',
+    p_ttl_piyasa:          'ORİMAK · Resumen ancho de mercado',
+    p_yazdir:              '🖨️ Imprimir / PDF',
+    p_kapat:               'Cerrar',
+    p_ipucu:               'Consejo: Elija <b>Destino → "Guardar como PDF"</b>. Active <b>"Gráficos de fondo"</b> para los colores.',
+    p_footer:              'ORİMAK MAKİNA · Sistema de cálculo de ancho FEFCO',
+    p_popupengel:          'Ventana emergente bloqueada. Permita pop-ups para esta página.',
+    p_onceolcu:            'Primero introduzca L, B, H para al menos una caja.',
+    pm_baslik:             '📄 Salida de informe PDF',
+    pm_aciklama:           'Elija un tipo de informe. En la vista previa, descargue con <b style="color:var(--orange)">Imprimir → Destino: "Guardar como PDF"</b>.',
+    pm_kutudetay:          '📦 Informe detallado por tipo',
+    pm_kutudetay_sub:      'Cada tipo en su página · medidas, costo, merma y uso de ancho',
+    pm_fire:               '🔥 Informe de análisis de merma',
+    pm_fire_sub:           'Proceso + merma ancho mercado, costo, distribución por ancho',
+    pm_kurumsal:           '🏭 Informe general',
+    pm_kurumsal_sub:       'Completo: producción, costo, merma y uso de ancho',
+    pm_piyasa:             '📦 Resumen ancho de mercado',
+    pm_piyasa_sub:         'Qué caja usa qué ancho · lista agrupada por ancho',
+    md_yenisekme:          'Añadir pestaña',
+    md_sekmeduzenle:       'Editar pestaña',
+    md_kod:                'Código (ej: FEFCO 0500 o PERS-2)',
+    md_ad:                 'Nombre',
+    md_hint:               'Cualquier mayúscula · <b>K</b> / <b>K1</b> / <b>K2</b> = márgenes solapa · Columna si se usa, editable por fila',
+    md_ozelmod:            'Modo PERS — mostrar columnas ancho/largo pers.',
+    md_iptal:              'Cancelar',
+    md_kaydet:             'Guardar',
+    md_ekle:               'Añadir',
+    clr_baslik:            '🗑️ Borrar datos',
+    clr_tektip:            'Borrar medidas de un solo tipo',
+    clr_tipyok:            '— Sin tipo —',
+    clr_hint1:             'Se borran todas las filas/medidas de la pestaña; la pestaña, fórmula y otros tipos se mantienen.',
+    clr_secilisil:         'Borrar medidas del tipo',
+    clr_tehlikeli:         'Zona peligrosa',
+    clr_hint2:             'La opción de abajo borra todos los datos de <b>todas</b> las pestañas y restablece la app.',
+    clr_tumsil:            '⚠️ Borrar TODO',
+    oz_legend1:        '<b style="color:#38bdf8">BRUTO</b> = cartón realmente comprado (parte de ancho de rollo × largo de molde) — <b>equivalente de factura</b>; cotizaciones y pedidos usan esta cifra.',
+    oz_legend2:        '<b style="color:#4ade80">EN PRODUCTO</b> + <b style="color:#f87171">MERMA</b> = BRUTO. Estos dos <u>no se suman</u>; comparten el bruto.',
+    oz_legend3:        '<b style="color:var(--muted)">ÁREA DE MOLDE</b> (ancho × largo) es solo para comparación de diseño; menor que la cantidad comprada y no se usa como costo.',
+    oz_satinalinan:    'Cartón comprado (Bruto)',
+    oz_genetoplam:     'Costo total general (Bruto)',
+    oz_toplamrulo:     'Rollo total',
+    oz_urunegiden:     'Material en producto',
+    oz_firemaliyet:    'Costo de merma',
+    oz_kalipalani:     'Área de molde (info)',
+    pi_hint:           '⚠️ Se actualiza automáticamente al introducir L, B, H. Solo se listan las cajas completas.',
+    pi_filtre:         'Filtro ancho mercado:',
+    pi_tumunugoster:   'Mostrar todo',
+    pi_pdfbtn:         '📄 Exportar esta pestaña a PDF',
+    pi_hint2:          '↔️ <b style="color:var(--muted);">Arrastre</b> el tirador naranja para ajustar el ancho · <b style="color:var(--muted);">doble clic</b> para ajustar al contenido. La columna Nombre se abre por defecto al nombre más largo.',
+    pi_sigdir:         '↔ Ajustar al nombre',
+    pi_sifirla:        '↺ Restablecer',
+    fr_ideal:          '● ≤5% — Ideal',
+    fr_dikkat:         '● 5–12% — Precaución',
+    fr_yuksek:         '● &gt;12% — Merma alta',
+    fr_hint:           'La merma se mantiene baja cuando el ancho del cartón está cerca del valor calculado. Abajo puede ver cómo aumenta al elegir el siguiente ancho de mercado.',
+    kl_nasil:          '¿Cómo funciona?',
+    kl_s1:             '1) Seleccione un tipo FEFCO abajo.',
+    kl_s2:             '2) Introduzca dimensiones conocidas y el <strong>porcentaje de merma real</strong> (al menos 2 muestras).',
+    kl_s3:             '3) Haga clic en "Calibrar" — el sistema aprende los coeficientes de merma que mejor se ajustan.',
+    kl_s4:             '4) Luego, al introducir nuevas dimensiones, la merma se predice con la fórmula aprendida.',
+    kl_not:            '<strong>Nota:</strong> La calibración se hace y guarda por separado para cada tipo FEFCO. Introduzca el <strong>porcentaje de merma TOTAL real</strong> medido (incluida la merma de ancho de mercado). Para cada muestra el sistema resta automáticamente la parte de ancho de mercado y aprende la merma de proceso, luego la vuelve a sumar en la predicción; sin doble conteo.',
+    kl_fefcotipi:      'Tipo FEFCO',
+    kl_tipsecin:       'Seleccione un tipo',
+    kl_yon:            'DIRECCIÓN',
+    kl_ornekekle:      '＋ Añadir muestra',
+    kl_kalibreet:      '🎯 CALIBRAR',
+    kl_temizle:        '🗑 Limpiar',
+    kl_sonuc:          'RESULTADO',
+    kl_ogrenilen:      'Coeficientes de merma aprendidos',
+    kl_ogrformul:      'FÓRMULA APRENDIDA',
+    kl_tahmin:         'PREDICCIÓN',
+    kl_yenitahmin:     'Predicción de merma nueva caja',
+    kl_hesapla:        '📐 Calcular',
+    stok_ph:           'ej: 1100, 1300',
+    stok_piyasaenleri: 'ANCHOS MERCADO',
+    stok_stokmodu:     'ANCHOS STOCK',
+    stok_denensin:     'Probar (¡la dirección de flauta gira!)',
+    stok_emptyhint:    'Aún no hay ancho — se usan anchos de mercado (múltiplos de 100)',
+    save_kaydedildi:   '💾 ¡Guardado!',
+    yu_msg:            '⚠️ ¡Sus cambios pueden perderse! Guarde como JSON.',
+    yu_kapat:          'Cerrar',
+    lm_sifirla:        '↺ Restablecer',
+    lm_disaaktar:      '📤 Exportar',
+    lm_iceaktar:       '📥 Importar',
+    yon_dikey:         'VERTICAL',
+    yon_yatay:         'HORIZONTAL',
+    yon_dikey_ikili:   'VERTICAL DOBLE',
+    yon_yatay_ikili:   'HORIZONTAL DOBLE',
+    yon_dikey_90:      'VERTICAL 90°',
+    yon_yatay_90:      'HORIZONTAL 90°',
+    yon_dikey_90_ikili: 'VERTICAL 90° DOBLE',
+    yon_yatay_90_ikili: 'HORIZONTAL 90° DOBLE',
+    yon_hepsini:       '— Convertir todo —',
     col_ad:         'Nombre',
     col_yon:        'Dirección / Corte',
     col_en:         'Ancho cartón',
@@ -5025,6 +5877,177 @@ const I18N_DEFAULTS = {
     lm_title:       'إدارة اللغات',
     lm_desc:        'قم بتحرير جميع نصوص الواجهة للغة المختارة. تُطبق التغييرات فوراً.',
     lm_save:        '💾 حفظ',
+    p_uyari_pre:     'تحذير:',
+    p_uyari_post:    'قياسات استُبعدت من الإجماليات لأنها لا تلائم عروض المخزون.',
+    p_toplamadet:          'إجمالي الكمية',
+    p_satinalinan:         'الكرتون المشترى',
+    p_brutmaliyet:         'التكلفة الإجمالية',
+    p_urunegiden:          'في المنتج',
+    p_fireorani:           'نسبة الهدر',
+    p_firemaliyeti:        'تكلفة الهدر',
+    p_toplamfire:          'إجمالي الهدر',
+    p_genelfireorani:      'نسبة الهدر العامة',
+    p_toplamfiremaliyet:   'إجمالي تكلفة الهدر',
+    p_toplamrulo:          'إجمالي اللفة',
+    p_toplamkutu:          'إجمالي الصناديق',
+    p_farklipiyasa:        'عروض سوق مختلفة',
+    p_stogasigmayan:       'لا يلائم المخزون',
+    p_kutuadi:             'اسم الصندوق',
+    p_yon:                 'الاتجاه',
+    p_adet:                'الكمية',
+    p_keni:                'ع.الكرتون',
+    p_piyasaeni:           'عرض السوق',
+    p_kboy:                'ط.الكرتون',
+    p_kalipm2ad:           'قالب م²/قطعة',
+    p_kalipm2:             'قالب م²',
+    p_brtl:                'سعر TL',
+    p_brutm2:              'إجمالي م²',
+    p_bruttl:              'إجمالي TL',
+    p_fireyuzde:           'هدر %',
+    p_firem2:              'هدر م²',
+    p_firetl:              'هدر TL',
+    p_rulom:               'لفة م',
+    p_formul:              'المعادلة (العرض × الطول):',
+    p_toplam:              'الإجمالي',
+    p_olcu:                'قياسات',
+    p_piyasakullanim:      'استخدام عرض كرتون السوق —',
+    p_kullanilanolcu:      'القياسات المستخدمة',
+    p_fefcotipi:           'نوع FEFCO',
+    p_ad:                  'الاسم',
+    p_islemefire:          'هدر المعالجة %',
+    p_piyasaenifire:       'هدر عرض السوق %',
+    p_toplamfireyuzde:     'إجمالي الهدر %',
+    p_geneltoplam:         'الإجمالي العام',
+    p_tipbazfire:          'تفصيل الهدر حسب نوع الصندوق',
+    p_piyasabazfire:       'توزيع الهدر حسب عرض السوق',
+    p_firemaliyettl:       'تكلفة الهدر TL',
+    p_firenote:            'الهدر = هدر المعالجة (فقد القص/الشق) + هدر عرض السوق (فقد الشريط بين العرض المحسوب وعرض اللفة). تُحسب كل النسب على الكرتون المشترى (الإجمالي)؛ لذا المعالجة % + عرض السوق % = الإجمالي % لكل صف. ≤ 5% منخفض، 5–12% متوسط، &gt; 12% مرتفع.',
+    p_tipbazozet:          'ملخص حسب نوع الصندوق',
+    p_brutmaliyettl:       'التكلفة الإجمالية TL',
+    p_piyasakullanimdagilim: 'توزيع استخدام عرض كرتون السوق',
+    p_kullanimaciklama:    'كم قياساً وصندوقاً يُنتج من كل عرض كرتون سوقي:',
+    p_kullanilanolcusayisi: 'عدد القياسات',
+    p_brutm2satin:         'إجمالي م² (مشترى)',
+    p_tahminifiremaliyet:  'تكلفة الهدر التقديرية TL',
+    p_kurumsalnote:        'يُحسب هذا التقرير تلقائياً من كل الأبعاد المُدخلة. <b>التكلفة الإجمالية = الكرتون المشترى فعلياً (حصة عرض اللفة × طول القالب) × سعر الوحدة TL</b> — مقابل الفاتورة. في المنتج + الهدر = الإجمالي لكل صف؛ لا يُجمعان بل يتقاسمان الإجمالي. مساحة القالب للمعلومة فقط وأصغر من الكمية المشتراة.',
+    p_hesaplanani:         'العرض المحسوب (مم)',
+    p_toplameni:           'العرض الإجمالي (مم)',
+    p_kesimyonu:           'اتجاه القص',
+    p_kartonboyu:          'طول الكرتون (مم)',
+    p_notlar:              'ملاحظات',
+    p_stogasigmayankutular: 'صناديق لا تلائم المخزون',
+    p_kutu:                'صندوق',
+    p_satinalinankisa:     'مشترى',
+    p_maliyetedahildegil:  'غير مشمول في التكلفة',
+    p_sigmaz:              'لا يلائم',
+    p_piyasanote:          'يجمّع هذا التقرير الصناديق حسب <b>عرض كرتون السوق</b>. "العرض المحسوب" هو العرض المطلوب فعلاً؛ "عرض السوق/الإجمالي" هو القيمة المقرّبة للفة المشتراة. يعرض كل عنوان مجموعة عدد الصناديق والكرتون المشترى (م² وTL).',
+    p_filtre:              'تصفية:',
+    p_stok:                'مخزون',
+    p_piyasa:              'سوق',
+    p_eni:                 'عرض',
+    p_piyasaesle:          'عرض كرتون السوق ← مطابقة الصناديق · كل العروض',
+    p_t_kutudetay:         'تقرير تفصيلي حسب النوع',
+    p_st_kutudetay:        'كل نوع · الأبعاد · التكلفة · الهدر',
+    p_ttl_kutudetay:       'ORİMAK · تقرير تفصيلي حسب النوع',
+    p_t_fire:              'تقرير تحليل الهدر',
+    p_st_fire:             'المعالجة + عرض السوق · تكلفة الهدر',
+    p_ttl_fire:            'ORİMAK · تقرير تحليل الهدر',
+    p_t_kurumsal:          'تقرير الإنتاج والتكلفة',
+    p_st_kurumsal:         'نظرة عامة · إنتاج · تكلفة · هدر · عرض',
+    p_ttl_kurumsal:        'ORİMAK · التقرير العام',
+    p_t_piyasa:            'ملخص عرض كرتون السوق',
+    p_ttl_piyasa:          'ORİMAK · ملخص عرض كرتون السوق',
+    p_yazdir:              '🖨️ طباعة / حفظ PDF',
+    p_kapat:               'إغلاق',
+    p_ipucu:               'نصيحة: اختر <b>الوجهة ← "حفظ كـ PDF"</b>. فعّل <b>"رسومات الخلفية"</b> للألوان.',
+    p_footer:              'ORİMAK MAKİNA · نظام حساب عرض الكرتون FEFCO',
+    p_popupengel:          'النافذة المنبثقة محظورة. يُرجى السماح بها لهذه الصفحة.',
+    p_onceolcu:            'أدخل أولاً L و B و H لصندوق واحد على الأقل.',
+    pm_baslik:             '📄 إخراج تقرير PDF',
+    pm_aciklama:           'اختر نوع التقرير. في نافذة المعاينة، نزّل عبر <b style="color:var(--orange)">طباعة ← الوجهة: "حفظ كـ PDF"</b>.',
+    pm_kutudetay:          '📦 تقرير تفصيلي حسب النوع',
+    pm_kutudetay_sub:      'كل نوع في صفحة · الأبعاد والتكلفة والهدر واستخدام العرض',
+    pm_fire:               '🔥 تقرير تحليل الهدر',
+    pm_fire_sub:           'هدر المعالجة + السوق، التكلفة، التوزيع حسب العرض',
+    pm_kurumsal:           '🏭 التقرير العام',
+    pm_kurumsal_sub:       'شامل: الإنتاج والتكلفة والهدر واستخدام العرض',
+    pm_piyasa:             '📦 ملخص عرض كرتون السوق',
+    pm_piyasa_sub:         'أي صندوق يستخدم أي عرض · قائمة مجمّعة حسب العرض',
+    md_yenisekme:          'إضافة تبويب جديد',
+    md_sekmeduzenle:       'تحرير التبويب',
+    md_kod:                'الرمز (مثال: FEFCO 0500 أو خاص-2)',
+    md_ad:                 'الاسم',
+    md_hint:               'أي حرف كبير · <b>K</b> / <b>K1</b> / <b>K2</b> = هوامش الألسنة · يظهر كعمود عند استخدامه، قابل للتحرير لكل صف',
+    md_ozelmod:            'وضع خاص — إظهار أعمدة العرض/الطول المخصص',
+    md_iptal:              'إلغاء',
+    md_kaydet:             'حفظ',
+    md_ekle:               'إضافة',
+    clr_baslik:            '🗑️ مسح البيانات',
+    clr_tektip:            'حذف قياسات نوع صندوق واحد فقط',
+    clr_tipyok:            '— لا نوع —',
+    clr_hint1:             'تُمسح كل صفوف/قياسات التبويب المحدد؛ يبقى التبويب والمعادلة والأنواع الأخرى.',
+    clr_secilisil:         'حذف قياسات النوع المحدد',
+    clr_tehlikeli:         'منطقة خطرة',
+    clr_hint2:             'الخيار أدناه يحذف كل البيانات في <b>كل</b> التبويبات ويعيد التطبيق للافتراضي.',
+    clr_tumsil:            '⚠️ حذف كل البيانات',
+    oz_legend1:        '<b style="color:#38bdf8">إجمالي</b> = الكرتون المشترى فعلياً (حصة عرض اللفة × طول القالب) — <b>مقابل الفاتورة</b>؛ تُعطى العروض والطلبات بهذا الرقم.',
+    oz_legend2:        '<b style="color:#4ade80">المستخدم في المنتج</b> + <b style="color:#f87171">الهدر</b> = الإجمالي. لا يُجمع الاثنان معاً؛ بل يتقاسمان الإجمالي.',
+    oz_legend3:        '<b style="color:var(--muted)">مساحة القالب</b> (العرض × الطول) للمقارنة التصميمية فقط؛ أصغر من الكمية المشتراة ولا تُستخدم كتكلفة.',
+    oz_satinalinan:    'الكرتون المشترى (إجمالي)',
+    oz_genetoplam:     'التكلفة الإجمالية (إجمالي)',
+    oz_toplamrulo:     'إجمالي اللفة',
+    oz_urunegiden:     'المادة المستخدمة في المنتج',
+    oz_firemaliyet:    'تكلفة الهدر',
+    oz_kalipalani:     'مساحة القالب (معلومة)',
+    pi_hint:           '⚠️ يُحدَّث تلقائياً عند إدخال L و B و H. تُدرج الصناديق المملوءة فقط.',
+    pi_filtre:         'تصفية عرض السوق:',
+    pi_tumunugoster:   'عرض الكل',
+    pi_pdfbtn:         '📄 تصدير هذا التبويب PDF',
+    pi_hint2:          '↔️ <b style="color:var(--muted);">اسحب</b> المقبض البرتقالي لضبط عرض العمود · <b style="color:var(--muted);">نقر مزدوج</b> ليلائم المحتوى. يفتح عمود اسم الصندوق افتراضياً على أطول اسم.',
+    pi_sigdir:         '↔ ملاءمة اسم الصندوق',
+    pi_sifirla:        '↺ إعادة تعيين',
+    fr_ideal:          '● ≤5% — مثالي',
+    fr_dikkat:         '● 5–12% — تنبيه',
+    fr_yuksek:         '● &gt;12% — هدر مرتفع',
+    fr_hint:           'يبقى الهدر منخفضاً عندما يكون عرض الكرتون قريباً من القيمة المحسوبة. أدناه ترى كيف يزداد الهدر عند اختيار العرض السوقي التالي.',
+    kl_nasil:          'كيف يعمل؟',
+    kl_s1:             '1) اختر نوع FEFCO أدناه.',
+    kl_s2:             '2) أدخل أبعاد الصندوق المعروفة و<strong>نسبة الهدر الفعلية</strong> (عيّنتان على الأقل).',
+    kl_s3:             '3) اضغط "معايرة" — يتعلّم النظام معاملات الهدر الأنسب لبياناتك.',
+    kl_s4:             '4) بعد ذلك، عند إدخال أبعاد جديدة، يُتنبأ بالهدر بالمعادلة المتعلَّمة.',
+    kl_not:            '<strong>ملاحظة:</strong> تُجرى المعايرة وتُحفظ لكل نوع FEFCO على حدة. أدخل <strong>نسبة الهدر الإجمالية الفعلية</strong> المقاسة (شاملة هدر عرض السوق). لكل عيّنة يطرح النظام حصة عرض السوق تلقائياً ويتعلّم هدر المعالجة، ثم يعيد إضافته في التنبؤ؛ فلا ازدواج في العدّ.',
+    kl_fefcotipi:      'نوع FEFCO',
+    kl_tipsecin:       'اختر نوعاً',
+    kl_yon:            'الاتجاه',
+    kl_ornekekle:      '＋ إضافة عيّنة',
+    kl_kalibreet:      '🎯 معايرة',
+    kl_temizle:        '🗑 مسح',
+    kl_sonuc:          'النتيجة',
+    kl_ogrenilen:      'معاملات الهدر المتعلَّمة',
+    kl_ogrformul:      'المعادلة المتعلَّمة',
+    kl_tahmin:         'تنبؤ',
+    kl_yenitahmin:     'تنبؤ هدر صندوق جديد',
+    kl_hesapla:        '📐 حساب',
+    stok_ph:           'مثال: 1100، 1300',
+    stok_piyasaenleri: 'عروض السوق',
+    stok_stokmodu:     'عروض المخزون',
+    stok_denensin:     'جرّبه (يدور اتجاه التمويج!)',
+    stok_emptyhint:    'لم يُدخل عرض بعد — تُستخدم عروض السوق (مضاعفات 100)',
+    save_kaydedildi:   '💾 تم الحفظ!',
+    yu_msg:            '⚠️ قد تُفقد تغييراتك! يُرجى الحفظ كـ JSON.',
+    yu_kapat:          'إغلاق',
+    lm_sifirla:        '↺ إعادة تعيين',
+    lm_disaaktar:      '📤 تصدير',
+    lm_iceaktar:       '📥 استيراد',
+    yon_dikey:         'عمودي',
+    yon_yatay:         'أفقي',
+    yon_dikey_ikili:   'عمودي مزدوج',
+    yon_yatay_ikili:   'أفقي مزدوج',
+    yon_dikey_90:      'عمودي 90°',
+    yon_yatay_90:      'أفقي 90°',
+    yon_dikey_90_ikili: 'عمودي 90° مزدوج',
+    yon_yatay_90_ikili: 'أفقي 90° مزدوج',
+    yon_hepsini:       '— تحويل الكل —',
     col_ad:         'اسم الصندوق',
     col_yon:        'الاتجاه / القص',
     col_en:         'عرض الكرتون',
@@ -5121,6 +6144,177 @@ const I18N_LABELS = {
   lm_title:       'Dil Mgr: Başlık',
   lm_desc:        'Dil Mgr: Açıklama',
   lm_save:        'Dil Mgr: Kaydet Butonu',
+  p_uyari_pre:      'PDF: Uyarı Ön',
+  p_uyari_post:     'PDF: Uyarı Metni',
+  p_toplamadet:          'PDF/Modal: p_toplamadet',
+  p_satinalinan:         'PDF/Modal: p_satinalinan',
+  p_brutmaliyet:         'PDF/Modal: p_brutmaliyet',
+  p_urunegiden:          'PDF/Modal: p_urunegiden',
+  p_fireorani:           'PDF/Modal: p_fireorani',
+  p_firemaliyeti:        'PDF/Modal: p_firemaliyeti',
+  p_toplamfire:          'PDF/Modal: p_toplamfire',
+  p_genelfireorani:      'PDF/Modal: p_genelfireorani',
+  p_toplamfiremaliyet:   'PDF/Modal: p_toplamfiremaliyet',
+  p_toplamrulo:          'PDF/Modal: p_toplamrulo',
+  p_toplamkutu:          'PDF/Modal: p_toplamkutu',
+  p_farklipiyasa:        'PDF/Modal: p_farklipiyasa',
+  p_stogasigmayan:       'PDF/Modal: p_stogasigmayan',
+  p_kutuadi:             'PDF/Modal: p_kutuadi',
+  p_yon:                 'PDF/Modal: p_yon',
+  p_adet:                'PDF/Modal: p_adet',
+  p_keni:                'PDF/Modal: p_keni',
+  p_piyasaeni:           'PDF/Modal: p_piyasaeni',
+  p_kboy:                'PDF/Modal: p_kboy',
+  p_kalipm2ad:           'PDF/Modal: p_kalipm2ad',
+  p_kalipm2:             'PDF/Modal: p_kalipm2',
+  p_brtl:                'PDF/Modal: p_brtl',
+  p_brutm2:              'PDF/Modal: p_brutm2',
+  p_bruttl:              'PDF/Modal: p_bruttl',
+  p_fireyuzde:           'PDF/Modal: p_fireyuzde',
+  p_firem2:              'PDF/Modal: p_firem2',
+  p_firetl:              'PDF/Modal: p_firetl',
+  p_rulom:               'PDF/Modal: p_rulom',
+  p_formul:              'PDF/Modal: p_formul',
+  p_toplam:              'PDF/Modal: p_toplam',
+  p_olcu:                'PDF/Modal: p_olcu',
+  p_piyasakullanim:      'PDF/Modal: p_piyasakullanim',
+  p_kullanilanolcu:      'PDF/Modal: p_kullanilanolcu',
+  p_fefcotipi:           'PDF/Modal: p_fefcotipi',
+  p_ad:                  'PDF/Modal: p_ad',
+  p_islemefire:          'PDF/Modal: p_islemefire',
+  p_piyasaenifire:       'PDF/Modal: p_piyasaenifire',
+  p_toplamfireyuzde:     'PDF/Modal: p_toplamfireyuzde',
+  p_geneltoplam:         'PDF/Modal: p_geneltoplam',
+  p_tipbazfire:          'PDF/Modal: p_tipbazfire',
+  p_piyasabazfire:       'PDF/Modal: p_piyasabazfire',
+  p_firemaliyettl:       'PDF/Modal: p_firemaliyettl',
+  p_firenote:            'PDF/Modal: p_firenote',
+  p_tipbazozet:          'PDF/Modal: p_tipbazozet',
+  p_brutmaliyettl:       'PDF/Modal: p_brutmaliyettl',
+  p_piyasakullanimdagilim: 'PDF/Modal: p_piyasakullanimdagilim',
+  p_kullanimaciklama:    'PDF/Modal: p_kullanimaciklama',
+  p_kullanilanolcusayisi: 'PDF/Modal: p_kullanilanolcusayisi',
+  p_brutm2satin:         'PDF/Modal: p_brutm2satin',
+  p_tahminifiremaliyet:  'PDF/Modal: p_tahminifiremaliyet',
+  p_kurumsalnote:        'PDF/Modal: p_kurumsalnote',
+  p_hesaplanani:         'PDF/Modal: p_hesaplanani',
+  p_toplameni:           'PDF/Modal: p_toplameni',
+  p_kesimyonu:           'PDF/Modal: p_kesimyonu',
+  p_kartonboyu:          'PDF/Modal: p_kartonboyu',
+  p_notlar:              'PDF/Modal: p_notlar',
+  p_stogasigmayankutular: 'PDF/Modal: p_stogasigmayankutular',
+  p_kutu:                'PDF/Modal: p_kutu',
+  p_satinalinankisa:     'PDF/Modal: p_satinalinankisa',
+  p_maliyetedahildegil:  'PDF/Modal: p_maliyetedahildegil',
+  p_sigmaz:              'PDF/Modal: p_sigmaz',
+  p_piyasanote:          'PDF/Modal: p_piyasanote',
+  p_filtre:              'PDF/Modal: p_filtre',
+  p_stok:                'PDF/Modal: p_stok',
+  p_piyasa:              'PDF/Modal: p_piyasa',
+  p_eni:                 'PDF/Modal: p_eni',
+  p_piyasaesle:          'PDF/Modal: p_piyasaesle',
+  p_t_kutudetay:         'PDF/Modal: p_t_kutudetay',
+  p_st_kutudetay:        'PDF/Modal: p_st_kutudetay',
+  p_ttl_kutudetay:       'PDF/Modal: p_ttl_kutudetay',
+  p_t_fire:              'PDF/Modal: p_t_fire',
+  p_st_fire:             'PDF/Modal: p_st_fire',
+  p_ttl_fire:            'PDF/Modal: p_ttl_fire',
+  p_t_kurumsal:          'PDF/Modal: p_t_kurumsal',
+  p_st_kurumsal:         'PDF/Modal: p_st_kurumsal',
+  p_ttl_kurumsal:        'PDF/Modal: p_ttl_kurumsal',
+  p_t_piyasa:            'PDF/Modal: p_t_piyasa',
+  p_ttl_piyasa:          'PDF/Modal: p_ttl_piyasa',
+  p_yazdir:              'PDF/Modal: p_yazdir',
+  p_kapat:               'PDF/Modal: p_kapat',
+  p_ipucu:               'PDF/Modal: p_ipucu',
+  p_footer:              'PDF/Modal: p_footer',
+  p_popupengel:          'PDF/Modal: p_popupengel',
+  p_onceolcu:            'PDF/Modal: p_onceolcu',
+  pm_baslik:             'PDF/Modal: pm_baslik',
+  pm_aciklama:           'PDF/Modal: pm_aciklama',
+  pm_kutudetay:          'PDF/Modal: pm_kutudetay',
+  pm_kutudetay_sub:      'PDF/Modal: pm_kutudetay_sub',
+  pm_fire:               'PDF/Modal: pm_fire',
+  pm_fire_sub:           'PDF/Modal: pm_fire_sub',
+  pm_kurumsal:           'PDF/Modal: pm_kurumsal',
+  pm_kurumsal_sub:       'PDF/Modal: pm_kurumsal_sub',
+  pm_piyasa:             'PDF/Modal: pm_piyasa',
+  pm_piyasa_sub:         'PDF/Modal: pm_piyasa_sub',
+  md_yenisekme:          'PDF/Modal: md_yenisekme',
+  md_sekmeduzenle:       'PDF/Modal: md_sekmeduzenle',
+  md_kod:                'PDF/Modal: md_kod',
+  md_ad:                 'PDF/Modal: md_ad',
+  md_hint:               'PDF/Modal: md_hint',
+  md_ozelmod:            'PDF/Modal: md_ozelmod',
+  md_iptal:              'PDF/Modal: md_iptal',
+  md_kaydet:             'PDF/Modal: md_kaydet',
+  md_ekle:               'PDF/Modal: md_ekle',
+  clr_baslik:            'PDF/Modal: clr_baslik',
+  clr_tektip:            'PDF/Modal: clr_tektip',
+  clr_tipyok:            'PDF/Modal: clr_tipyok',
+  clr_hint1:             'PDF/Modal: clr_hint1',
+  clr_secilisil:         'PDF/Modal: clr_secilisil',
+  clr_tehlikeli:         'PDF/Modal: clr_tehlikeli',
+  clr_hint2:             'PDF/Modal: clr_hint2',
+  clr_tumsil:            'PDF/Modal: clr_tumsil',
+  oz_legend1:        'Özet: Açıklama 1',
+  oz_legend2:        'Özet: Açıklama 2',
+  oz_legend3:        'Özet: Açıklama 3',
+  oz_satinalinan:    'Özet: Satın Alınan',
+  oz_genetoplam:     'Özet: Genel Toplam',
+  oz_toplamrulo:     'Özet: Toplam Rulo',
+  oz_urunegiden:     'Özet: Ürüne Giden',
+  oz_firemaliyet:    'Özet: Fire Maliyeti',
+  oz_kalipalani:     'Özet: Kalıp Alanı',
+  pi_hint:           'Piyasa: İpucu',
+  pi_filtre:         'Piyasa: Filtre',
+  pi_tumunugoster:   'Piyasa: Tümünü Göster',
+  pi_pdfbtn:         'Piyasa: PDF Butonu',
+  pi_hint2:          'Piyasa: İpucu 2',
+  pi_sigdir:         'Piyasa: Sığdır',
+  pi_sifirla:        'Piyasa: Sıfırla',
+  fr_ideal:          'Fire: İdeal',
+  fr_dikkat:         'Fire: Dikkat',
+  fr_yuksek:         'Fire: Yüksek',
+  fr_hint:           'Fire: İpucu',
+  kl_nasil:          'Kalib: Nasıl Çalışır',
+  kl_s1:             'Kalib: Adım 1',
+  kl_s2:             'Kalib: Adım 2',
+  kl_s3:             'Kalib: Adım 3',
+  kl_s4:             'Kalib: Adım 4',
+  kl_not:            'Kalib: Not',
+  kl_fefcotipi:      'Kalib: FEFCO Tipi',
+  kl_tipsecin:       'Kalib: Tip Seçin',
+  kl_yon:            'Kalib: Yön',
+  kl_ornekekle:      'Kalib: Örnek Ekle',
+  kl_kalibreet:      'Kalib: Kalibre Et',
+  kl_temizle:        'Kalib: Temizle',
+  kl_sonuc:          'Kalib: Sonuç',
+  kl_ogrenilen:      'Kalib: Öğrenilen',
+  kl_ogrformul:      'Kalib: Öğrenilen Formül',
+  kl_tahmin:         'Kalib: Tahmin',
+  kl_yenitahmin:     'Kalib: Yeni Tahmin',
+  kl_hesapla:        'Kalib: Hesapla',
+  stok_ph:           'Stok: Placeholder',
+  stok_piyasaenleri: 'Stok: Piyasa Enleri',
+  stok_stokmodu:     'Stok: Stok Modu',
+  stok_denensin:     'Stok: Denensin',
+  stok_emptyhint:    'Stok: Boş İpucu',
+  save_kaydedildi:   'Genel: Kaydedildi',
+  yu_msg:            'Uyarı: Mesaj',
+  yu_kapat:          'Uyarı: Kapat',
+  lm_sifirla:        'DilMgr: Sıfırla',
+  lm_disaaktar:      'DilMgr: Dışa Aktar',
+  lm_iceaktar:       'DilMgr: İçe Aktar',
+  yon_dikey:         'Yön: Dikey',
+  yon_yatay:         'Yön: Yatay',
+  yon_dikey_ikili:   'Yön: Dikey İkili',
+  yon_yatay_ikili:   'Yön: Yatay İkili',
+  yon_dikey_90:      'Yön: Dikey 90',
+  yon_yatay_90:      'Yön: Yatay 90',
+  yon_dikey_90_ikili: 'Yön: Dikey 90 İkili',
+  yon_yatay_90_ikili: 'Yön: Yatay 90 İkili',
+  yon_hepsini:       'Yön: Hepsini Çevir',
   col_ad:         'Sütun: Kutu Adı',
   col_yon:        'Sütun: Yön/Kesim',
   col_en:         'Sütun: Karton Eni',
