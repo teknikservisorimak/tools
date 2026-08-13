@@ -785,8 +785,9 @@ tr:hover td { background: var(--surface2); }
         <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" onchange="handleExcelUpload(this.files[0])">
         <div class="icon">📊</div>
         <div class="label">Excel dosyasını sürükleyin veya tıklayın</div>
-        <div class="hint">.xlsx formatı desteklenir</div>
+        <div class="hint">.xlsx / .xls / .csv desteklenir</div>
       </div>
+      <div id="excelMapWrap" style="margin-top:16px; display:none;"></div>
       <div id="excelPreview" style="margin-top:16px; display:none;"></div>
     </div>
   </div>
@@ -905,8 +906,15 @@ tr:hover td { background: var(--surface2); }
           <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">
             Sabit Şablon (opsiyonel) — dosyada şablon sütunu yoksa
           </label>
-          <input type="text" id="cvFixedTpl" placeholder="ör. Fefco_0300 (boş bırakabilirsiniz)"
-            style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <input type="text" id="cvFixedTpl" list="cvTplDatalist" placeholder="ör. Fefco_0300 (boş bırakabilirsiniz)"
+              style="flex:1;min-width:180px;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;">
+            <datalist id="cvTplDatalist"></datalist>
+            <select id="cvTplQuick" onchange="cvPickTpl(this.value)"
+              style="min-width:190px;font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 10px;">
+              <option value="">— yüklü şablonlardan seç —</option>
+            </select>
+          </div>
           <div style="font-size:11px;color:var(--text3);margin-top:5px;">
             Şablon sütununu “— Kullanma —” bırakırsanız tüm satırlara bu şablon yazılır. Bunu da boş bırakırsanız şablon sütunu boş kalır —
             üretim ekranındaki <strong>Varsayılan Şablon</strong> seçimi devreye girer.
@@ -1224,6 +1232,10 @@ tr:hover td { background: var(--surface2); }
           <tr><td>K1, K2, K3, K4</td><td>Kapak / ek ölçüleri</td><td>Şablona göre</td></tr>
         </table>
       </div>
+
+      <p style="margin-top:8px;"><b>Sütun adları farklıysa:</b> Excel yüklendikten sonra ② adımında çıkan <b>🔗 Sütun Eşleştirme</b> bölümünden
+      hangi sütunun hangi ölçü olduğunu kendiniz seçebilirsiniz (ör. <code>W</code> → <code>B</code>, <code>NAME</code> → <code>Dosya Adı</code>).
+      Başlıklar tanıdıksa otomatik doldurulur; <code>;</code> ayraçlı ve Türkçe/Kiril karakterli CSV dosyaları da okunur.</p>
 
       <p style="margin-top:8px;"><b>Şablonsuz Excel:</b> Excel'de yalnızca ölçüler olabilir. ② adımındaki <b>Varsayılan Şablon</b> listesinden
       örneğin <code>Fefco_0300</code> seçin — şablonu boş olan bütün satırlar bu şablonla üretilir.
@@ -1958,7 +1970,7 @@ function handleExcelUpload(file) {
       for (const sn of wb.SheetNames) {
         const rows = XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, defval: '' });
         if (!rows.length) continue;
-        const hdr = (rows[0] || []).map(h => (h || '').toString().trim().toUpperCase());
+        const hdr = (rows[0] || []).map(h => normHeaderTr(h));
         if (hdr.some(h => KNOWN_ARGS.has(h))) { data = rows; usedSheet = sn; break; }
       }
       if (!data) data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
@@ -2021,35 +2033,113 @@ function updateExcelTemplateSelect() {
   if (excelOrders.length) applyExcelTemplateChoice();
 }
 
-function parseExcelData(rows, fileName) {
-  if (rows.length < 2) { alert('Excel dosyasında veri satırı bulunamadı.'); return; }
+// ── Sütun eşleştirme (üretim ekranı) ─────────────────────────────────────────
+let exRawRows = [];   // yüklenen dosyanın tüm satırları (başlık dahil)
+let exHeaders = [];   // görünen başlık adları
+let exMap     = {};   // alan -> sütun index (veya null)
 
-  const headers = rows[0].map(h => (h || '').toString().trim().toUpperCase());
-  let tplCol = -1, nameCol = -1;
-  const argCols = {}; // col -> argName
+const EX_FIELDS = [
+  { key: 'ŞABLON',    label: 'Şablon / FEFCO' },
+  { key: 'DOSYA ADI', label: 'Dosya Adı' },
+  { key: 'B',  label: 'B — Boy (mm)' },
+  { key: 'L',  label: 'L — En (mm)' },
+  { key: 'H',  label: 'H — Yükseklik (mm)' },
+  { key: 'T',  label: 'T — Kalınlık (mm)' },
+  { key: 'K1', label: 'K1' },
+  { key: 'K2', label: 'K2' },
+  { key: 'K3', label: 'K3' },
+  { key: 'K4', label: 'K4' },
+];
 
+function excelAutoDetectMap(headers) {
+  const map = {};
+  EX_FIELDS.forEach(f => map[f.key] = null);
   headers.forEach((h, i) => {
-    if (TPL_HEADERS.has(h) || isTplHeader(h)) { if (tplCol === -1) tplCol = i; }
-    else if (NAME_HEADERS.has(h) || isNameHeader(h)) { if (nameCol === -1) nameCol = i; }
-    else if (KNOWN_ARGS.has(normHeaderTr(h))) argCols[i] = normHeaderTr(h);
+    const n  = normHeaderTr(h);
+    const up = (h || '').toString().trim().toUpperCase();
+    if (map['ŞABLON'] === null && (TPL_HEADERS.has(up) || isTplHeader(h))) { map['ŞABLON'] = i; return; }
+    if (map['DOSYA ADI'] === null && (NAME_HEADERS.has(up) || isNameHeader(h))) { map['DOSYA ADI'] = i; return; }
+    if (KNOWN_ARGS.has(n) && map[n] === null) map[n] = i;
+  });
+  return map;
+}
+
+function renderExcelMapping() {
+  const wrap = document.getElementById('excelMapWrap');
+  if (!wrap) return;
+  if (!exRawRows.length) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+  wrap.style.display = 'block';
+
+  const noneOpt = '<option value="">— Kullanma —</option>';
+  const detected = EX_FIELDS.filter(f => exMap[f.key] !== null).length;
+
+  let html = `<div class="card" style="margin:0;">
+    <div class="card-header">
+      <h3 style="font-size:14px;">🔗 Sütun Eşleştirme <span class="badge">${detected}/${EX_FIELDS.length} otomatik bulundu</span></h3>
+      <button class="btn btn-sm" onclick="excelAutoMapAgain()">↺ Otomatik Eşleştir</button>
+    </div>
+    <div class="card-body">
+      <p style="font-size:12px;color:var(--text3);margin-bottom:12px;">
+        Başlıklarınız farklı olabilir (ör. <code>W</code> → <code>B</code>, <code>NAME</code> → <code>Dosya Adı</code>).
+        Her alan için dosyadaki karşılığını seçin; kullanmayacaklarınızı “— Kullanma —” bırakın.
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;">`;
+
+  EX_FIELDS.forEach(f => {
+    const id = 'exMap_' + f.key.replace(/[^a-zA-Z0-9]/g, '_');
+    const opts = noneOpt + exHeaders.map((h, i) =>
+      `<option value="${i}" ${exMap[f.key] === i ? 'selected' : ''}>${i + 1}. ${h}</option>`
+    ).join('');
+    html += `<div style="display:flex;flex-direction:column;gap:4px;">
+      <label style="font-size:11px;font-weight:700;color:var(--text2);">${f.label}</label>
+      <select id="${id}" onchange="onExcelMapChange()"
+        style="font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px 8px;">
+        ${opts}
+      </select>
+    </div>`;
   });
 
-  // ŞABLON sütunu ARTIK ZORUNLU DEĞİL — yoksa varsayılan şablon kullanılır.
-  if (Object.keys(argCols).length === 0) { alert("Excel'de ölçü sütunu bulunamadı (B, L, H, T, K1...)!"); return; }
+  html += `</div></div></div>`;
+  wrap.innerHTML = html;
+}
 
-  excelHasTplCol = (tplCol !== -1);
-  excelFileNameStr = fileName;
+function readExcelMapFromUI() {
+  EX_FIELDS.forEach(f => {
+    const el = document.getElementById('exMap_' + f.key.replace(/[^a-zA-Z0-9]/g, '_'));
+    if (!el) return;
+    exMap[f.key] = el.value === '' ? null : parseInt(el.value);
+  });
+}
+
+function onExcelMapChange() {
+  readExcelMapFromUI();
+  buildExcelOrders();
+  applyExcelTemplateChoice();
+  renderExcelPreview(excelFileNameStr);
+  updateGenerateButton();
+}
+
+function excelAutoMapAgain() {
+  exMap = excelAutoDetectMap(exRawRows[0] || []);
+  renderExcelMapping();
+  onExcelMapChange();
+}
+
+function buildExcelOrders() {
+  excelHasTplCol = exMap['ŞABLON'] !== null && exMap['ŞABLON'] !== undefined;
+  const argKeys = ['B','L','H','T','K1','K2','K3','K4'].filter(k => exMap[k] !== null && exMap[k] !== undefined);
 
   excelOrders = [];
-  for (let r = 1; r < rows.length; r++) {
-    const row = rows[r];
-    const tplName  = tplCol  >= 0 ? (row[tplCol]  || '').toString().trim() : '';
-    const nameCell = nameCol >= 0 ? (row[nameCol] || '').toString().trim() : '';
+  for (let r = 1; r < exRawRows.length; r++) {
+    const row = exRawRows[r] || [];
+    const tplName  = excelHasTplCol ? (row[exMap['ŞABLON']] ?? '').toString().trim() : '';
+    const nameCell = (exMap['DOSYA ADI'] !== null && exMap['DOSYA ADI'] !== undefined)
+      ? (row[exMap['DOSYA ADI']] ?? '').toString().trim() : '';
 
     const order = {
       row: r + 1,
-      rawTemplate: tplName,   // excelden gelen (boş olabilir)
-      template: '',           // hesaplanır
+      rawTemplate: tplName,
+      template: '',
       fileNameRaw: nameCell,
       fileName: '',
       args: {},
@@ -2057,17 +2147,28 @@ function parseExcelData(rows, fileName) {
       error: null
     };
 
-    for (const [col, argName] of Object.entries(argCols)) {
-      const val = parseFloat(row[col]);
-      if (!isNaN(val)) order.args[argName] = val;
-    }
+    argKeys.forEach(k => {
+      const raw = row[exMap[k]];
+      const val = parseFloat(String(raw).replace(',', '.'));
+      if (!isNaN(val)) order.args[k] = val;
+    });
 
-    // Tamamen boş satırları atla (ölçü yok, şablon yok, ad yok)
+    // Tamamen boş satırları atla
     if (Object.keys(order.args).length === 0 && !tplName && !nameCell) continue;
-
     excelOrders.push(order);
   }
+}
 
+function parseExcelData(rows, fileName) {
+  if (!rows || rows.length < 2) { alert('Excel dosyasında veri satırı bulunamadı.'); return; }
+
+  exRawRows = rows;
+  exHeaders = (rows[0] || []).map((h, i) => (h !== '' && h != null) ? String(h) : `Sütun ${i + 1}`);
+  exMap = excelAutoDetectMap(rows[0] || []);
+  excelFileNameStr = fileName;
+
+  buildExcelOrders();
+  renderExcelMapping();
   applyExcelTemplateChoice();
   renderExcelPreview(fileName);
   updateGenerateButton();
@@ -2087,6 +2188,14 @@ function renderExcelPreview(fileName) {
   if (missing > 0) {
     html += `<div class="info-banner" style="margin-bottom:10px;border-color:var(--red);">
       ⚠ ${missing} satırın şablonu belirsiz. Yukarıdan bir <strong>varsayılan şablon</strong> seçin.
+    </div>`;
+  }
+
+  const noArgs = excelOrders.every(o => Object.keys(o.args).length === 0);
+  if (noArgs) {
+    html += `<div class="info-banner" style="margin-bottom:10px;border-color:var(--red);">
+      ⚠ Hiç ölçü sütunu eşleştirilmedi. Yukarıdaki <strong>Sütun Eşleştirme</strong> bölümünden B / L / H / T sütunlarını seçin —
+      aksi halde şablonun kendi ölçüleriyle üretilir.
     </div>`;
   }
 
@@ -3662,7 +3771,8 @@ function cvHandleFile(file) {
       cvShowStep2();
     } catch(err) { alert('Okuma hatası: ' + err.message); }
   };
-  reader.readAsArrayBuffer(file);
+  if (isCsv) reader.readAsText(file, 'UTF-8');
+  else reader.readAsArrayBuffer(file);
 }
 
 function cvShowStep2() {
@@ -3673,6 +3783,26 @@ function cvShowStep2() {
   document.getElementById('cvStep2Card').style.display = 'block';
   cvRenderPreview();
   cvRenderMapping();
+  cvRefreshTplList();
+}
+
+// Sabit şablon kutusunu yüklü şablonlarla besle (datalist + hızlı seçim)
+function cvRefreshTplList() {
+  const dl = document.getElementById('cvTplDatalist');
+  const qs = document.getElementById('cvTplQuick');
+  const names = Object.keys(templates).sort();
+  if (dl) dl.innerHTML = names.map(n => `<option value="${n}"></option>`).join('');
+  if (qs) {
+    const prev = qs.value;
+    qs.innerHTML = '<option value="">— yüklü şablonlardan seç —</option>' +
+      names.map(n => `<option value="${n}">${n}</option>`).join('');
+    if (prev && templates[prev]) qs.value = prev;
+  }
+}
+
+function cvPickTpl(v) {
+  const inp = document.getElementById('cvFixedTpl');
+  if (inp && v) inp.value = v;
 }
 
 function cvRenderPreview() {
@@ -4429,6 +4559,7 @@ refreshTemplateUI = function() {
   _origRefreshTemplateUI();
   updateDatTemplateSelect();
   updateExcelTemplateSelect();
+  if (typeof cvRefreshTplList === 'function') cvRefreshTplList();
 };
 
 function updateDatTemplateSelect() {
