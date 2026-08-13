@@ -114,6 +114,33 @@ table.bd-tbl tfoot td{padding:8px 10px;font-weight:800;background:var(--panel2);
 .pk .dot{width:8px;height:8px;border-radius:50%;display:block;flex:none}
 .pk small{color:var(--muted);font-weight:600}
 .pk.on small{color:var(--accent)}
+/* ---- içe aktarma penceresi ---- */
+.modal{position:fixed;inset:0;background:rgba(6,9,14,.78);z-index:200;display:flex;align-items:center;
+  justify-content:center;padding:22px;backdrop-filter:blur(3px)}
+.mbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;width:min(1180px,100%);
+  max-height:92vh;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.6);overflow:hidden}
+.mhead{background:linear-gradient(135deg,#0d1f33,#1a3a5c);color:#fff;padding:13px 18px;font-weight:700;font-size:16px;
+  display:flex;align-items:center;gap:10px;font-family:'Rajdhani',sans-serif;letter-spacing:1px}
+.mhead .mx{margin-left:auto;background:rgba(255,255,255,.12);border:0;color:#fff;width:28px;height:28px;
+  border-radius:8px;cursor:pointer;font-family:inherit}
+.mhead .mx:hover{background:var(--orange)}
+.mbody{padding:16px 18px;overflow:auto}
+.mrow{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin-bottom:14px;font-size:13.5px}
+.mrow label{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--muted)}
+.mrow select{border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--panel2);
+  color:var(--ink);font-weight:700;font-family:inherit;font-size:13.5px}
+.mrow input[type=checkbox]{width:17px;height:17px;accent-color:#f7a800}
+table.imp{border-collapse:collapse;font-size:13px;width:100%}
+table.imp th,table.imp td{border:1px solid var(--line);padding:6px 9px;white-space:nowrap;max-width:240px;
+  overflow:hidden;text-overflow:ellipsis}
+table.imp thead td{background:var(--panel2);padding:6px}
+table.imp select{width:100%;border:1.5px solid var(--line);border-radius:7px;padding:6px 7px;background:var(--panel);
+  color:var(--ink);font-weight:700;font-size:12.5px;font-family:inherit}
+table.imp select.set{border-color:var(--accent);color:var(--accent)}
+table.imp tbody tr:nth-child(odd) td{background:rgba(255,255,255,.02)}
+table.imp .hdr td{color:var(--muted);font-weight:700;background:var(--panel2)}
+.mfoot{display:flex;gap:10px;align-items:center;padding:14px 18px;border-top:1px solid var(--line);flex-wrap:wrap}
+.mfoot .info{flex:1;font-size:13px;color:var(--muted);font-weight:600}
 .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tw::-webkit-scrollbar{height:8px}
 .tw::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
@@ -275,13 +302,16 @@ footer strong{color:var(--orange)}
       </div>
       <div class="bd-right">
         <table class="bd-tbl">
-          <thead><tr><th style="width:20%">Boy (yükseklik)</th><th style="width:20%">En (genişlik)</th>
-            <th style="width:14%">Adet</th><th style="width:38%">Ad (isteğe bağlı)</th><th style="width:8%"></th></tr></thead>
+          <thead><tr><th style="width:7%"><input type="checkbox" id="bAll" checked title="Tümünü seç / bırak"
+              style="width:17px;height:17px;accent-color:#f7a800;cursor:pointer"></th>
+            <th style="width:18%">Boy (yükseklik)</th><th style="width:18%">En (genişlik)</th>
+            <th style="width:13%">Adet</th><th style="width:36%">Ad (isteğe bağlı)</th><th style="width:8%"></th></tr></thead>
           <tbody id="bRows"></tbody>
-          <tfoot><tr><td colspan="2">TOPLAM</td><td id="bTot" style="text-align:right">0 parça</td><td colspan="2"></td></tr></tfoot>
+          <tfoot><tr><td colspan="3">REÇETEYE GİRECEK</td><td id="bTot" style="text-align:right">0 parça</td><td colspan="2"></td></tr></tfoot>
         </table>
         <div class="bd-actions">
           <button class="btn btn-ghost" id="bAdd">➕ Satır Ekle</button>
+          <button class="btn btn-ghost" id="bXls">📊 Excel / CSV'den Aktar</button>
           <button class="btn btn-primary" id="bRun">⚙ Optimize Et &amp; Göster</button>
           <button class="btn btn-ghost" id="bSave">💾 .hcut2 Olarak İndir</button>
           <button class="btn btn-ghost" id="bClr">🧹 Tabloyu Temizle</button>
@@ -304,6 +334,27 @@ footer strong{color:var(--orange)}
     <p>Ham levha ölçüsü, kesilecek parça ölçüleri ve fire — hem <b>çizim üzerinde</b> hem <b>tablo halinde</b>.</p>
   </div>
 </div>
+
+<div class="modal" id="imp" style="display:none">
+  <div class="mbox">
+    <div class="mhead">📊 Excel / CSV'den Ölçü Aktar <button class="mx" id="impX" title="Kapat">✕</button></div>
+    <div class="mbody">
+      <div class="mrow">
+        <label>Sayfa <select id="impSheet"></select></label>
+        <label><input type="checkbox" id="impHdr" checked> İlk satır başlık</label>
+        <label><input type="checkbox" id="impRepl"> Mevcut tabloyu temizle</label>
+        <label style="color:var(--accent)">Her sütunun üstünden ne olduğunu seçin ↓</label>
+      </div>
+      <div class="tw"><table class="imp" id="impTbl"></table></div>
+    </div>
+    <div class="mfoot">
+      <span class="info" id="impInfo"></span>
+      <button class="btn btn-ghost" id="impCancel">Vazgeç</button>
+      <button class="btn btn-primary" id="impGo">✓ Tabloya Aktar</button>
+    </div>
+  </div>
+</div>
+<input type="file" id="impFile" accept=".xlsx,.xlsm,.csv,.txt" hidden>
 
 <div class="picker" id="picker"></div>
 <div class="wrap" id="wrap"></div>
@@ -736,15 +787,22 @@ document.addEventListener("drop",e=>{e.preventDefault();dz.classList.remove("dra
 /* ---------------- reçete oluşturucu ---------------- */
 const B={rows:[{h:0,w:0,n:1}],built:null};
 function bMsg(t,cls){const m=$("#bMsg");m.innerHTML=t;m.className="bd-msg "+cls;}
+function bUsed(){return B.rows.filter(r=>r.use!==false&&r.w>0&&r.h>0&&r.n>0);}
 function bTot(){
-  const ok=B.rows.filter(r=>r.w>0&&r.h>0&&r.n>0);
-  $("#bTot").textContent=ok.reduce((s,r)=>s+r.n,0)+" parça / "+ok.length+" ölçü";
+  const ok=bUsed(), all=B.rows.filter(r=>r.w>0&&r.h>0&&r.n>0);
+  $("#bTot").textContent=ok.reduce((s,r)=>s+r.n,0)+" parça / "+ok.length+" ölçü"+
+    (all.length>ok.length?"  ("+(all.length-ok.length)+" ölçü kullanılmıyor)":"");
+  const a=$("#bAll"); if(a)a.checked=all.length>0&&ok.length===all.length;
 }
 function bRender(){
   const tb=$("#bRows");tb.innerHTML="";
   B.rows.forEach((r,i)=>{
     const tr=document.createElement("tr");
-    tr.innerHTML='<td><input type="number" min="1" value="'+(r.h||"")+'" data-i="'+i+'" data-f="h" placeholder="boy"></td>'+
+    const on=r.use!==false;
+    tr.style.opacity=on?1:.42;
+    tr.innerHTML='<td style="text-align:center"><input type="checkbox" data-i="'+i+'" data-f="use"'+(on?" checked":"")+
+        ' title="Bu ölçü reçeteye girsin mi?" style="width:17px;height:17px;accent-color:#f7a800;cursor:pointer"></td>'+
+      '<td><input type="number" min="1" value="'+(r.h||"")+'" data-i="'+i+'" data-f="h" placeholder="boy"></td>'+
       '<td><input type="number" min="1" value="'+(r.w||"")+'" data-i="'+i+'" data-f="w" placeholder="en"></td>'+
       '<td><input type="number" min="1" value="'+(r.n||"")+'" data-i="'+i+'" data-f="n" placeholder="adet"></td>'+
       '<td><input type="text" value="'+esc(r.nm||"")+'" data-i="'+i+'" data-f="nm" placeholder="ör. kapak / yan duvar" style="text-align:left;color:var(--accent)"></td>'+
@@ -752,14 +810,19 @@ function bRender(){
     tb.appendChild(tr);
   });
   tb.querySelectorAll("input").forEach(inp=>{
-    inp.oninput=e=>{const f=e.target.dataset.f;
-      B.rows[+e.target.dataset.i][f]=(f==="nm")?e.target.value:(+e.target.value||0);bTot();};
-    inp.onkeydown=e=>{if(e.key==="Enter"){B.rows.push({h:0,w:0,n:1,nm:""});bRender();
-      const all=$("#bRows").querySelectorAll("input");all[all.length-4].focus();}};
+    const i=+inp.dataset.i, f=inp.dataset.f;
+    if(f==="use"){inp.onchange=e=>{B.rows[i].use=e.target.checked;
+      e.target.closest("tr").style.opacity=e.target.checked?1:.42;bTot();};return;}
+    inp.oninput=e=>{B.rows[i][f]=(f==="nm")?e.target.value:(+e.target.value||0);bTot();};
+    inp.onkeydown=e=>{if(e.key==="Enter"){
+      if(i===B.rows.length-1)B.rows.push({h:0,w:0,n:1,nm:"",use:true});
+      bRender();
+      const rows=$("#bRows").children, tgt=rows[Math.min(i+1,rows.length-1)];
+      if(tgt)tgt.querySelector('input[data-f="h"]').focus();}};
   });
   tb.querySelectorAll(".del").forEach(b=>b.onclick=e=>{
     B.rows.splice(+e.currentTarget.dataset.i,1);
-    if(!B.rows.length)B.rows.push({h:0,w:0,n:1,nm:""});
+    if(!B.rows.length)B.rows.push({h:0,w:0,n:1,nm:"",use:true});
     bRender();});
   bTot();
 }
@@ -833,12 +896,11 @@ function optimize(W,H,list,rot){
 function buildRecipe(){
   const name=($("#bName").value||"").trim()||"yeni_recete";
   const W=+$("#bW").value,H=+$("#bH").value,K=Math.max(1,+$("#bK").value||1);
-  const list=B.rows.filter(r=>r.w>0&&r.h>0&&r.n>0).map(r=>({w:r.w,h:r.h,n:r.n}));
+  const list=bUsed().map(r=>({w:r.w,h:r.h,n:r.n}));
   const adlar={};
-  B.rows.forEach(r=>{if(r.w>0&&r.h>0&&(r.nm||"").trim())adlar[r.w+"x"+r.h]=r.nm.trim();
-    if(r.w>0&&r.h>0&&(r.nm||"").trim())adlar[r.h+"x"+r.w]=r.nm.trim();});
+  bUsed().forEach(r=>{if((r.nm||"").trim()){adlar[r.w+"x"+r.h]=r.nm.trim();adlar[r.h+"x"+r.w]=r.nm.trim();}});
   if(!(W>0&&H>0))return{err:["Levha eni ve boyu girilmeli."]};
-  if(!list.length)return{err:["En az bir ölçü satırı girin (boy, en, adet)."]};
+  if(!list.length)return{err:["Reçeteye girecek en az bir ölçü seçin (soldaki kutucuklar)."]};
   const o=optimize(W,H,list,$("#bRot").checked);
   if(o.err)return o;
   const out=o.sheets.map((s,si)=>{
@@ -887,7 +949,7 @@ function bSave(){
 }
 function loadToBuilder(entry){
   const a=entry.a;
-  B.rows=a.sizes.map(g=>({h:g.h,w:g.w,n:g.n,nm:entry.names[g.key]||""}));
+  B.rows=a.sizes.map(g=>({h:g.h,w:g.w,n:g.n,nm:entry.names[g.key]||"",use:true}));
   $("#bName").value=(entry.obj.Name||"kopya")+"_duzenlendi";
   $("#bW").value=a.ys.Width;$("#bH").value=a.ys.Height;$("#bK").value=entry.obj.KatSayisi||1;
   $("#builder").style.display="block";bRender();
@@ -899,8 +961,9 @@ $("#tglBd").onclick=()=>{
   b.style.display=b.style.display==="none"?"block":"none";
   if(b.style.display==="block")b.scrollIntoView({behavior:"smooth",block:"start"});
 };
-$("#bAdd").onclick=()=>{B.rows.push({h:0,w:0,n:1,nm:""});bRender();};
-$("#bClr").onclick=()=>{B.rows=[{h:0,w:0,n:1,nm:""}];B.built=null;bRender();bMsg("Tablo temizlendi.","inf");};
+$("#bAdd").onclick=()=>{B.rows.push({h:0,w:0,n:1,nm:"",use:true});bRender();};
+$("#bAll").onchange=e=>{B.rows.forEach(r=>r.use=e.target.checked);bRender();};
+$("#bClr").onclick=()=>{B.rows=[{h:0,w:0,n:1,nm:"",use:true}];B.built=null;bRender();bMsg("Tablo temizlendi.","inf");};
 $("#bRun").onclick=bRun;
 $("#bSave").onclick=bSave;
 $("#bPasteGo").onclick=()=>{
@@ -916,6 +979,181 @@ $("#bPasteGo").onclick=()=>{
   bRender();bMsg("✓ "+add.length+" satır aktarıldı.","ok");
 };
 bRender();
+
+/* ---------------- Excel / CSV içe aktarma ---------------- */
+const IMP={sheets:[],si:0,map:{}};
+async function inflateRaw(d){
+  if(typeof DecompressionStream==="undefined")throw new Error("Tarayıcı .xlsx açmayı desteklemiyor — dosyayı CSV olarak kaydedip deneyin.");
+  const st=new Blob([d]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Uint8Array(await new Response(st).arrayBuffer());
+}
+async function unzip(u8,keep){
+  const dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);
+  let p=-1;
+  for(let i=u8.length-22;i>=0&&i>u8.length-66000;i--){if(dv.getUint32(i,true)===0x06054b50){p=i;break;}}
+  if(p<0)throw new Error("Dosya okunamadı (zip yapısı yok).");
+  const cnt=dv.getUint16(p+10,true); let o=dv.getUint32(p+16,true);
+  const td=new TextDecoder(), out={};
+  for(let i=0;i<cnt;i++){
+    if(o+46>u8.length||dv.getUint32(o,true)!==0x02014b50)break;
+    const method=dv.getUint16(o+10,true),csize=dv.getUint32(o+20,true);
+    const nlen=dv.getUint16(o+28,true),elen=dv.getUint16(o+30,true),clen=dv.getUint16(o+32,true);
+    const lho=dv.getUint32(o+42,true), name=td.decode(u8.subarray(o+46,o+46+nlen));
+    if(!keep||keep(name)){
+      const st=lho+30+dv.getUint16(lho+26,true)+dv.getUint16(lho+28,true);
+      const data=u8.subarray(st,st+csize);
+      out[name]=method===0?data:await inflateRaw(data);
+    }
+    o+=46+nlen+elen+clen;
+  }
+  return out;
+}
+const xunesc=t=>t.replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&apos;/g,"'")
+  .replace(/&#(\d+);/g,(m,d)=>String.fromCharCode(+d)).replace(/&amp;/g,"&");
+function colIdx(ref){let n=0;for(let i=0;i<ref.length;i++){const c=ref.charCodeAt(i);
+  if(c<65||c>90)break;n=n*26+(c-64);}return n-1;}
+function parseSheetXml(xml,ss){
+  const rows=[];
+  (xml.match(/<row[^>]*>[\s\S]*?<\/row>|<row[^>]*\/>/g)||[]).forEach(rx=>{
+    const cells=[];
+    (rx.match(/<c[^>]*>[\s\S]*?<\/c>|<c[^>]*\/>/g)||[]).forEach(cx=>{
+      const rm=cx.match(/r="([A-Z]+)\d+"/), t=(cx.match(/ t="([^"]+)"/)||[])[1];
+      const idx=rm?colIdx(rm[1]):cells.length;
+      let v="";
+      if(t==="inlineStr"){const m=cx.match(/<t[^>]*>([\s\S]*?)<\/t>/);v=m?xunesc(m[1]):"";}
+      else{const m=cx.match(/<v>([\s\S]*?)<\/v>/);
+        if(m){v=t==="s"?(ss[+m[1]]||""):xunesc(m[1]);}}
+      while(cells.length<idx)cells.push("");
+      cells[idx]=String(v).trim();
+    });
+    rows.push(cells);
+  });
+  return rows.filter(r=>r.some(c=>c!==""));
+}
+async function readXlsx(file){
+  const u8=new Uint8Array(await file.arrayBuffer());
+  const f=await unzip(u8,n=>/^xl\/(workbook\.xml|sharedStrings\.xml|worksheets\/sheet\d+\.xml)$/.test(n));
+  const td=new TextDecoder();
+  let ss=[];
+  if(f["xl/sharedStrings.xml"]){
+    const x=td.decode(f["xl/sharedStrings.xml"]);
+    ss=(x.match(/<si>[\s\S]*?<\/si>/g)||[]).map(si=>
+      (si.match(/<t[^>]*>[\s\S]*?<\/t>/g)||[]).map(t=>xunesc(t.replace(/<[^>]+>/g,""))).join(""));
+  }
+  let names=[];
+  if(f["xl/workbook.xml"]){
+    const x=td.decode(f["xl/workbook.xml"]);
+    names=(x.match(/<sheet [^>]*>/g)||[]).map(t=>{const m=t.match(/name="([^"]*)"/);return m?xunesc(m[1]):"";});
+  }
+  return Object.keys(f).filter(n=>/worksheets\/sheet\d+\.xml$/.test(n))
+    .sort((a,b)=>(+a.match(/\d+/)[0])-(+b.match(/\d+/)[0]))
+    .map((n,i)=>({name:names[i]||("Sayfa "+(i+1)),rows:parseSheetXml(td.decode(f[n]),ss)}))
+    .filter(sh=>sh.rows.length);
+}
+function readCsv(txt){
+  txt=txt.replace(/^﻿/,"");
+  const lines=txt.split(/\r?\n/).filter(l=>l.trim()!=="");
+  const head=lines.slice(0,5).join("\n");
+  const d=[[";",(head.match(/;/g)||[]).length],["\t",(head.match(/\t/g)||[]).length],
+           [",",(head.match(/,/g)||[]).length]].sort((a,b)=>b[1]-a[1])[0][0];
+  return [{name:"CSV",rows:lines.map(l=>{
+    const out=[];let cur="",q=false;
+    for(let i=0;i<l.length;i++){const ch=l[i];
+      if(q){if(ch==='"'){if(l[i+1]==='"'){cur+='"';i++;}else q=false;}else cur+=ch;}
+      else if(ch==='"')q=true; else if(ch===d){out.push(cur.trim());cur="";} else cur+=ch;}
+    out.push(cur.trim());return out;})}];
+}
+const FIELDS=[["","— kullanma —"],["h","Boy (yükseklik)"],["w","En (genişlik)"],["n","Adet"],["nm","Ad / İsim"]];
+function guessField(t){
+  t=(t||"").toLocaleLowerCase("tr").replace(/[^a-z0-9çğıöşü]/g,"");
+  if(!t)return "";
+  if(/adet|miktar|qty|quantity|sayi|sayı|^adt$/.test(t))return "n";
+  if(/boy|yukseklik|yükseklik|height|uzunluk|^h$|^len$/.test(t))return "h";
+  if(/^en$|genislik|genişlik|width|^w$|^eni$/.test(t))return "w";
+  if(/ad|isim|isım|name|parca|parça|urun|ürün|tanim|tanım|aciklama|açıklama|kod|stok/.test(t))return "nm";
+  return "";
+}
+function impRender(){
+  const sh=IMP.sheets[IMP.si]; if(!sh)return;
+  const hdr=$("#impHdr").checked;
+  const cols=Math.max.apply(null,sh.rows.slice(0,50).map(r=>r.length));
+  const head=hdr?sh.rows[0]:[];
+  if(!IMP.map.__done){
+    IMP.map={};
+    for(let c=0;c<cols;c++){const g=hdr?guessField(head[c]):"";if(g)IMP.map[c]=g;}
+    if(!Object.keys(IMP.map).length&&cols>=2){IMP.map[0]="h";IMP.map[1]="w";if(cols>2)IMP.map[2]="n";if(cols>3)IMP.map[3]="nm";}
+    IMP.map.__done=1;
+  }
+  let h='<thead><tr>';
+  for(let c=0;c<cols;c++){
+    h+='<td><select data-c="'+c+'" class="'+(IMP.map[c]?"set":"")+'">'+
+      FIELDS.map(f=>'<option value="'+f[0]+'"'+(IMP.map[c]===f[0]?" selected":"")+'>'+f[1]+'</option>').join("")+
+      '</select></td>';
+  }
+  h+='</tr>';
+  if(hdr){h+='<tr class="hdr">'+Array.from({length:cols},(_,c)=>'<td>'+esc(head[c]||"")+'</td>').join("")+'</tr>';}
+  h+='</thead><tbody>';
+  sh.rows.slice(hdr?1:0,(hdr?1:0)+10).forEach(r=>{
+    h+='<tr>'+Array.from({length:cols},(_,c)=>'<td>'+esc(r[c]||"")+'</td>').join("")+'</tr>';});
+  h+='</tbody>';
+  $("#impTbl").innerHTML=h;
+  $("#impTbl").querySelectorAll("select").forEach(sel=>sel.onchange=e=>{
+    const c=+e.target.dataset.c, v=e.target.value;
+    if(v)Object.keys(IMP.map).forEach(k=>{if(k!=="__done"&&IMP.map[k]===v&&+k!==c)delete IMP.map[k];});
+    if(v)IMP.map[c]=v;else delete IMP.map[c];
+    impRender();
+  });
+  const n=impCount();
+  $("#impInfo").innerHTML=sh.rows.length+" satır okundu · <b style="+'"color:var(--accent)"'+">"+n+" ölçü aktarılacak</b>"+
+    (IMP.map.__done&&!Object.values(IMP.map).includes("h")?" · <span style='color:var(--bad)'>Boy sütunu seçilmedi</span>":"")+
+    (!Object.values(IMP.map).includes("w")?" · <span style='color:var(--bad)'>En sütunu seçilmedi</span>":"");
+}
+function impRows(){
+  const sh=IMP.sheets[IMP.si]; if(!sh)return [];
+  const hdr=$("#impHdr").checked, inv={};
+  Object.keys(IMP.map).forEach(k=>{if(k!=="__done")inv[IMP.map[k]]=+k;});
+  if(inv.h==null||inv.w==null)return [];
+  const num=v=>{const x=parseFloat(String(v).replace(",",".").replace(/[^\d.\-]/g,""));return isFinite(x)?Math.round(x):0;};
+  return sh.rows.slice(hdr?1:0).map(r=>({
+    h:num(r[inv.h]), w:num(r[inv.w]),
+    n:inv.n!=null?(num(r[inv.n])||1):1,
+    nm:inv.nm!=null?String(r[inv.nm]||"").trim():"",
+    use:true
+  })).filter(r=>r.h>0&&r.w>0);
+}
+function impCount(){return impRows().length;}
+function impOpen(sheets){
+  IMP.sheets=sheets;IMP.si=0;IMP.map={};
+  $("#impSheet").innerHTML=sheets.map((s,i)=>'<option value="'+i+'">'+esc(s.name)+' ('+s.rows.length+' satır)</option>').join("");
+  $("#impSheet").style.display=sheets.length>1?"":"none";
+  $("#imp").style.display="flex";
+  impRender();
+}
+$("#bXls").onclick=()=>$("#impFile").click();
+$("#impFile").onchange=async e=>{
+  const f=e.target.files[0]; e.target.value="";
+  if(!f)return;
+  try{
+    const sheets=/\.(xlsx|xlsm)$/i.test(f.name)?await readXlsx(f):readCsv(await f.text());
+    if(!sheets.length||!sheets[0].rows.length){alert("Dosyada veri bulunamadı.");return;}
+    impOpen(sheets);
+  }catch(err){alert("Dosya okunamadı:\n"+err.message);}
+};
+$("#impSheet").onchange=e=>{IMP.si=+e.target.value;IMP.map={};impRender();};
+$("#impHdr").onchange=()=>{IMP.map={};impRender();};
+$("#impX").onclick=$("#impCancel").onclick=()=>{$("#imp").style.display="none";};
+$("#imp").onclick=e=>{if(e.target.id==="imp")$("#imp").style.display="none";};
+$("#impGo").onclick=()=>{
+  const rows=impRows();
+  if(!rows.length){alert("Aktarılacak satır yok — Boy ve En sütunlarını seçtiğinizden emin olun.");return;}
+  if($("#impRepl").checked)B.rows=[];
+  B.rows=B.rows.filter(r=>r.w>0&&r.h>0).concat(rows);
+  if(!B.rows.length)B.rows=[{h:0,w:0,n:1,nm:"",use:true}];
+  $("#imp").style.display="none";
+  bRender();
+  bMsg("✓ "+rows.length+" ölçü aktarıldı. Reçeteye girmesini istemediklerinizin solundaki kutucuğu kaldırın, sonra «Optimize Et» deyin.","ok");
+  $("#builder").scrollIntoView({behavior:"smooth",block:"start"});
+};
 
 SAMPLES.forEach(s=>addObjects(s.name,s.data));
 render();
