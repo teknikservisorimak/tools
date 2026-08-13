@@ -63,6 +63,12 @@ select.zoom{border:1.5px solid var(--line);border-radius:9px;padding:9px 10px;fo
 .bd-head{background:linear-gradient(135deg,#0d1f33,#1a3a5c);color:#fff;padding:12px 16px;font-weight:700;font-size:15px;
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--line);
   font-family:'Rajdhani',sans-serif;letter-spacing:1px}
+.etag{display:none;align-items:center;gap:9px;background:rgba(247,168,0,.16);border:1px solid var(--accent);
+  color:var(--accent);border-radius:20px;padding:5px 12px;font-size:12.5px;font-weight:700;letter-spacing:0;
+  font-family:'Exo 2',sans-serif}
+.etag button{background:rgba(0,0,0,.28);border:0;color:var(--accent);border-radius:14px;padding:3px 10px;
+  cursor:pointer;font-weight:700;font-size:11.5px;font-family:inherit}
+.etag button:hover{background:var(--accent);color:#1a1204}
 .bd-head .hint{font-weight:400;font-size:12.5px;opacity:.75;letter-spacing:0;font-family:'Exo 2',sans-serif}
 .bd-body{padding:16px;display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
 .bd-form{display:grid;grid-template-columns:repeat(2,minmax(140px,1fr));gap:12px;flex:0 1 360px}
@@ -279,7 +285,9 @@ footer strong{color:var(--orange)}
 <div class="builder" id="builder" style="display:none">
   <div class="bd">
     <div class="bd-head">🧩 Yeni Reçete Oluştur
-      <span class="hint">— ham levha ölçüsünü ve kesilecek parçaları gir, program yerleşimi kendisi çıkarsın</span>
+      <span class="hint" id="bHint">— ham levha ölçüsünü ve kesilecek parçaları gir, program yerleşimi kendisi çıkarsın</span>
+      <span class="etag" id="bEditTag">✎ Düzenleniyor: <b id="bEditNm"></b>
+        <button id="bEditX" title="Düzenlemeyi bırak, sonuç yeni reçete olarak eklensin">vazgeç</button></span>
     </div>
     <div class="bd-body">
       <div class="bd-form">
@@ -699,7 +707,9 @@ function card(entry){
       render();};
     inp.onkeydown=e=>{if(e.key==="Enter")e.target.blur();};
   });
-  el.querySelectorAll(".x")[1].onclick=()=>{S.files=S.files.filter(f=>f!==entry);render();};
+  el.querySelectorAll(".x")[1].onclick=()=>{
+    if(B.edit===entry){B.edit=null;bEditTag();}
+    S.files=S.files.filter(f=>f!==entry);render();};
   el.querySelector(".edit").onclick=()=>loadToBuilder(entry);
   const cv=el.querySelector("canvas");entry.canvas=cv;
   if(S.zoom) drawLayout(cv,a,entry.names);
@@ -728,14 +738,18 @@ function render(){
 }
 
 /* ---------------- dosya ---------------- */
-function addObjects(name,arr){
+function addObjects(name,arr,at){
+  const made=[];
   arr.forEach((obj,i)=>{
     if(!obj||!obj.Yerlesim||!obj.Yerlesim.YerlesimSekli)return;
     const nm={};
     if(obj.OlcuAdlari&&typeof obj.OlcuAdlari==="object")Object.keys(obj.OlcuAdlari).forEach(k=>{
       if(obj.OlcuAdlari[k])nm[k]=String(obj.OlcuAdlari[k]);});
-    S.files.push({name:arr.length>1?name+" (#"+(i+1)+")":name,obj:obj,a:analyze(obj),names:nm});
+    made.push({name:arr.length>1?name+" (#"+(i+1)+")":name,obj:obj,a:analyze(obj),names:nm});
   });
+  if(at==null)made.forEach(e=>S.files.push(e));
+  else made.forEach((e,k)=>S.files.splice(at+k,0,e));
+  return made;
 }
 async function addFiles(list){
   const before=S.files.length;
@@ -769,7 +783,7 @@ function savePng(){
 /* ---------------- events ---------------- */
 $("#pick").onclick=()=>$("#file").click();
 $("#file").onchange=e=>{addFiles(e.target.files);e.target.value="";};
-$("#clr").onclick=()=>{S.files=[];render();$("#empty").style.display="block";};
+$("#clr").onclick=()=>{S.files=[];B.edit=null;bEditTag();render();$("#empty").style.display="block";};
 $("#csv").onclick=csv;
 $("#png").onclick=savePng;
 $("#prn").onclick=()=>window.print();
@@ -785,7 +799,7 @@ document.addEventListener("drop",e=>{e.preventDefault();dz.classList.remove("dra
   if(e.dataTransfer.files.length)addFiles(e.dataTransfer.files);});
 
 /* ---------------- reçete oluşturucu ---------------- */
-const B={rows:[{h:0,w:0,n:1}],built:null};
+const B={rows:[{h:0,w:0,n:1,nm:"",use:true}],built:null,edit:null};
 function bMsg(t,cls){const m=$("#bMsg");m.innerHTML=t;m.className="bd-msg "+cls;}
 function bUsed(){return B.rows.filter(r=>r.use!==false&&r.w>0&&r.h>0&&r.n>0);}
 function bTot(){
@@ -925,16 +939,23 @@ function bRun(){
   const r=buildRecipe();
   if(r.err){bMsg("⚠ "+r.err.join("<br>⚠ "),"err");return;}
   B.built=r;
-  S.files=S.files.filter(f=>!f.gen);
-  const before=S.files.length;
-  addObjects(r.name+".hcut2 · OLUŞTURULDU",r.out);
-  for(let i=before;i<S.files.length;i++)S.files[i].gen=true;
-  S.sel=before<S.files.length?before:0;
+  const duz=B.edit;
+  S.files=S.files.filter(f=>!f.gen||f===duz);
+  let at=S.files.length, eskiAd="";
+  if(duz){
+    const i=S.files.indexOf(duz);
+    if(i>=0){at=i;eskiAd=(duz.obj.Name||"reçete")+" · Levha "+duz.obj.Yerlesim.YerlesimId;S.files.splice(i,1);}
+  }
+  const made=addObjects(r.name+".hcut2 · "+(duz?"GÜNCELLENDİ":"OLUŞTURULDU"),r.out,at);
+  made.forEach(e=>e.gen=true);
+  if(duz&&made.length){B.edit=made[0];bEditTag();}
+  S.sel=made.length?at:0;
   render();
   const fires=r.out.map(o=>nf2(o.Yerlesim.FireOrani*100)+"%").join(" · ");
   const inf=r.info?(" &nbsp;|&nbsp; "+r.info.tried+" yerleşim denendi, en iyisi: <b>"+r.info.name+"</b>"+
     (r.info.rot?" &nbsp;|&nbsp; <b>"+r.info.rot+" parça çevrildi</b> (En↔Boy)":"")):"";
-  bMsg("✓ "+r.out.length+" levha yerleşimi oluşturuldu — fire: "+fires+inf+
+  bMsg("✓ "+(duz?("<b>"+esc(eskiAd||"reçete")+"</b> güncellendi — eskisi kaldırıldı, yerine "):"")+
+    r.out.length+" levha yerleşimi "+(duz?"kondu":"oluşturuldu")+" — fire: "+fires+inf+
     "<br>Aşağıda çizim ve ölçü listesi olarak görebilir, «.hcut2 Olarak İndir» ile makineye alabilirsiniz.","ok");
   const c=$("#wrap").children[0];if(c)c.scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -947,13 +968,22 @@ function bSave(){
   a.href=u;a.download=B.built.name+".hcut2";a.click();URL.revokeObjectURL(u);
   bMsg("💾 "+B.built.name+".hcut2 indirildi — makinedeki «Dosya Bul» ile açabilirsiniz.","ok");
 }
+function bEditTag(){
+  const t=$("#bEditTag");
+  if(B.edit){t.style.display="inline-flex";
+    $("#bEditNm").textContent=(B.edit.obj.Name||"reçete")+" · Levha "+B.edit.obj.Yerlesim.YerlesimId;
+    $("#bRun").innerHTML="⚙ Optimize Et &amp; Güncelle";$("#bHint").style.display="none";}
+  else{t.style.display="none";$("#bRun").innerHTML="⚙ Optimize Et &amp; Göster";$("#bHint").style.display="";}
+}
 function loadToBuilder(entry){
   const a=entry.a;
+  B.edit=entry;
   B.rows=a.sizes.map(g=>({h:g.h,w:g.w,n:g.n,nm:entry.names[g.key]||"",use:true}));
-  $("#bName").value=(entry.obj.Name||"kopya")+"_duzenlendi";
+  $("#bName").value=entry.obj.Name||"recete";
   $("#bW").value=a.ys.Width;$("#bH").value=a.ys.Height;$("#bK").value=entry.obj.KatSayisi||1;
-  $("#builder").style.display="block";bRender();
-  bMsg("Ölçüler düzenleyiciye aktarıldı — değiştirip yeniden optimize edebilirsiniz.","inf");
+  $("#builder").style.display="block";bRender();bEditTag();
+  bMsg("✎ <b>Levha "+entry.obj.Yerlesim.YerlesimId+"</b> düzenleniyor. Ölçüleri değiştirip «Optimize Et & Güncelle» derseniz "+
+    "bu levhanın <b>yerine</b> yenisi konur — yeni reçete eklenmez. Ayrıca eklensin isterseniz üstteki «vazgeç»e basın.","inf");
   $("#builder").scrollIntoView({behavior:"smooth",block:"start"});
 }
 $("#tglBd").onclick=()=>{
@@ -963,6 +993,10 @@ $("#tglBd").onclick=()=>{
 };
 $("#bAdd").onclick=()=>{B.rows.push({h:0,w:0,n:1,nm:"",use:true});bRender();};
 $("#bAll").onchange=e=>{B.rows.forEach(r=>r.use=e.target.checked);bRender();};
+$("#bEditX").onclick=()=>{
+  if(B.edit)B.edit.gen=false;            // düzenlenen levha korunsun, üzerine yazılmasın
+  B.edit=null;bEditTag();
+  bMsg("Düzenleme bırakıldı — o levha olduğu gibi kalır, «Optimize Et» sonucu <b>ayrı bir reçete</b> olarak eklenir.","inf");};
 $("#bClr").onclick=()=>{B.rows=[{h:0,w:0,n:1,nm:"",use:true}];B.built=null;bRender();bMsg("Tablo temizlendi.","inf");};
 $("#bRun").onclick=bRun;
 $("#bSave").onclick=bSave;
@@ -978,7 +1012,7 @@ $("#bPasteGo").onclick=()=>{
   B.rows=B.rows.filter(r=>r.w>0&&r.h>0).concat(add);
   bRender();bMsg("✓ "+add.length+" satır aktarıldı.","ok");
 };
-bRender();
+bRender();bEditTag();
 
 /* ---------------- Excel / CSV içe aktarma ---------------- */
 const IMP={sheets:[],si:0,map:{}};
