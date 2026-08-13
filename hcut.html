@@ -141,6 +141,16 @@ table.bd-tbl tfoot td{padding:8px 10px;font-weight:800;background:var(--panel2);
 .full{border-top:1px solid var(--line);padding-bottom:16px}
 
 canvas{background:#1b2029;border:1px solid var(--line);border-radius:8px;max-width:100%;display:block}
+.nm-in{width:100%;min-width:96px;background:transparent;border:1px solid transparent;border-radius:7px;
+  padding:5px 7px;color:var(--accent);font-weight:700;font-size:13px;font-family:inherit}
+.nm-in::placeholder{color:var(--dim);font-weight:400;font-style:italic}
+.nm-in:hover{border-color:var(--line);background:var(--panel2)}
+.nm-in:focus{outline:0;border-color:var(--accent);background:var(--panel2);box-shadow:0 0 0 3px rgba(247,168,0,.15)}
+.mini{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:7px;padding:3px 8px;margin:2px 5px 2px 0;font-size:12px;white-space:nowrap;font-weight:600}
+.mini i{width:9px;height:9px;border-radius:2px;display:block;flex:none}
+.mini b{color:var(--ink);font-variant-numeric:tabular-nums}
+.mini em{font-style:normal;color:var(--accent);font-weight:700}
 .legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px;max-width:780px}
 .lg{display:inline-flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--line);
   border-radius:20px;padding:5px 11px;font-size:12.5px;font-weight:700}
@@ -235,17 +245,23 @@ footer strong{color:var(--orange)}
         <label>Kat Sayısı<input id="bK" type="number" value="1" min="1"></label>
         <label style="grid-column:1/-1;text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--ink)">
           <span style="display:flex;align-items:center;gap:9px;cursor:pointer">
-            <input type="checkbox" id="bRot" checked style="width:18px;height:18px;accent-color:#3d7ec2">
+            <input type="checkbox" id="bRot" checked style="width:18px;height:18px;accent-color:#f7a800">
             Gerekirse parçayı çevir (En ↔ Boy) — yatay/dikey deneyip fireyi düşürür
+          </span>
+        </label>
+        <label style="grid-column:1/-1;text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--ink)">
+          <span style="display:flex;align-items:center;gap:9px;cursor:pointer">
+            <input type="checkbox" id="bNames" checked style="width:18px;height:18px;accent-color:#f7a800">
+            Ölçü isimlerini .hcut2 dosyasına da yaz (OlcuAdlari)
           </span>
         </label>
       </div>
       <div class="bd-right">
         <table class="bd-tbl">
-          <thead><tr><th style="width:34%">Boy (yükseklik)</th><th style="width:34%">En (genişlik)</th>
-            <th style="width:22%">Adet</th><th style="width:10%"></th></tr></thead>
+          <thead><tr><th style="width:20%">Boy (yükseklik)</th><th style="width:20%">En (genişlik)</th>
+            <th style="width:14%">Adet</th><th style="width:38%">Ad (isteğe bağlı)</th><th style="width:8%"></th></tr></thead>
           <tbody id="bRows"></tbody>
-          <tfoot><tr><td colspan="2">TOPLAM</td><td id="bTot" style="text-align:right">0 parça</td><td></td></tr></tfoot>
+          <tfoot><tr><td colspan="2">TOPLAM</td><td id="bTot" style="text-align:right">0 parça</td><td colspan="2"></td></tr></tfoot>
         </table>
         <div class="bd-actions">
           <button class="btn btn-ghost" id="bAdd">➕ Satır Ekle</button>
@@ -326,7 +342,11 @@ function analyze(obj){
       notes.push({t:"crit",m:`Raf ${sh.ShelfId}: aynı rafta farklı yükseklikler var (${hs.join(" / ")} mm). Tek düz kesim yapılamaz → makine bu reçeteyi işleyemez.`});}
     else if(remW>0){st="warn";stTxt="Boşluk var";warn++;
       notes.push({t:"wr",m:`Raf ${sh.ShelfId}: sağda ${mm(remW)} mm kullanılmayan genişlik (fire).`});}
-    rows.push({id:sh.ShelfId,mh:sh.MaxHeight,cnt:items.length,sizeStr,usedW,remW,st,stTxt,hs});
+    const dm=new Map();
+    items.forEach(i=>{const k=i.Width+"x"+i.Height;
+      if(!dm.has(k))dm.set(k,{key:k,w:i.Width,h:i.Height,n:0});dm.get(k).n++;});
+    const detail=[...dm.values()].sort((x,y)=>y.n*y.w*y.h-x.n*x.w*x.h);
+    rows.push({id:sh.ShelfId,mh:sh.MaxHeight,cnt:items.length,sizeStr,usedW,remW,st,stTxt,hs,detail});
   });
   const topWaste=ys.Height-shelfSum;
   addWaste(ys.Width,topWaste,"Levha üstü");
@@ -352,7 +372,8 @@ function arrowLine(c,x1,y1,x2,y2,col){
     c.lineTo(x-s*Math.cos(ang+.4),y-s*Math.sin(ang+.4));
     c.closePath();c.fill();});
 }
-function drawLayout(canvas,a){
+function drawLayout(canvas,a,names){
+  names=names||{};
   const ys=a.ys,W=ys.Width,H=ys.Height;
   const sc=S.zoom/W;
   const padL=76,padT=64,padR=142,padB=42;
@@ -368,13 +389,20 @@ function drawLayout(canvas,a){
   c.fillStyle="#0e1219";c.fillRect(padL,padT,dw,dh);
 
   /* ölçü etiketi: kutuya sığıyorsa düz, dar ve uzunsa çevirerek yazar */
-  function boxLabel(txt,px,py,pw,ph,color,bold){
+  function boxLabel(txt,px,py,pw,ph,color,bold,sub){
     if(!S.labels) return;
     c.fillStyle=color;c.textAlign="center";c.textBaseline="middle";
     const wgt=bold?"700 ":"600 ";
     if(pw>=ph){
       const fs=Math.round(Math.max(7,Math.min(13,pw/(txt.length*.62)))*2)/2;
-      if(ph>fs+2 && pw>txt.length*fs*.55){c.font=wgt+fs+"px "+F;c.fillText(txt,px+pw/2,py+ph/2);}
+      if(ph>fs+2 && pw>txt.length*fs*.55){
+        c.font=wgt+fs+"px "+F;
+        if(sub&&ph>fs*2.6&&pw>sub.length*fs*.5){
+          c.fillText(txt,px+pw/2,py+ph/2-fs*.62);
+          c.fillStyle="#9aa8bb";c.font="600 "+Math.max(6.5,fs*.78)+"px "+F;
+          c.fillText(sub,px+pw/2,py+ph/2+fs*.72);
+        }else c.fillText(txt,px+pw/2,py+ph/2);
+      }
     }else{
       const fs=Math.round(Math.max(7,Math.min(13,pw*.6))*2)/2;
       if(pw>=8 && ph>txt.length*fs*.62){
@@ -400,8 +428,9 @@ function drawLayout(canvas,a){
       const px=X(x),py=Y(top),pw=it.Width*sc,ph=it.Height*sc;
       c.fillStyle=col+"4d";c.fillRect(px,py,pw,ph);
       c.strokeStyle=col;c.lineWidth=.8;c.strokeRect(px,py,pw,ph);
-      rects.push({px:px,py:py,pw:pw,ph:ph,lb:it.Width+" × "+it.Height+" mm · Raf "+sh.ShelfId+" · Parça #"+it.ItemId});
-      boxLabel(it.Width+"×"+it.Height,px,py,pw,ph,"#eef4fb",false);
+      const key=it.Width+"x"+it.Height, nmv=names[key];
+      rects.push({px:px,py:py,pw:pw,ph:ph,lb:(nmv?nmv+" · ":"")+it.Width+" × "+it.Height+" mm · Raf "+sh.ShelfId+" · Parça #"+it.ItemId});
+      boxLabel(nmv||(it.Width+"×"+it.Height),px,py,pw,ph,"#eef4fb",false,nmv?(it.Width+"×"+it.Height):null);
       if(it.Height<sh.MaxHeight){       // parçanın üstünde kalan fire
         const fh=(sh.MaxHeight-it.Height)*sc, fy=Y(top+it.Height);
         if(S.fire){c.fillStyle="#e0342a";c.fillRect(px,fy,pw,fh);}
@@ -423,7 +452,8 @@ function drawLayout(canvas,a){
     c.textAlign="left";c.textBaseline="middle";
     c.fillStyle="#e8eef6";c.font="800 11.5px "+F;
     c.fillText("Raf "+sh.ShelfId+" · "+sh.MaxHeight+" mm",bx+12,my-8);
-    const uniq=[...new Set((sh.Items||[]).map(i=>i.Width+"×"+i.Height))];
+    const uKey=[...new Set((sh.Items||[]).map(i=>i.Width+"x"+i.Height))];
+    const uniq=uKey.map(k=>(names[k]?names[k]+" · ":"")+k.replace("x","×"));
     c.fillStyle="#93a2b5";c.font="600 11px "+F;
     c.fillText((sh.Items||[]).length+" parça",bx+12,my+6);
     if(uniq.length===1){c.fillText(uniq[0],bx+12,my+20);}
@@ -481,13 +511,18 @@ function drawLayout(canvas,a){
 }
 
 /* ---------------- kart ---------------- */
+const esc=t=>String(t==null?"":t).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
 function card(entry){
   const o=entry.obj,a=entry.a,ys=a.ys;
+  const NM=k=>entry.names[k]||"";
+  const chips=list=>list.map(g=>'<span class="mini"><i style="background:'+(a.color[g.key]||"#e0342a")+'"></i>'+
+    (NM(g.key)?'<em>'+esc(NM(g.key))+'</em> ':'')+g.w+"×"+g.h+' <b>×'+g.n+'</b></span>').join("");
   const el=document.createElement("div");el.className="card";
 
   const sizeRows=a.sizes.map(g=>`
     <tr>
       <td class="l"><span class="swatch" style="background:${g.color}"></span><span class="olcu">${g.w} × ${g.h}</span></td>
+      <td class="l"><input class="nm-in" data-k="${g.key}" value="${esc(NM(g.key))}" placeholder="isim ver…" title="Bu ölçüye isim ver"></td>
       <td class="num">${mm(g.w)}</td><td class="num">${mm(g.h)}</td>
       <td class="num"><b>${nf(g.n)}</b></td>
       <td class="num">${nf(g.n*a.adet)}</td>
@@ -503,7 +538,7 @@ function card(entry){
     <tr>
       <td class="l"><b>Raf ${r.id}</b></td>
       <td class="num">${mm(r.mh)}</td>
-      <td class="l" style="white-space:normal">${r.sizeStr}</td>
+      <td class="l" style="white-space:normal">${chips(r.detail)}</td>
       <td class="num">${nf(r.cnt)}</td>
       <td class="num">${mm(r.usedW)}</td>
       <td class="num" style="color:${r.remW>0?'var(--fire)':'inherit'}">${mm(r.remW)}</td>
@@ -533,7 +568,7 @@ function card(entry){
       </table>
     </div>`:"";
   const hasFire=a.wastes.length>0;
-  const legend=a.sizes.map(g=>`<span class="lg"><i style="background:${g.color}"></i>${g.w}×${g.h}<span>· ${g.n} adet</span></span>`).join("")
+  const legend=a.sizes.map(g=>`<span class="lg"><i style="background:${g.color}"></i>${NM(g.key)?esc(NM(g.key))+" · ":""}${g.w}×${g.h}<span>· ${g.n} adet</span></span>`).join("")
     +(hasFire?`<span class="lg"><i style="background:#e0342a"></i>Fire<span>· kullanılmayan alan</span></span>`:"");
 
   el.innerHTML=`
@@ -565,10 +600,10 @@ function card(entry){
         <div class="sec">
           <h3>📏 Kesilecek Ölçü Listesi (genişlik × yükseklik, mm)</h3>
           <table class="t">
-            <thead><tr><th class="l">Ölçü</th><th>Gen.</th><th>Yük.</th><th>Levhada</th>
+            <thead><tr><th class="l">Ölçü</th><th class="l">Ad</th><th>Gen.</th><th>Yük.</th><th>Levhada</th>
               <th>Toplam (×${a.adet})</th><th>Alan m²</th><th class="l">Levha Payı</th><th>Raf</th></tr></thead>
             <tbody>${sizeRows}</tbody>
-            <tfoot><tr><td class="l">TOPLAM — ${a.sizes.length} farklı ölçü</td><td></td><td></td>
+            <tfoot><tr><td class="l">TOPLAM — ${a.sizes.length} farklı ölçü</td><td></td><td></td><td></td>
               <td class="num">${nf(a.totalItems)}</td><td class="num">${nf(a.totalItems*a.adet)}</td>
               <td class="num">${nf3(a.usedArea/1e6)}</td>
               <td class="l num">${nf2(100-a.fire*100)}% dolu</td><td></td></tr></tfoot>
@@ -590,10 +625,17 @@ function card(entry){
       <ul class="notes">${a.notes.map(n=>`<li class="${n.t==='crit'?'crit':n.t==='wr'?'wr':'good'}">${n.m}</li>`).join("")}</ul>
     </div>`;
 
+  el.querySelectorAll(".nm-in").forEach(inp=>{
+    inp.onchange=e=>{const k=e.target.dataset.k,v=e.target.value.trim();
+      if(v)entry.names[k]=v;else delete entry.names[k];
+      if(entry.obj)entry.obj.OlcuAdlari=Object.keys(entry.names).length?JSON.parse(JSON.stringify(entry.names)):undefined;
+      render();};
+    inp.onkeydown=e=>{if(e.key==="Enter")e.target.blur();};
+  });
   el.querySelectorAll(".x")[1].onclick=()=>{S.files=S.files.filter(f=>f!==entry);render();};
   el.querySelector(".edit").onclick=()=>loadToBuilder(entry);
   const cv=el.querySelector("canvas");entry.canvas=cv;
-  if(S.zoom) drawLayout(cv,a);
+  if(S.zoom) drawLayout(cv,a,entry.names);
   return el;
 }
 
@@ -608,7 +650,10 @@ function render(){
 function addObjects(name,arr){
   arr.forEach((obj,i)=>{
     if(!obj||!obj.Yerlesim||!obj.Yerlesim.YerlesimSekli)return;
-    S.files.push({name:arr.length>1?name+" (#"+(i+1)+")":name,obj:obj,a:analyze(obj)});
+    const nm={};
+    if(obj.OlcuAdlari&&typeof obj.OlcuAdlari==="object")Object.keys(obj.OlcuAdlari).forEach(k=>{
+      if(obj.OlcuAdlari[k])nm[k]=String(obj.OlcuAdlari[k]);});
+    S.files.push({name:arr.length>1?name+" (#"+(i+1)+")":name,obj:obj,a:analyze(obj),names:nm});
   });
 }
 async function addFiles(list){
@@ -621,9 +666,9 @@ async function addFiles(list){
 }
 function csv(){
   if(!S.files.length)return;
-  let out="Dosya;Recete;Levha No;Ham Levha G;Ham Levha Y;Olcu;Genislik;Yukseklik;Levhada Adet;Levha Adedi;Toplam Adet;Alan m2;Raf\n";
+  let out="Dosya;Recete;Levha No;Ham Levha G;Ham Levha Y;Olcu;Ad;Genislik;Yukseklik;Levhada Adet;Levha Adedi;Toplam Adet;Alan m2;Raf\n";
   S.files.forEach(e=>e.a.sizes.forEach(g=>{
-    out+=[e.name,e.obj.Name,e.obj.Yerlesim.YerlesimId,e.a.ys.Width,e.a.ys.Height,g.w+"x"+g.h,g.w,g.h,g.n,e.a.adet,
+    out+=[e.name,e.obj.Name,e.obj.Yerlesim.YerlesimId,e.a.ys.Width,e.a.ys.Height,g.w+"x"+g.h,(e.names[g.key]||""),g.w,g.h,g.n,e.a.adet,
       g.n*e.a.adet,(g.area/1e6).toFixed(3).replace(".",","),[...g.shelves].join("/")].join(";")+"\n";}));
   const b=new Blob(["﻿"+out],{type:"text/csv;charset=utf-8"}),u=URL.createObjectURL(b),a=document.createElement("a");
   a.href=u;a.download="olcu_listesi.csv";a.click();URL.revokeObjectURL(u);
@@ -670,17 +715,19 @@ function bRender(){
     tr.innerHTML='<td><input type="number" min="1" value="'+(r.h||"")+'" data-i="'+i+'" data-f="h" placeholder="boy"></td>'+
       '<td><input type="number" min="1" value="'+(r.w||"")+'" data-i="'+i+'" data-f="w" placeholder="en"></td>'+
       '<td><input type="number" min="1" value="'+(r.n||"")+'" data-i="'+i+'" data-f="n" placeholder="adet"></td>'+
+      '<td><input type="text" value="'+esc(r.nm||"")+'" data-i="'+i+'" data-f="nm" placeholder="ör. kapak / yan duvar" style="text-align:left;color:var(--accent)"></td>'+
       '<td style="text-align:center"><button class="del" data-i="'+i+'" title="Satırı sil">✕</button></td>';
     tb.appendChild(tr);
   });
   tb.querySelectorAll("input").forEach(inp=>{
-    inp.oninput=e=>{B.rows[+e.target.dataset.i][e.target.dataset.f]=+e.target.value||0;bTot();};
-    inp.onkeydown=e=>{if(e.key==="Enter"){B.rows.push({h:0,w:0,n:1});bRender();
-      const all=$("#bRows").querySelectorAll("input");all[all.length-3].focus();}};
+    inp.oninput=e=>{const f=e.target.dataset.f;
+      B.rows[+e.target.dataset.i][f]=(f==="nm")?e.target.value:(+e.target.value||0);bTot();};
+    inp.onkeydown=e=>{if(e.key==="Enter"){B.rows.push({h:0,w:0,n:1,nm:""});bRender();
+      const all=$("#bRows").querySelectorAll("input");all[all.length-4].focus();}};
   });
   tb.querySelectorAll(".del").forEach(b=>b.onclick=e=>{
     B.rows.splice(+e.currentTarget.dataset.i,1);
-    if(!B.rows.length)B.rows.push({h:0,w:0,n:1});
+    if(!B.rows.length)B.rows.push({h:0,w:0,n:1,nm:""});
     bRender();});
   bTot();
 }
@@ -755,6 +802,9 @@ function buildRecipe(){
   const name=($("#bName").value||"").trim()||"yeni_recete";
   const W=+$("#bW").value,H=+$("#bH").value,K=Math.max(1,+$("#bK").value||1);
   const list=B.rows.filter(r=>r.w>0&&r.h>0&&r.n>0).map(r=>({w:r.w,h:r.h,n:r.n}));
+  const adlar={};
+  B.rows.forEach(r=>{if(r.w>0&&r.h>0&&(r.nm||"").trim())adlar[r.w+"x"+r.h]=r.nm.trim();
+    if(r.w>0&&r.h>0&&(r.nm||"").trim())adlar[r.h+"x"+r.w]=r.nm.trim();});
   if(!(W>0&&H>0))return{err:["Levha eni ve boyu girilmeli."]};
   if(!list.length)return{err:["En az bir ölçü satırı girin (boy, en, adet)."]};
   const o=optimize(W,H,list,$("#bRot").checked);
@@ -767,9 +817,13 @@ function buildRecipe(){
       const sum=sh.ws.reduce((a,b)=>a+b,0);used+=sum*sh.h;
       return{ShelfId:i+1,MaxHeight:sh.h,Width:W,RemainingWidth:W-sum,Items:items,CutDone:false,Animation:false};
     });
-    return{Name:name,WorkType:true,Id:si+1,KatSayisi:K,
+    const o={Name:name,WorkType:true,Id:si+1,KatSayisi:K,
       Yerlesim:{YerlesimId:si+1,Adet:K,FireOrani:(W*H-used)/(W*H),
         YerlesimSekli:{TypeOfRecipe:true,ContainerId:0,Width:W,Height:H,WasteRatio:1.0,Shelves:Shelves}}};
+    const kul={};
+    Shelves.forEach(sh=>sh.Items.forEach(it=>{const k=it.Width+"x"+it.Height;if(adlar[k])kul[k]=adlar[k];}));
+    if(Object.keys(kul).length)o.OlcuAdlari=kul;
+    return o;
   });
   return{out:out,name:name,info:o.info};
 }
@@ -791,14 +845,16 @@ function bRun(){
 }
 function bSave(){
   if(!B.built){bRun();if(!B.built)return;}
-  const txt=JSON.stringify(B.built.out,null,2);
+  const data=JSON.parse(JSON.stringify(B.built.out));
+  if(!$("#bNames").checked)data.forEach(o=>{delete o.OlcuAdlari;});
+  const txt=JSON.stringify(data,null,2);
   const b=new Blob([txt],{type:"application/json"}),u=URL.createObjectURL(b),a=document.createElement("a");
   a.href=u;a.download=B.built.name+".hcut2";a.click();URL.revokeObjectURL(u);
   bMsg("💾 "+B.built.name+".hcut2 indirildi — makinedeki «Dosya Bul» ile açabilirsiniz.","ok");
 }
 function loadToBuilder(entry){
   const a=entry.a;
-  B.rows=a.sizes.map(g=>({h:g.h,w:g.w,n:g.n}));
+  B.rows=a.sizes.map(g=>({h:g.h,w:g.w,n:g.n,nm:entry.names[g.key]||""}));
   $("#bName").value=(entry.obj.Name||"kopya")+"_duzenlendi";
   $("#bW").value=a.ys.Width;$("#bH").value=a.ys.Height;$("#bK").value=entry.obj.KatSayisi||1;
   $("#builder").style.display="block";bRender();
@@ -810,8 +866,8 @@ $("#tglBd").onclick=()=>{
   b.style.display=b.style.display==="none"?"block":"none";
   if(b.style.display==="block")b.scrollIntoView({behavior:"smooth",block:"start"});
 };
-$("#bAdd").onclick=()=>{B.rows.push({h:0,w:0,n:1});bRender();};
-$("#bClr").onclick=()=>{B.rows=[{h:0,w:0,n:1}];B.built=null;bRender();bMsg("Tablo temizlendi.","inf");};
+$("#bAdd").onclick=()=>{B.rows.push({h:0,w:0,n:1,nm:""});bRender();};
+$("#bClr").onclick=()=>{B.rows=[{h:0,w:0,n:1,nm:""}];B.built=null;bRender();bMsg("Tablo temizlendi.","inf");};
 $("#bRun").onclick=bRun;
 $("#bSave").onclick=bSave;
 $("#bPasteGo").onclick=()=>{
