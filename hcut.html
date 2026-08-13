@@ -104,6 +104,19 @@ table.bd-tbl tfoot td{padding:8px 10px;font-weight:800;background:var(--panel2);
 .dz b{color:var(--accent)}
 
 /* ---- kart ---- */
+.picker{max-width:1640px;margin:16px auto 0;padding:0 18px;display:none;gap:8px;flex-wrap:wrap;align-items:center}
+.picker .lbl{font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;margin-right:2px}
+.pk{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1.5px solid var(--line);
+  border-radius:10px;padding:8px 13px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink);
+  transition:.15s;font-family:inherit}
+.pk:hover{border-color:var(--accent);background:var(--panel2)}
+.pk.on{background:rgba(247,168,0,.13);border-color:var(--accent);color:var(--accent)}
+.pk .dot{width:8px;height:8px;border-radius:50%;display:block;flex:none}
+.pk small{color:var(--muted);font-weight:600}
+.pk.on small{color:var(--accent)}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tw::-webkit-scrollbar{height:8px}
+.tw::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
 .wrap{max-width:1640px;margin:18px auto 60px;padding:0 18px;display:flex;flex-direction:column;gap:22px}
 .card{scroll-margin-top:92px;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;
   box-shadow:0 10px 34px rgba(0,0,0,.35);animation:pop .3s cubic-bezier(.2,.8,.2,1) both}
@@ -131,16 +144,17 @@ table.bd-tbl tfoot td{padding:8px 10px;font-weight:800;background:var(--panel2);
 .stat.hl .v{color:var(--accent)}
 
 .split{display:flex;flex-wrap:wrap;align-items:flex-start}
-.col-draw{flex:0 1 auto;padding:14px 16px;border-right:1px solid var(--line);background:var(--panel2)}
+.col-draw{flex:1 1 420px;min-width:0;max-width:62%;padding:14px 16px;border-right:1px solid var(--line);background:var(--panel2)}
 .col-draw h3{margin:0 0 10px;font-size:12.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--accent)}
-.col-list{flex:1 1 520px;min-width:380px}
+.col-list{flex:1 1 640px;min-width:0}
 .sec{padding:14px 16px 6px}
 .sec h3{margin:0 0 10px;font-size:12.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--accent);
   display:flex;align-items:center;gap:8px}
 .sec h3::after{content:"";flex:1;height:1px;background:var(--line)}
 .full{border-top:1px solid var(--line);padding-bottom:16px}
 
-canvas{background:#1b2029;border:1px solid var(--line);border-radius:8px;max-width:100%;display:block}
+canvas{background:#1b2029;border:1px solid var(--line);border-radius:8px;display:block;
+  max-width:100%;height:auto!important;margin:0 auto}
 .nm-in{width:100%;min-width:96px;background:transparent;border:1px solid transparent;border-radius:7px;
   padding:5px 7px;color:var(--accent);font-weight:700;font-size:13px;font-family:inherit}
 .nm-in::placeholder{color:var(--dim);font-weight:400;font-style:italic}
@@ -158,11 +172,11 @@ canvas{background:#1b2029;border:1px solid var(--line);border-radius:8px;max-wid
 .lg span{color:var(--muted);font-weight:600}
 
 table.t{width:100%;border-collapse:collapse;font-size:13.5px}
-table.t th{background:var(--panel2);color:var(--muted);text-align:right;padding:9px 11px;font-weight:700;font-size:11.5px;
+table.t th{background:var(--panel2);color:var(--muted);text-align:right;padding:8px 10px;font-weight:700;font-size:11.5px;
   text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid var(--line);white-space:nowrap}
 table.t th:first-child,table.t td:first-child{text-align:left}
 table.t th.l,table.t td.l{text-align:left}
-table.t td{padding:8px 11px;border-bottom:1px solid var(--line2);text-align:right;white-space:nowrap}
+table.t td{padding:7px 10px;border-bottom:1px solid var(--line2);text-align:right;white-space:nowrap}
 table.t tbody tr:hover td{background:var(--panel2)}
 table.t tfoot td{font-weight:800;background:var(--panel2);border-top:2px solid var(--line);border-bottom:0}
 .olcu{font-size:15.5px;font-weight:800;font-family:'Rajdhani',sans-serif;letter-spacing:.5px}
@@ -187,6 +201,9 @@ footer{max-width:1640px;margin:0 auto;padding:20px 18px 30px;text-align:center;c
 footer strong{color:var(--orange)}
 .tt{position:fixed;pointer-events:none;background:#0a0e14;color:#fff;font-size:12px;padding:6px 9px;
   border:1px solid var(--line);border-radius:7px;z-index:99;opacity:0;transition:.12s;white-space:nowrap}
+@media (max-width:1200px){
+  .col-draw{max-width:100%;flex:1 1 100%;border-right:0;border-bottom:1px solid var(--line)}
+}
 @media (max-width:768px){
   .header{padding:12px 16px}.header-title h1{font-size:16px;letter-spacing:2px}.header-title span{display:none}
   .header-logo img{height:34px}
@@ -288,6 +305,7 @@ footer strong{color:var(--orange)}
   </div>
 </div>
 
+<div class="picker" id="picker"></div>
 <div class="wrap" id="wrap"></div>
 <div class="empty" id="empty" style="display:none">Henüz reçete yüklenmedi.</div>
 <footer>© 2025 <strong>ORİMAK</strong> — HCUT Ölçü &amp; Yerleşim · Çevrimdışı çalışır, dosyalarınız cihazdan çıkmaz.</footer>
@@ -297,7 +315,7 @@ footer strong{color:var(--orange)}
 "use strict";
 const SAMPLES = [];
 const $=s=>document.querySelector(s);
-const S={files:[],labels:true,fire:true,zoom:720};
+const S={files:[],labels:true,fire:true,zoom:720,sel:0};
 
 function tick(){const d=new Date();$("#clock").textContent=d.toLocaleDateString("tr-TR")+" "+d.toLocaleTimeString("tr-TR");}
 tick();setInterval(tick,1000);
@@ -523,7 +541,6 @@ function card(entry){
     <tr>
       <td class="l"><span class="swatch" style="background:${g.color}"></span><span class="olcu">${g.w} × ${g.h}</span></td>
       <td class="l"><input class="nm-in" data-k="${g.key}" value="${esc(NM(g.key))}" placeholder="isim ver…" title="Bu ölçüye isim ver"></td>
-      <td class="num">${mm(g.w)}</td><td class="num">${mm(g.h)}</td>
       <td class="num"><b>${nf(g.n)}</b></td>
       <td class="num">${nf(g.n*a.adet)}</td>
       <td class="num">${nf3(g.area/1e6)}</td>
@@ -548,7 +565,6 @@ function card(entry){
   const wasteRows=a.wastes.map(g=>`
     <tr>
       <td class="l"><span class="swatch" style="background:#e0342a"></span><span class="olcu">${g.w} × ${g.h}</span></td>
-      <td class="num">${mm(g.w)}</td><td class="num">${mm(g.h)}</td>
       <td class="num"><b>${nf(g.n)}</b></td>
       <td class="num">${nf3(g.area/1e6)}</td>
       <td class="num" style="color:var(--fire)">${nf2(g.area/a.sheetArea*100)}%</td>
@@ -557,15 +573,15 @@ function card(entry){
   const wasteBlock=a.wastes.length?`
     <div class="sec">
       <h3>🔴 Fire Blokları (kullanılmayan ölçüler)</h3>
-      <table class="t">
-        <thead><tr><th class="l">Ölçü</th><th>Gen.</th><th>Yük.</th><th>Adet</th><th>Alan m²</th>
+      <div class="tw"><table class="t">
+        <thead><tr><th class="l">Ölçü (G×Y)</th><th>Adet</th><th>Alan m²</th>
           <th>Levha Payı</th><th class="l">Konum</th></tr></thead>
         <tbody>${wasteRows}</tbody>
-        <tfoot><tr><td class="l">TOPLAM FİRE</td><td></td><td></td>
+        <tfoot><tr><td class="l">TOPLAM FİRE</td>
           <td class="num">${nf(a.wastes.reduce((s,g)=>s+g.n,0))}</td>
           <td class="num">${nf3((a.sheetArea-a.usedArea)/1e6)}</td>
           <td class="num" style="color:var(--fire)">${nf2(a.fire*100)}%</td><td></td></tr></tfoot>
-      </table>
+      </table></div>
     </div>`:"";
   const hasFire=a.wastes.length>0;
   const legend=a.sizes.map(g=>`<span class="lg"><i style="background:${g.color}"></i>${NM(g.key)?esc(NM(g.key))+" · ":""}${g.w}×${g.h}<span>· ${g.n} adet</span></span>`).join("")
@@ -599,23 +615,23 @@ function card(entry){
       <div class="col-list">
         <div class="sec">
           <h3>📏 Kesilecek Ölçü Listesi (genişlik × yükseklik, mm)</h3>
-          <table class="t">
-            <thead><tr><th class="l">Ölçü</th><th class="l">Ad</th><th>Gen.</th><th>Yük.</th><th>Levhada</th>
+          <div class="tw"><table class="t">
+            <thead><tr><th class="l">Ölçü (G×Y)</th><th class="l">Ad</th><th>Levhada</th>
               <th>Toplam (×${a.adet})</th><th>Alan m²</th><th class="l">Levha Payı</th><th>Raf</th></tr></thead>
             <tbody>${sizeRows}</tbody>
-            <tfoot><tr><td class="l">TOPLAM — ${a.sizes.length} farklı ölçü</td><td></td><td></td><td></td>
+            <tfoot><tr><td class="l">TOPLAM — ${a.sizes.length} farklı ölçü</td><td></td>
               <td class="num">${nf(a.totalItems)}</td><td class="num">${nf(a.totalItems*a.adet)}</td>
               <td class="num">${nf3(a.usedArea/1e6)}</td>
               <td class="l num">${nf2(100-a.fire*100)}% dolu</td><td></td></tr></tfoot>
-          </table>
+          </table></div>
         </div>
         <div class="sec">
           <h3>🗂 Raf Detayı</h3>
-          <table class="t">
+          <div class="tw"><table class="t">
             <thead><tr><th class="l">Raf</th><th>Raf Yük.</th><th class="l">İçindeki Ölçüler</th>
-              <th>Parça</th><th>Kullanılan G.</th><th>Kalan G.</th><th class="l">Durum</th></tr></thead>
+              <th>Parça</th><th>Dolu G.</th><th>Kalan G.</th><th class="l">Durum</th></tr></thead>
             <tbody>${shelfRows}</tbody>
-          </table>
+          </table></div>
         </div>
         ${wasteBlock}
       </div>
@@ -639,11 +655,25 @@ function card(entry){
   return el;
 }
 
+function renderPicker(){
+  const p=$("#picker");
+  if(S.files.length<2){p.style.display="none";p.innerHTML="";return;}
+  p.style.display="flex";
+  const dot=st=>st==="ok"?"#3ddc84":st==="warn"?"#f7a800":"#ff6b5e";
+  p.innerHTML='<span class="lbl">Görüntülenen levha:</span>'+
+    S.files.map((e,i)=>'<button class="pk'+(S.sel===i?" on":"")+'" data-i="'+i+'" title="'+esc(e.name)+'">'+
+      '<span class="dot" style="background:'+dot(e.a.status)+'"></span>Levha '+e.obj.Yerlesim.YerlesimId+
+      ' <small>· '+esc(e.obj.Name||e.name)+' · '+e.a.shelves.length+' raf · fire '+nf2(e.a.fire*100)+'%</small></button>').join("")+
+    '<button class="pk'+(S.sel<0?" on":"")+'" data-i="-1">▦ Tümü ('+S.files.length+')</button>';
+  p.querySelectorAll(".pk").forEach(b=>b.onclick=()=>{S.sel=+b.dataset.i;render();});
+}
 function render(){
   const w=$("#wrap");w.innerHTML="";
-  S.files.forEach(e=>w.appendChild(card(e)));
+  if(S.sel>=S.files.length)S.sel=0;
+  S.files.forEach((e,i)=>{if(S.files.length<2||S.sel<0||S.sel===i)w.appendChild(card(e));});
   $("#cnt").textContent=S.files.length+" reçete";
   $("#dzWrap").style.display=S.files.length?"none":"block";
+  renderPicker();
 }
 
 /* ---------------- dosya ---------------- */
@@ -657,11 +687,13 @@ function addObjects(name,arr){
   });
 }
 async function addFiles(list){
+  const before=S.files.length;
   for(const f of list){
     try{let d=JSON.parse((await f.text()).replace(/^﻿/,"").trim());
       addObjects(f.name,Array.isArray(d)?d:[d]);}
     catch(err){alert('"'+f.name+'" okunamadı:\n'+err.message);}
   }
+  S.sel=before<S.files.length?before:0;
   render();
 }
 function csv(){
@@ -835,13 +867,14 @@ function bRun(){
   const before=S.files.length;
   addObjects(r.name+".hcut2 · OLUŞTURULDU",r.out);
   for(let i=before;i<S.files.length;i++)S.files[i].gen=true;
+  S.sel=before<S.files.length?before:0;
   render();
   const fires=r.out.map(o=>nf2(o.Yerlesim.FireOrani*100)+"%").join(" · ");
   const inf=r.info?(" &nbsp;|&nbsp; "+r.info.tried+" yerleşim denendi, en iyisi: <b>"+r.info.name+"</b>"+
     (r.info.rot?" &nbsp;|&nbsp; <b>"+r.info.rot+" parça çevrildi</b> (En↔Boy)":"")):"";
   bMsg("✓ "+r.out.length+" levha yerleşimi oluşturuldu — fire: "+fires+inf+
     "<br>Aşağıda çizim ve ölçü listesi olarak görebilir, «.hcut2 Olarak İndir» ile makineye alabilirsiniz.","ok");
-  const c=$("#wrap").children[before];if(c)c.scrollIntoView({behavior:"smooth",block:"start"});
+  const c=$("#wrap").children[0];if(c)c.scrollIntoView({behavior:"smooth",block:"start"});
 }
 function bSave(){
   if(!B.built){bRun();if(!B.built)return;}
