@@ -763,6 +763,24 @@ tr:hover td { background: var(--surface2); }
       </div>
     </div>
     <div class="card-body">
+      <div class="info-banner" style="margin-bottom:14px;">
+        <strong>Şablon sütunu zorunlu değil.</strong> Excel'de <code>ŞABLON</code> / <code>FEFCO</code> sütunu olmayabilir —
+        sadece ölçüleri (B, L, H, T, K1…) yazmanız yeterli. Aşağıdan bir <strong>varsayılan şablon</strong> seçerseniz
+        (ör. <code>Fefco_0300</code>), şablonu boş olan satırlarda o kullanılır.<br>
+        Excel'de şablon sütunu olsa bile <strong>“tümüne bunu uygula”</strong> ile bütün satırları tek şablona zorlayabilirsiniz.
+      </div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;">
+        <div style="flex:1;min-width:230px;">
+          <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">Varsayılan Şablon (Excel'de şablon yoksa / boşsa)</label>
+          <select id="excelTemplateSelect" onchange="onExcelTplChange()" style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;">
+            <option value="">— Şablon seçin —</option>
+          </select>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:9px 12px;cursor:pointer;">
+          <input type="checkbox" id="excelForceTpl" onchange="onExcelTplChange()" style="accent-color:var(--accent);width:14px;height:14px;cursor:pointer;">
+          Excel'deki şablon sütununu yoksay — <strong style="margin-left:2px;">tüm satırlara bunu uygula</strong>
+        </label>
+      </div>
       <div class="drop-zone" id="excelDropZone">
         <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" onchange="handleExcelUpload(this.files[0])">
         <div class="icon">📊</div>
@@ -881,6 +899,20 @@ tr:hover td { background: var(--surface2); }
 
       <!-- Sütun önizleme (ilk 3 satır) -->
       <div id="cvPreviewWrap" style="margin-bottom:20px;overflow-x:auto;"></div>
+
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:18px;">
+        <div style="flex:1;min-width:240px;">
+          <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">
+            Sabit Şablon (opsiyonel) — dosyada şablon sütunu yoksa
+          </label>
+          <input type="text" id="cvFixedTpl" placeholder="ör. Fefco_0300 (boş bırakabilirsiniz)"
+            style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;">
+          <div style="font-size:11px;color:var(--text3);margin-top:5px;">
+            Şablon sütununu “— Kullanma —” bırakırsanız tüm satırlara bu şablon yazılır. Bunu da boş bırakırsanız şablon sütunu boş kalır —
+            üretim ekranındaki <strong>Varsayılan Şablon</strong> seçimi devreye girer.
+          </div>
+        </div>
+      </div>
 
       <!-- Eşleştirme tablosu -->
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;" id="cvMappingGrid">
@@ -1179,11 +1211,11 @@ tr:hover td { background: var(--surface2); }
       <p style="margin-top:4px;">Şablonlar tarayıcınızda saklanır, her seferinde yeniden yüklemenize gerek yoktur. "Şablonlar" sekmesinden yönetebilirsiniz.</p>
 
       <h4 style="color:var(--accent); margin:16px 0 8px;">Adım 2 — Excel Hazırlama</h4>
-      <p>Excel dosyanızın ilk satırı başlık olmalı. Zorunlu sütunlar:</p>
+      <p>Excel dosyanızın ilk satırı başlık olmalı. Sütunlar:</p>
       <div class="table-wrap" style="margin:10px 0;">
         <table>
           <tr><th>Sütun</th><th>Açıklama</th><th>Zorunlu</th></tr>
-          <tr><td>ŞABLON / FEFCO</td><td>Kullanılacak şablon adı (örn: Fefco_0201)</td><td>✅ Evet</td></tr>
+          <tr><td>ŞABLON / FEFCO</td><td>Kullanılacak şablon adı (örn: Fefco_0201). <strong>Yoksa</strong> ② adımındaki “Varsayılan Şablon” kullanılır.</td><td>Hayır</td></tr>
           <tr><td>DOSYA ADI</td><td>Çıktı dosya adı (boşsa otomatik oluşturulur)</td><td>Hayır</td></tr>
           <tr><td>B</td><td>Boy ölçüsü (mm)</td><td>Şablona göre</td></tr>
           <tr><td>L</td><td>En ölçüsü (mm)</td><td>Şablona göre</td></tr>
@@ -1192,6 +1224,11 @@ tr:hover td { background: var(--surface2); }
           <tr><td>K1, K2, K3, K4</td><td>Kapak / ek ölçüleri</td><td>Şablona göre</td></tr>
         </table>
       </div>
+
+      <p style="margin-top:8px;"><b>Şablonsuz Excel:</b> Excel'de yalnızca ölçüler olabilir. ② adımındaki <b>Varsayılan Şablon</b> listesinden
+      örneğin <code>Fefco_0300</code> seçin — şablonu boş olan bütün satırlar bu şablonla üretilir.
+      Excel'de şablon sütunu olsa bile <b>“Excel'deki şablon sütununu yoksay — tüm satırlara bunu uygula”</b> kutusunu işaretlerseniz
+      tüm satırlar seçtiğiniz tek şablonla üretilir.</p>
 
       <h4 style="color:var(--accent); margin:16px 0 8px;">Adım 3 — Üretim</h4>
       <p>"Toplu Üretim Başlat" butonuna basın. Her satır için şablon okunur, formüller yeni ölçülerle hesaplanır ve <code>.cudbox</code> dosyaları üretilip ZIP olarak indirilir.</p>
@@ -1877,6 +1914,22 @@ const KNOWN_ARGS = new Set(['B','L','H','T','K1','K2','K3','K4']);
 const TPL_HEADERS = new Set(['ŞABLON','SABLON','TEMPLATE','FEFCO']);
 const NAME_HEADERS = new Set(['DOSYA ADI','DOSYA_ADI','DOSYAADI','FILENAME','AD','İSİM','ISIM']);
 
+// Başlıkları Türkçe karakter / bozuk kodlamaya (ör. "ÅABLON") karşı toleranslı eşleştir
+function normHeaderTr(h) {
+  return (h || '').toString().trim().toUpperCase()
+    .replace(/Ş/g,'S').replace(/İ/g,'I').replace(/Ğ/g,'G')
+    .replace(/Ü/g,'U').replace(/Ö/g,'O').replace(/Ç/g,'C')
+    .replace(/[^A-Z0-9]/g,'');
+}
+function isTplHeader(h) {
+  const n = normHeaderTr(h);
+  return /ABLON/.test(n) || /FEFCO/.test(n) || n === 'TEMPLATE' || n === 'KUTUTIPI';
+}
+function isNameHeader(h) {
+  const n = normHeaderTr(h);
+  return ['DOSYAADI','DOSYA','FILENAME','AD','ADI','ISIM','SM','URUNADI','URUN'].includes(n);
+}
+
 // Drag & drop for excel
 document.addEventListener('DOMContentLoaded', () => {
   const dz = document.getElementById('excelDropZone');
@@ -1892,18 +1945,80 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function handleExcelUpload(file) {
   if (!file) return;
+  const isCsv = /\.csv$/i.test(file.name);
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
-      const wb = XLSX.read(e.target.result, { type: 'array' });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-      parseExcelData(data, file.name);
+      // CSV'yi UTF-8 metin olarak oku (Türkçe başlıklar bozulmasın), xlsx'i binary
+      const wb = isCsv
+        ? XLSX.read(String(e.target.result).replace(/^﻿/, ''), { type: 'string' })
+        : XLSX.read(e.target.result, { type: 'array' });
+      // Ölçü sütunu içeren ilk sayfayı seç (yoksa ilk sayfa)
+      let data = null, usedSheet = wb.SheetNames[0];
+      for (const sn of wb.SheetNames) {
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, defval: '' });
+        if (!rows.length) continue;
+        const hdr = (rows[0] || []).map(h => (h || '').toString().trim().toUpperCase());
+        if (hdr.some(h => KNOWN_ARGS.has(h))) { data = rows; usedSheet = sn; break; }
+      }
+      if (!data) data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
+      parseExcelData(data, file.name + (wb.SheetNames.length > 1 ? ' › ' + usedSheet : ''));
     } catch(err) {
       alert('Excel okuma hatası: ' + err.message);
     }
   };
-  reader.readAsArrayBuffer(file);
+  if (isCsv) reader.readAsText(file, 'UTF-8');
+  else reader.readAsArrayBuffer(file);
+}
+
+// ── Varsayılan / zorlanan şablon yardımcıları ────────────────────────────────
+let excelFileNameStr = '';   // son yüklenen excel adı (yeniden çizim için)
+let excelHasTplCol   = false; // yüklenen excelde ŞABLON/FEFCO sütunu var mı
+
+function excelDefaultTpl() {
+  const s = document.getElementById('excelTemplateSelect');
+  return s ? (s.value || '').trim() : '';
+}
+function excelForceTplOn() {
+  const c = document.getElementById('excelForceTpl');
+  return !!(c && c.checked);
+}
+
+// Her satır için geçerli şablonu ve dosya adını hesapla
+function applyExcelTemplateChoice() {
+  const def   = excelDefaultTpl();
+  const force = excelForceTplOn();
+  excelOrders.forEach(o => {
+    const raw = (o.rawTemplate || '').trim();
+    o.template = (force && def) ? def : (raw || def);
+    o.tplFromDefault = !!(o.template && o.template !== raw);
+    let fn = (o.fileNameRaw || '').trim();
+    if (!fn) fn = (o.template || 'Kutu') + '_Satir' + o.row;
+    if (!/\.cudbox$/i.test(fn)) fn += '.cudbox';
+    o.fileName = fn;
+  });
+}
+
+function onExcelTplChange() {
+  applyExcelTemplateChoice();
+  if (excelOrders.length) renderExcelPreview(excelFileNameStr);
+  updateGenerateButton();
+}
+
+// Şablon listesi değişince varsayılan şablon dropdown'ını güncelle
+function updateExcelTemplateSelect() {
+  const sel = document.getElementById('excelTemplateSelect');
+  if (!sel) return;
+  const names = Object.keys(templates).sort();
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Şablon seçin —</option>';
+  names.forEach(n => {
+    const opt = document.createElement('option');
+    opt.value = n; opt.textContent = n;
+    sel.appendChild(opt);
+  });
+  if (prev && templates[prev]) sel.value = prev;
+  if (excelOrders.length) applyExcelTemplateChoice();
 }
 
 function parseExcelData(rows, fileName) {
@@ -1914,40 +2029,46 @@ function parseExcelData(rows, fileName) {
   const argCols = {}; // col -> argName
 
   headers.forEach((h, i) => {
-    if (TPL_HEADERS.has(h)) tplCol = i;
-    else if (NAME_HEADERS.has(h)) nameCol = i;
-    else if (KNOWN_ARGS.has(h)) argCols[i] = h;
+    if (TPL_HEADERS.has(h) || isTplHeader(h)) { if (tplCol === -1) tplCol = i; }
+    else if (NAME_HEADERS.has(h) || isNameHeader(h)) { if (nameCol === -1) nameCol = i; }
+    else if (KNOWN_ARGS.has(normHeaderTr(h))) argCols[i] = normHeaderTr(h);
   });
 
-  if (tplCol === -1) { alert("Excel'de 'ŞABLON' veya 'FEFCO' sütunu bulunamadı!"); return; }
+  // ŞABLON sütunu ARTIK ZORUNLU DEĞİL — yoksa varsayılan şablon kullanılır.
   if (Object.keys(argCols).length === 0) { alert("Excel'de ölçü sütunu bulunamadı (B, L, H, T, K1...)!"); return; }
+
+  excelHasTplCol = (tplCol !== -1);
+  excelFileNameStr = fileName;
 
   excelOrders = [];
   for (let r = 1; r < rows.length; r++) {
     const row = rows[r];
-    const tplName = (row[tplCol] || '').toString().trim();
-    if (!tplName) continue;
+    const tplName  = tplCol  >= 0 ? (row[tplCol]  || '').toString().trim() : '';
+    const nameCell = nameCol >= 0 ? (row[nameCol] || '').toString().trim() : '';
 
     const order = {
       row: r + 1,
-      template: tplName,
-      fileName: nameCol >= 0 ? (row[nameCol] || '').toString().trim() : '',
+      rawTemplate: tplName,   // excelden gelen (boş olabilir)
+      template: '',           // hesaplanır
+      fileNameRaw: nameCell,
+      fileName: '',
       args: {},
       status: 'wait',
       error: null
     };
-
-    if (!order.fileName) order.fileName = `${tplName}_Satir${r+1}`;
-    if (!order.fileName.endsWith('.cudbox')) order.fileName += '.cudbox';
 
     for (const [col, argName] of Object.entries(argCols)) {
       const val = parseFloat(row[col]);
       if (!isNaN(val)) order.args[argName] = val;
     }
 
+    // Tamamen boş satırları atla (ölçü yok, şablon yok, ad yok)
+    if (Object.keys(order.args).length === 0 && !tplName && !nameCell) continue;
+
     excelOrders.push(order);
   }
 
+  applyExcelTemplateChoice();
   renderExcelPreview(fileName);
   updateGenerateButton();
 }
@@ -1956,16 +2077,32 @@ function renderExcelPreview(fileName) {
   const div = document.getElementById('excelPreview');
   div.style.display = 'block';
 
-  let html = `<p style="font-size:13px; color:var(--text2); margin-bottom:10px;">📄 <strong>${fileName}</strong> — ${excelOrders.length} satır okundu</p>`;
+  const missing = excelOrders.filter(o => !o.template).length;
+
+  let html = `<p style="font-size:13px; color:var(--text2); margin-bottom:10px;">📄 <strong>${fileName || 'Excel'}</strong> — ${excelOrders.length} satır okundu`;
+  if (!excelHasTplCol) html += ` <span class="badge" style="margin-left:6px;">şablon sütunu yok → varsayılan şablon</span>`;
+  else if (excelForceTplOn() && excelDefaultTpl()) html += ` <span class="badge" style="margin-left:6px;">şablon sütunu yoksayıldı</span>`;
+  html += '</p>';
+
+  if (missing > 0) {
+    html += `<div class="info-banner" style="margin-bottom:10px;border-color:var(--red);">
+      ⚠ ${missing} satırın şablonu belirsiz. Yukarıdan bir <strong>varsayılan şablon</strong> seçin.
+    </div>`;
+  }
+
   html += '<div class="table-wrap"><table><thead><tr>';
   html += '<th>Satır</th><th>Şablon</th><th>Dosya Adı</th><th>Ölçüler</th>';
   html += '</tr></thead><tbody>';
 
   excelOrders.forEach(o => {
     const argsStr = Object.entries(o.args).map(([k,v]) => `${k}=${v}`).join(' ');
+    let tplCell;
+    if (!o.template) tplCell = '<span class="status-err">— şablon seçilmedi —</span>';
+    else if (o.tplFromDefault) tplCell = `${o.template} <span class="badge" style="margin-left:4px;">varsayılan</span>`;
+    else tplCell = o.template;
     html += `<tr>
       <td>${o.row}</td>
-      <td>${o.template}</td>
+      <td>${tplCell}</td>
       <td>${o.fileName}</td>
       <td>${argsStr}</td>
     </tr>`;
@@ -3309,6 +3446,15 @@ function rebuildAbsPos(root, containerName, unitName, crossContainerName, crossU
 // GENERATION
 // =============================================
 async function startGeneration() {
+  // Excel satırları için güncel şablon seçimini uygula (varsayılan / zorlanan)
+  applyExcelTemplateChoice();
+
+  const noTpl = excelOrders.filter(o => !o.template).length;
+  if (noTpl > 0) {
+    alert(noTpl + ' satırda şablon yok.\n\nExcel\'de ŞABLON/FEFCO sütunu yoksa ya da boşsa, "Varsayılan Şablon" listesinden bir şablon seçmelisiniz.');
+    return;
+  }
+
   // Combine Excel orders + DAT orders
   let allOrders = [...excelOrders];
 
@@ -3453,6 +3599,18 @@ function downloadSampleExcel() {
   const ws = XLSX.utils.aoa_to_sheet(data);
   ws['!cols'] = [{wch:14},{wch:14},{wch:8},{wch:8},{wch:8},{wch:6},{wch:6},{wch:6}];
   XLSX.utils.book_append_sheet(wb, ws, 'Kutu Listesi');
+
+  // 2. sayfa: şablon sütunu OLMAYAN örnek (varsayılan şablon kullanılır)
+  const data2 = [
+    ['DOSYA ADI', 'B', 'L', 'H', 'T', 'K1', 'K2'],
+    ['Kutu_001', 300, 200, 500, 3, 100, ''],
+    ['Kutu_002', 450, 850, 600, 3, 100, ''],
+    ['Kutu_003', 200, 400, 75, 3, 50, ''],
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(data2);
+  ws2['!cols'] = [{wch:14},{wch:8},{wch:8},{wch:8},{wch:6},{wch:6},{wch:6}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Sablonsuz (varsayilan)');
+
   XLSX.writeFile(wb, 'Kutu_Listesi_Ornek.xlsx');
 }
 // =============================================
@@ -3464,7 +3622,7 @@ let cvFileNameStr = '';
 
 // Alan tanımları: { key, label, required }
 const CV_FIELDS = [
-  { key: 'ŞABLON',   label: 'Şablon / FEFCO',  required: true  },
+  { key: 'ŞABLON',   label: 'Şablon / FEFCO',  required: false },
   { key: 'DOSYA ADI',label: 'Dosya Adı',        required: false },
   { key: 'B',        label: 'B — Boy (mm)',      required: false },
   { key: 'L',        label: 'L — En (mm)',       required: false },
@@ -3490,10 +3648,13 @@ document.addEventListener('DOMContentLoaded', () => {
 function cvHandleFile(file) {
   if (!file) return;
   cvFileNameStr = file.name;
+  const isCsv = /\.csv$/i.test(file.name);
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
-      const wb   = XLSX.read(e.target.result, { type: 'array' });
+      const wb   = isCsv
+        ? XLSX.read(String(e.target.result).replace(/^﻿/, ''), { type: 'string' })
+        : XLSX.read(e.target.result, { type: 'array' });
       const ws   = wb.Sheets[wb.SheetNames[0]];
       cvRawData  = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
       if (cvRawData.length < 2) { alert('Dosyada veri satırı bulunamadı.'); return; }
@@ -3577,19 +3738,22 @@ function cvConvert() {
   const map    = cvGetMapping();
   const status = document.getElementById('cvConvertStatus');
 
-  // Zorunlu alan kontrolü
-  if (map['ŞABLON'] === null) {
-    status.style.color = 'var(--red)';
-    status.textContent = '❌ "Şablon / FEFCO" sütunu seçilmedi!';
-    return;
-  }
+  // Şablon sütunu zorunlu değil — yoksa "sabit şablon" kutusu kullanılır (o da boş olabilir)
+  const fixedTpl = (document.getElementById('cvFixedTpl')?.value || '').trim();
 
   const outRows = [['ŞABLON', 'DOSYA ADI', 'B', 'L', 'H', 'T', 'K1', 'K2', 'K3', 'K4']];
 
   for (let r = 1; r < cvRawData.length; r++) {
     const row = cvRawData[r];
-    const template = map['ŞABLON'] !== null ? String(row[map['ŞABLON']] ?? '').trim() : '';
-    if (!template) continue; // boş satır atla
+    let template = map['ŞABLON'] !== null ? String(row[map['ŞABLON']] ?? '').trim() : '';
+    if (!template) template = fixedTpl;
+
+    // Tamamen boş satırları atla
+    const hasAny = ['B','L','H','T','K1','K2','K3','K4','DOSYA ADI'].some(k =>
+      map[k] !== null && String(row[map[k]] ?? '').trim() !== ''
+    );
+    if (!hasAny && !template) continue;
+    if (!hasAny) continue;
 
     const outRow = [
       template,
@@ -4264,6 +4428,7 @@ const _origRefreshTemplateUI = refreshTemplateUI;
 refreshTemplateUI = function() {
   _origRefreshTemplateUI();
   updateDatTemplateSelect();
+  updateExcelTemplateSelect();
 };
 
 function updateDatTemplateSelect() {
