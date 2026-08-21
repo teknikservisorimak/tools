@@ -1312,11 +1312,13 @@ tr:hover td { background: var(--surface2); }
     <div class="card-body">
 
       <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">
-        Ölçüleri <b>farklı</b> iki <b>.cudbox</b> dosyasını tek bir kalıpta yan yana birleştirir.
-        Dikey hareketler (Unit_Y) iki kutu tarafından <b>ortak</b> kullanılır: bir kutuda hareket olan hizada
-        diğer kutuda hareket yoksa o parça otomatik <b style="color:#9aa0ab;">None</b> yapılır ve o bölgenin ölçüsü
-        <b>fark formülü</b> ile yazılır (ör. <span style="font-family:var(--mono);color:var(--accent);">B_K0+B_K1-A_H0</span>).
-        Yatay (Unit_X) hareketler alt alta değil <b>art arda</b> eklenir, bu yüzden yatay limit (32) genelde sorun olmaz.
+        Ölçüleri <b>farklı</b> iki <b>.cudbox</b> dosyasını tek bir kalıpta yan yana birleştirir.<br>
+        <b>↕ Dikey hareketler (kaset / Unit_X)</b> art arda eklenir; aralık <b>0</b> ise iki kutuyu ayıran ortadaki
+        çizgi <b>tek kasete</b> düşer. Örn. 4 + 4 kasetlik iki kutu → <b>7 kaset</b>, yani 8 kasetli makinede çıkar.<br>
+        <b>↔ Yatay hareketler (Unit_Y)</b> sac boyunca ortak kullanılır: bir kutuda hareket olan hizada diğer kutuda
+        hareket yoksa o parça otomatik <b style="color:#9aa0ab;">None</b> yapılır ve o bölgenin ölçüsü
+        <b>fark formülü</b> ile yazılır (ör. <span style="font-family:var(--mono);color:var(--accent);">B_B+T+B_L-A_B-A_L</span>).
+        <b>Split</b> çizgileri korunur.
       </p>
 
       <!-- Dosya seçiciler -->
@@ -1350,14 +1352,14 @@ tr:hover td { background: var(--surface2); }
         <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:10px;">⚙️ Makine Hareket Limitleri</div>
         <div class="dq-grid">
           <div>
-            <label class="dq-lb">↕ Dikey hareket limiti</label>
+            <label class="dq-lb">↕ Dikey hareket limiti (kaset)</label>
             <input type="number" min="2" max="64" step="1" id="mrgLimitY" class="dq-in mono" value="8" oninput="mrgPreview()">
-            <div style="font-size:10px;color:var(--text3);margin-top:3px;">Makinede izin verilen (7 / 8 / 12 …)</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:3px;">Dikey çizgi = Unit_X = kaset · 7 / 8 / 12 …</div>
           </div>
           <div>
             <label class="dq-lb">↔ Yatay hareket limiti</label>
             <input type="number" min="2" max="128" step="1" id="mrgLimitX" class="dq-in mono" value="32" oninput="mrgPreview()">
-            <div style="font-size:10px;color:var(--text3);margin-top:3px;">Genelde 32</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:3px;">Yatay çizgi = Unit_Y · genelde 32</div>
           </div>
           <div style="grid-column:span 2;">
             <label class="dq-lb">Limit neyi sayıyor?</label>
@@ -1418,7 +1420,7 @@ tr:hover td { background: var(--surface2); }
       <!-- Aksiyonlar -->
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn btn-primary" style="flex:2;min-width:230px;" onclick="mrgApply()">🔗 Birleştir ve Tasarımcıya Aktar</button>
-        <button class="btn" style="flex:1;min-width:190px;" onclick="mrgAutoTol()" title="Dikey limiti sağlayacak en küçük toleransı bul">🎯 Limite Sığdır (oto tolerans)</button>
+        <button class="btn" style="flex:1;min-width:210px;" onclick="mrgAutoTol()" title="En az yatay hareket veren hizalamayı ve gerekiyorsa toleransı bul">🎯 Yatay Hareketi Azalt (oto)</button>
         <button class="btn" style="flex:1;min-width:150px;color:var(--green);border-color:var(--green);" onclick="mrgSaveDirect()">💾 Direkt .cudbox Kaydet</button>
         <button class="btn btn-sm btn-danger" onclick="mrgClear()">🗑️ Temizle</button>
       </div>
@@ -1514,6 +1516,7 @@ tr:hover td { background: var(--surface2); }
             <span style="font-size:11px;color:var(--text3);">Mod:</span>
             <button id="modeBtn-Cut"    onclick="setDrawMode('Cut')"    style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;border:2px solid #e5484d;background:#e5484d22;color:#e5484d;cursor:pointer;">✂ Kes</button>
             <button id="modeBtn-Crease" onclick="setDrawMode('Crease')" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;border:2px solid #46a6de;background:#46a6de22;color:#46a6de;cursor:pointer;">〜 Kat</button>
+            <button id="modeBtn-Split"  onclick="setDrawMode('Split')"  title="Split — ayırma / yarma çizgisi" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;border:2px solid #f0a020;background:#f0a02022;color:#f0a020;cursor:pointer;">⌇ Ayır</button>
             <button id="modeBtn-None"   onclick="setDrawMode('None')"   style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;border:2px solid #4a5260;background:#4a526022;color:#9aa0ab;cursor:pointer;">✕ Yok</button>
           </div>
         </div>
@@ -2438,6 +2441,7 @@ let dsnState = {
   vLines: [],
   hLines: [],
   vars: [],   // [{name:'B', value:200}, ...] — formüllerde kullanılan değişkenler
+  meta: {},   // kaynak dosyadan taşınan Picture / Barcode_path / Scale / Direction
 };
 
 let drawMode = 'Cut'; // aktif çizim modu
@@ -2520,10 +2524,10 @@ function updateVarValue(i, val) {
 
 function setDrawMode(mode) {
   drawMode = mode;
-  ['Cut','Crease','None'].forEach(m => {
+  ['Cut','Crease','Split','None'].forEach(m => {
     const btn = document.getElementById('modeBtn-' + m);
     if (!btn) return;
-    const colors = { Cut: '#e5484d', Crease: '#46a6de', None: '#4a5260' };
+    const colors = { Cut: '#e5484d', Crease: '#46a6de', Split: '#f0a020', None: '#4a5260' };
     const c = colors[m];
     if (m === mode) {
       btn.style.boxShadow = `0 0 0 2px ${c}`;
@@ -2736,7 +2740,7 @@ function resetDesigner() {
   document.getElementById('designerBadge').textContent = 'Yeni Tasarım';
   dsnState.xSegs = []; dsnState.ySegs = [];
   dsnState.vLines = []; dsnState.hLines = [];
-  dsnState.vars = [];
+  dsnState.vars = []; dsnState.meta = {};
   const canvas = document.getElementById('designerCanvas');
   canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 }
@@ -2824,7 +2828,7 @@ function parseCudboxIntoState(xmlStr, fileName) {
       .sort((a, b) => parseInt(a.querySelector('index')?.textContent) - parseInt(b.querySelector('index')?.textContent));
     return lines.map(l => {
       const t = l.querySelector('Line_Type')?.textContent?.trim();
-      return (t === 'Cut' || t === 'Crease' || t === 'None') ? t : 'None';
+      return (t === 'Cut' || t === 'Crease' || t === 'None' || t === 'Split') ? t : 'None';
     });
   });
 
@@ -2834,7 +2838,7 @@ function parseCudboxIntoState(xmlStr, fileName) {
       .sort((a, b) => parseInt(a.querySelector('index')?.textContent) - parseInt(b.querySelector('index')?.textContent));
     return lines.map(l => {
       const t = l.querySelector('Line_Type')?.textContent?.trim();
-      return (t === 'Cut' || t === 'Crease' || t === 'None') ? t : 'None';
+      return (t === 'Cut' || t === 'Crease' || t === 'None' || t === 'Split') ? t : 'None';
     });
   });
 
@@ -2848,6 +2852,9 @@ function parseCudboxIntoState(xmlStr, fileName) {
 
   // Dosyadaki argümanları değişken olarak yükle
   dsnState.vars = Object.entries(argMap).map(([name, value]) => ({ name, value }));
+  const _mt = sel => { const n = root.querySelector(sel); return n ? (n.textContent || '').trim() : null; };
+  dsnState.meta = { picture: _mt('Picture'), barcode: _mt('Barcode_path'),
+                    scale: _mt('Scale'), direction: _mt('Direction') };
   recalcAllSegs();
 
   // Dosya adını kaydet alanına yaz
@@ -3214,9 +3221,9 @@ function drawDesignerCanvas() {
   const { totalXmm, totalYmm, drawW, drawH, ox, oy, px, py } = g;
 
   // ── Palet: net ama yumuşak ──
-  const COLORS = { Cut: '#e5484d', Crease: '#46a6de', None: '#3d4454' };
-  const DASH   = { Cut: [], Crease: [9, 6], None: [3, 6] };
-  const LW     = { Cut: 2.75, Crease: 2, None: 1 };
+  const COLORS = { Cut: '#e5484d', Crease: '#46a6de', None: '#3d4454', Split: '#f0a020' };
+  const DASH   = { Cut: [], Crease: [9, 6], None: [3, 6], Split: [14, 5, 3, 5] };
+  const LW     = { Cut: 2.75, Crease: 2, None: 1, Split: 2.75 };
 
   // ── Karton zemin (hafif kraft tonu + yumuşak gölge) ──
   ctx.save();
@@ -3262,7 +3269,7 @@ function drawDesignerCanvas() {
   };
 
   // Önce None (arkada soluk), sonra Crease, en üstte Cut
-  const order = ['None', 'Crease', 'Cut'];
+  const order = ['None', 'Crease', 'Split', 'Cut'];
   order.forEach(pass => {
     for (let ux = 0; ux < vLines.length; ux++)
       for (let yi = 0; yi < vLines[ux].length; yi++)
@@ -3285,11 +3292,16 @@ function drawDesignerCanvas() {
   // ── ÜSTTE: X segment FORMÜLLERİ ──
   ctx.font = '600 11px "DM Mono", monospace';
   ctx.textAlign = 'center';
+  // Uzun birleşim formülleri paneli taşırmasın diye kısalt (tam hâli yan paneldeki kutuda)
+  const shortLbl = (t, max) => {
+    t = String(t || '');
+    return t.length > max ? t.slice(0, max - 1) + '…' : t;
+  };
   for (let i = 0; i < xSegs.length; i++) {
     const cx = (px(i) + px(i+1)) / 2;
     const label = (xSegs[i].formula || xSegs[i].name || '').trim() || xSegs[i].name;
     ctx.fillStyle = '#e8a33d';
-    ctx.fillText(label, cx, oy - 12);
+    ctx.fillText(shortLbl(label, 22), cx, oy - 12);
   }
 
   // ── ALTTA: X segment hesaplanan ÖLÇÜLERİ ──
@@ -3305,7 +3317,7 @@ function drawDesignerCanvas() {
     const cy = (py(i) + py(i+1)) / 2;
     const label = (ySegs[i].formula || ySegs[i].name || '').trim() || ySegs[i].name;
     ctx.fillStyle = '#e8a33d';
-    ctx.fillText(label, ox - 12, cy + 4);
+    ctx.fillText(shortLbl(label, 20), ox - 12, cy + 4);
   }
 
   // ── SAĞDA: Y segment hesaplanan ÖLÇÜLERİ ──
@@ -3404,6 +3416,27 @@ function drawHorizLine(ctx, y, x, w, type, COLORS, DASH, LW) {
 // =============================================
 // SAVE AS .cudbox  (Box format — program uyumlu)
 // =============================================
+// Formülü gerçek <Parameter> token ağacına çevirir (Argument / Operator / Numeric).
+// Makine yazılımı formülü bu ağaçtan okuyor — tek sahte Argument yazmak hataya yol açıyordu.
+function dsnParamXml(formula) {
+  const f = String(formula === null || formula === undefined ? '' : formula).replace(/\s+/g, '');
+  const toks = [];
+  let i = 0;
+  while (i < f.length) {
+    const c = f[i];
+    if ('+-*/()'.indexOf(c) >= 0) { toks.push({ t: c, ty: 'Operator' }); i++; continue; }
+    if (/[0-9.]/.test(c)) { let n = ''; while (i < f.length && /[0-9.]/.test(f[i])) n += f[i++]; toks.push({ t: n, ty: 'Numeric' }); continue; }
+    if (/[A-Za-z_]/.test(c)) { let n = ''; while (i < f.length && /[A-Za-z0-9_]/.test(f[i])) n += f[i++]; toks.push({ t: n, ty: 'Argument' }); continue; }
+    i++;
+  }
+  if (!toks.length) toks.push({ t: '0', ty: 'Numeric' });
+  let inner = '';
+  toks.forEach(tk => {
+    inner += `            <Parameter>\r\n              <text>${tk.t}</text>\r\n              <type>${tk.ty}</type>\r\n            </Parameter>\r\n`;
+  });
+  return `          <Parameter>\r\n${inner}          </Parameter>\r\n`;
+}
+
 function saveDesignAsCudbox() {
   const xSegs = dsnState.xSegs;
   const ySegs = dsnState.ySegs;
@@ -3425,13 +3458,15 @@ function saveDesignAsCudbox() {
     const n = (v.name || '').trim();
     if (n) argsOut[n] = v.value;
   });
+  // Formüllerde GERÇEKTEN geçen tanımsız isimleri ekle.
+  // (Türetilmiş segment adları — MY0, MY1 … — formülde geçmiyorsa argüman listesine yazılmaz.)
   [...ySegs, ...xSegs].forEach(seg => {
     const f = (seg.formula || '').trim();
-    // Formül tek bir tanımsız isimse (örn. eski usül "B0"), argüman olarak ölçüsüyle ekle
-    if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(f) && !(f in argsOut)) argsOut[f] = seg.len;
-    // Segment adı da hiçbir yerde yoksa ekle (geri uyumluluk)
-    const n = (seg.name || '').trim();
-    if (n && !(n in argsOut)) argsOut[n] = seg.len;
+    const ids = f.match(/[A-Za-z_][A-Za-z0-9_]*/g) || [];
+    ids.forEach(id => {
+      if (id in argsOut) return;
+      argsOut[id] = (/^[A-Za-z_][A-Za-z0-9_]*$/.test(f) && f === id) ? seg.len : 0;
+    });
   });
   let argsXml = '';
   Object.entries(argsOut).forEach(([name, value]) => {
@@ -3455,7 +3490,7 @@ function saveDesignAsCudbox() {
       const seg = ySegs[yi];
       const formula = seg.formula || seg.name;
       linesXml += `        <Line>\r\n`;
-      linesXml += `          <Parameter>\r\n            <Parameter>\r\n              <text>${seg.name}</text>\r\n              <type>Argument</type>\r\n            </Parameter>\r\n          </Parameter>\r\n`;
+      linesXml += dsnParamXml(formula);
       linesXml += `          <Name>XL</Name>\r\n`;
       linesXml += `          <Unit_Type>Unit_X</Unit_Type>\r\n`;
       linesXml += `          <Line_Type>${lineType}</Line_Type>\r\n`;
@@ -3492,7 +3527,7 @@ function saveDesignAsCudbox() {
       const seg = xSegs[xi];
       const formula = seg.formula || seg.name;
       linesXml += `        <Line>\r\n`;
-      linesXml += `          <Parameter>\r\n            <Parameter>\r\n              <text>${seg.name}</text>\r\n              <type>Argument</type>\r\n            </Parameter>\r\n          </Parameter>\r\n`;
+      linesXml += dsnParamXml(formula);
       linesXml += `          <Name>YL</Name>\r\n`;
       linesXml += `          <Unit_Type>Unit_Y</Unit_Type>\r\n`;
       linesXml += `          <Line_Type>${lineType}</Line_Type>\r\n`;
@@ -3521,7 +3556,14 @@ function saveDesignAsCudbox() {
   const lastX = xPos[xPos.length-1];
   const lastY = yPos[yPos.length-1];
 
-  const xml = `<?xml version="1.0" encoding="utf-8"?>\r\n<Box xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">\r\n  <unit_Xs>\r\n${unitXsXml}  </unit_Xs>\r\n  <unit_Ys>\r\n${unitYsXml}  </unit_Ys>\r\n  <bx_Arguments>\r\n${argsXml}  </bx_Arguments>\r\n  <Punches>\r\n${punchesXml}  </Punches>\r\n  <Name>${fileName}</Name>\r\n  <Weight>0</Weight>\r\n  <Direction>1</Direction>\r\n  <Scale>1</Scale>\r\n  <Required_Units_X>${numUX}</Required_Units_X>\r\n  <Required_Units_Y>${numUY}</Required_Units_Y>\r\n  <Last_UnitX_Abs_Pos>${lastX}</Last_UnitX_Abs_Pos>\r\n  <Last_UnitY_Abs_Pos>${lastY}</Last_UnitY_Abs_Pos>\r\n</Box>`;
+  const meta = dsnState.meta || {};
+  const metaXml =
+      (meta.picture ? `  <Picture>${meta.picture}</Picture>\r\n` : '')
+    + (meta.barcode ? `  <Barcode_path>${meta.barcode}</Barcode_path>\r\n` : '');
+  const scaleVal = (meta.scale !== undefined && meta.scale !== null) ? meta.scale : 1;
+  const dirVal   = (meta.direction !== undefined && meta.direction !== null) ? meta.direction : 1;
+
+  const xml = `<?xml version="1.0" encoding="utf-8"?>\r\n<Box xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">\r\n  <unit_Xs>\r\n${unitXsXml}  </unit_Xs>\r\n  <unit_Ys>\r\n${unitYsXml}  </unit_Ys>\r\n  <bx_Arguments>\r\n${argsXml}  </bx_Arguments>\r\n  <Punches>\r\n${punchesXml}  </Punches>\r\n  <Name>${fileName}</Name>\r\n${metaXml}  <Weight>0</Weight>\r\n  <Direction>${dirVal}</Direction>\r\n  <Scale>${scaleVal}</Scale>\r\n  <Required_Units_X>${numUX}</Required_Units_X>\r\n  <Required_Units_Y>${numUY}</Required_Units_Y>\r\n  <Last_UnitX_Abs_Pos>${lastX}</Last_UnitX_Abs_Pos>\r\n  <Last_UnitY_Abs_Pos>${lastY}</Last_UnitY_Abs_Pos>\r\n</Box>`;
 
   const blob = new Blob([xml], { type: 'application/xml' });
   saveAs(blob, fileName);
@@ -3569,8 +3611,8 @@ function mrgEsc(s){
 // ── Seçenekleri oku ─────────────────────────────────────────────────
 function mrgOpts(){
   return {
-    limitY:    Math.max(2, parseInt(mrgNumOf('mrgLimitY', 8), 10) || 8),
-    limitX:    Math.max(2, parseInt(mrgNumOf('mrgLimitX', 32), 10) || 32),
+    limitDikey: Math.max(2, parseInt(mrgNumOf('mrgLimitY', 8), 10) || 8),   // kaset = Unit_X
+    limitYatay: Math.max(2, parseInt(mrgNumOf('mrgLimitX', 32), 10) || 32), // Unit_Y
     limitMode: (mrgEl('mrgLimitMode') ? mrgEl('mrgLimitMode').value : 'unit'),
     gap:       Math.max(0, mrgNumOf('mrgGap', 0)),
     align:     (mrgEl('mrgAlign') ? mrgEl('mrgAlign').value : 'top'),
@@ -3620,7 +3662,7 @@ function mrgParseCudbox(xmlStr, fileName){
   function typesOf(u){
     return linesOf(u).map(function(l){
       var t = txt(l, 'Line_Type');
-      return (t==='Cut' || t==='Crease' || t==='None') ? t : 'None';
+      return (t==='Cut' || t==='Crease' || t==='None' || t==='Split') ? t : 'None';
     });
   }
 
@@ -3638,6 +3680,12 @@ function mrgParseCudbox(xmlStr, fileName){
 
   return {
     name: (fileName || 'Kutu').replace(/\.cudbox$/i, ''),
+    meta: {
+      picture:   txt(root, 'Picture')      || null,
+      barcode:   txt(root, 'Barcode_path') || null,
+      scale:     txt(root, 'Scale')        || null,
+      direction: txt(root, 'Direction')    || null
+    },
     xSegs: xSegs, ySegs: ySegs,
     vLines: vLines, hLines: hLines,
     vars: Object.keys(argMap).map(function(k){ return { name:k, value: argMap[k] }; }),
@@ -3665,7 +3713,29 @@ function mrgDiffTerms(after, before){
   return { pos: pos, neg: neg };
 }
 function mrgWrap(s){
-  return (/^[A-Za-z_][A-Za-z0-9_]*$/.test(s) || /^[0-9.]+$/.test(s)) ? s : ('(' + s + ')');
+  // Atomlarda üst seviye +/- yoksa parantez GEREKMEZ (makine yazılımı parantez sevmiyor)
+  return /[+\-]/.test(String(s).replace(/^[+\-]/, '')) ? ('(' + s + ')') : s;
+}
+// "B+T" -> [{s:'B',k:1},{s:'T',k:1}] ; "L+0.5*T" -> [{s:'L',k:1},{s:'0.5*T',k:1}]
+// Böylece fark alınırken terimler tek tek sadeleşir ve çıktı parantezsiz kalır.
+function mrgAtomize(formula){
+  var f = String(formula === null || formula === undefined ? '' : formula).replace(/\s+/g, '');
+  if(!f) return [];
+  if(f.indexOf('(') >= 0) return [{ s: f, k: 1 }];   // parantezli formülü bölme (güvenli)
+  var out = [], cur = '', sign = 1, i = 0;
+  if(f[0] === '+' || f[0] === '-'){ sign = (f[0] === '-') ? -1 : 1; i = 1; }
+  for(; i < f.length; i++){
+    var c = f[i];
+    if(c === '+' || c === '-'){
+      if(cur) out.push({ s: cur, k: sign });
+      sign = (c === '-') ? -1 : 1; cur = '';
+    } else cur += c;
+  }
+  if(cur) out.push({ s: cur, k: sign });
+  return out;
+}
+function mrgAtomsOf(seg, sign){
+  return mrgAtomize(seg.formula).map(function(t){ return { s: t.s, k: t.k * sign }; });
 }
 function mrgExprStr(d){
   var out = d.pos.map(mrgWrap).join('+');
@@ -3739,8 +3809,8 @@ function mrgPrepare(){
   var offTerms = [];
   if(o.align === 'bottom'){
     // Sembolik: (A toplam) − (B toplam) → ölçü değişse bile alt hiza korunur
-    Ay.forEach(function(s){ offTerms.push({ s: s.formula, k: 1  }); });
-    By.forEach(function(s){ offTerms.push({ s: s.formula, k: -1 }); });
+    Ay.forEach(function(s){ offTerms = offTerms.concat(mrgAtomsOf(s,  1)); });
+    By.forEach(function(s){ offTerms = offTerms.concat(mrgAtomsOf(s, -1)); });
   } else if(o.align === 'center' && Math.abs(alignOff) > 1e-9){
     var cn = mrgUniqName('OFS_MID', vars);
     vars.push({ name: cn, value: Math.round(alignOff*1000)/1000 });
@@ -3754,8 +3824,8 @@ function mrgPrepare(){
 
   // Kümülatif sembolik pozisyonlar
   var cumA = [[]], cumB = [offTerms.slice()], i;
-  for(i = 0; i < Ay.length; i++) cumA.push(cumA[i].concat([{ s: Ay[i].formula, k: 1 }]));
-  for(i = 0; i < By.length; i++) cumB.push(cumB[i].concat([{ s: By[i].formula, k: 1 }]));
+  for(i = 0; i < Ay.length; i++) cumA.push(cumA[i].concat(mrgAtomsOf(Ay[i], 1)));
+  for(i = 0; i < By.length; i++) cumB.push(cumB[i].concat(mrgAtomsOf(By[i], 1)));
 
   // Tüm dikey hiza adayları
   var cand = [];
@@ -3802,7 +3872,9 @@ function mrgTypeAt(types, ypos, off, yTop, yBot, tol){
   return 'None';
 }
 function mrgCombineType(a, b){
+  // Öncelik: Cut > Split > Crease > None  (ortak kesim çizgisinde ikisinin birleşimi)
   if(a === 'Cut'    || b === 'Cut')    return 'Cut';
+  if(a === 'Split'  || b === 'Split')  return 'Split';
   if(a === 'Crease' || b === 'Crease') return 'Crease';
   return 'None';
 }
@@ -3898,14 +3970,15 @@ function mrgCompute(){
   });
 
   var numUX = vLinesM.length, numUY = rows.length;
-  var cntX = (o.limitMode === 'unit') ? numUX : xSegsM.length;
-  var cntY = (o.limitMode === 'unit') ? numUY : ySegsM.length;
+  // DİKEY hareket (kaset) = dikey çizgiler = Unit_X   |   YATAY hareket = yatay çizgiler = Unit_Y
+  var cntDikey = (o.limitMode === 'unit') ? numUX : xSegsM.length;
+  var cntYatay = (o.limitMode === 'unit') ? numUY : ySegsM.length;
 
   return {
     rows: rows, ySegs: ySegsM, xSegs: xSegsM, vLines: vLinesM, hLines: hLinesM,
     vars: vars, ctx: ctx, warns: warns, devA: devA, devB: devB,
-    numUX: numUX, numUY: numUY, cntX: cntX, cntY: cntY,
-    okX: cntX <= o.limitX, okY: cntY <= o.limitY,
+    numUX: numUX, numUY: numUY, cntDikey: cntDikey, cntYatay: cntYatay,
+    okDikey: cntDikey <= o.limitDikey, okYatay: cntYatay <= o.limitYatay,
     totalW: xSegsM.reduce(function(s,g){ return s+g.len; }, 0),
     totalH: rows[rows.length-1].y - rows[0].y
   };
@@ -3941,8 +4014,8 @@ function mrgPreview(){
   var unitTxt = (o.limitMode === 'unit') ? 'unit' : 'segment';
   var h = '';
   h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">';
-  h += chip('↕ DİKEY (' + unitTxt + ')', res.cntY + ' / ' + o.limitY, res.okY);
-  h += chip('↔ YATAY (' + unitTxt + ')', res.cntX + ' / ' + o.limitX, res.okX);
+  h += chip('↕ DİKEY / kaset (' + unitTxt + ')', res.cntDikey + ' / ' + o.limitDikey, res.okDikey);
+  h += chip('↔ YATAY (' + unitTxt + ')', res.cntYatay + ' / ' + o.limitYatay, res.okYatay);
   h += chip('Unit_X · Unit_Y', res.numUX + ' · ' + res.numUY);
   h += chip('Toplam ölçü', mrgF(res.totalW) + ' × ' + mrgF(res.totalH) + ' mm');
   var dmax = Math.max(res.devA, res.devB);
@@ -3956,14 +4029,18 @@ function mrgPreview(){
       + 'Kabul edilebilir değilse toleransı küçültün (kutu ölçüsü birebir korunur, ama dikey hareket sayısı artar).</div>';
   }
 
-  if(!res.okY){
+  if(!res.okDikey){
     h += '<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:6px;padding:10px;margin-bottom:10px;font-size:12px;color:var(--red);">'
-      + '⚠️ <b>Dikey hareket limiti aşıldı</b> (' + res.cntY + ' > ' + o.limitY + ').'
-      + ' “🎯 Limite Sığdır” ile yakın hizaları birleştirmeyi deneyin veya hizalamayı/ofseti değiştirin.</div>';
+      + '⚠️ <b>Dikey hareket (kaset) limiti aşıldı</b> (' + res.cntDikey + ' > ' + o.limitDikey + '). '
+      + (o.gap > 0
+         ? 'Aralığı <b>0</b> yaparsanız iki kutunun ortadaki dikey çizgisi <b>tek kasete</b> düşer ve 1 hareket kazanırsınız.'
+         : 'Bu iki kutu bu makinede yan yana çıkmaz — daha çok kasetli makine gerekir.')
+      + '</div>';
   }
-  if(!res.okX){
+  if(!res.okYatay){
     h += '<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:6px;padding:10px;margin-bottom:10px;font-size:12px;color:var(--red);">'
-      + '⚠️ <b>Yatay hareket limiti aşıldı</b> (' + res.cntX + ' > ' + o.limitX + '). Aralığı 0 yaparak ortak kesim çizgisi kullanabilirsiniz.</div>';
+      + '⚠️ <b>Yatay hareket limiti aşıldı</b> (' + res.cntYatay + ' > ' + o.limitYatay + '). '
+      + '“🎯 Yatay Hareketi Azalt” ile hizalamayı/toleransı optimize edin.</div>';
   }
 
   // Dikey satır tablosu
@@ -4051,41 +4128,61 @@ function mrgClear(){
   mrgPreview(); mrgMsg('');
 }
 
-// ── Dikey limite sığdıracak en küçük toleransı bul ─────────────────
+// ── Yatay hareketi (Unit_Y) azalt: hizalama + tolerans optimizasyonu ──
+// NOT: Dikey (kaset / Unit_X) sayısı sabittir — iki kutunun dikey çizgileri toplamıdır.
+//      Onu azaltmanın tek yolu aralığı 0 yapıp ortadaki çizgiyi paylaştırmaktır.
 function mrgAutoTol(){
-  var ctx = mrgPrepare();
-  if(!ctx){ mrgMsg('Önce iki .cudbox dosyası seçin.', 'err'); return; }
-  var o = ctx.o;
-  var limitRows = (o.limitMode === 'unit') ? o.limitY : (o.limitY + 1);
+  if(!mrgState.A || !mrgState.B){ mrgMsg('Önce iki .cudbox dosyası seçin.', 'err'); return; }
+  var alignEl = mrgEl('mrgAlign'), tolEl = mrgEl('mrgTol');
+  var keepAlign = alignEl.value, keepTol = tolEl.value;
 
-  if(mrgCluster(ctx.cand, 0).length <= limitRows){
-    mrgEl('mrgTol').value = 0;
+  // 1) Sapma YOK (tol=0) iken en az yatay hareket veren hizalamayı bul
+  var best = null;
+  ['top','bottom','center'].forEach(function(al){
+    alignEl.value = al; tolEl.value = '0';
+    var ctx = mrgPrepare(); if(!ctx) return;
+    var n = mrgCluster(ctx.cand, 0).length;
+    if(!best || n < best.n) best = { align: al, n: n, tol: 0 };
+  });
+  if(!best){ alignEl.value = keepAlign; tolEl.value = keepTol; return; }
+
+  alignEl.value = best.align; tolEl.value = '0';
+  var o = mrgOpts();
+  var limitRows = (o.limitMode === 'unit') ? o.limitYatay : (o.limitYatay + 1);
+  var alName = { top:'Üstten', bottom:'Alttan', center:'Ortalı' }[best.align];
+
+  if(best.n <= limitRows){
     mrgPreview();
-    mrgMsg('✅ Tolerans gerekmedi — hizalar zaten limite sığıyor.', 'ok');
+    mrgMsg('✅ <b>' + alName + ' hizalama</b> seçildi — yatay hareket <b>' + best.n
+         + '</b> (limit ' + o.limitYatay + '). Ölçülerde hiç kayma yok.', 'ok');
     return;
   }
+
+  // 2) Hâlâ limit aşılıyorsa: en küçük toleransı ara
+  var ctx2 = mrgPrepare();
   var diffs = [], i;
-  for(i = 1; i < ctx.cand.length; i++){
-    var d = ctx.cand[i].y - ctx.cand[i-1].y;
+  for(i = 1; i < ctx2.cand.length; i++){
+    var d = ctx2.cand[i].y - ctx2.cand[i-1].y;
     if(d > 1e-9) diffs.push(d);
   }
   diffs.sort(function(a,b){ return a-b; });
   var found = null;
   for(i = 0; i < diffs.length; i++){
     var tol = Math.round((diffs[i] + 0.001)*1000)/1000;
-    if(mrgCluster(ctx.cand, tol).length <= limitRows){ found = tol; break; }
+    if(mrgCluster(ctx2.cand, tol).length <= limitRows){ found = tol; break; }
   }
   if(found === null){
-    mrgMsg('❌ Bu iki kutu, ' + o.limitY + ' dikey hareketle yan yana birleştirilemiyor. '
-         + 'Hizalamayı değiştirin, ofset verin veya kutulardan birini sadeleştirin.', 'err');
+    alignEl.value = keepAlign; tolEl.value = keepTol;
+    mrgPreview();
+    mrgMsg('❌ Bu iki kutu ' + o.limitYatay + ' yatay hareketle birleştirilemiyor.', 'err');
     return;
   }
-  mrgEl('mrgTol').value = found;
+  tolEl.value = found;
   mrgPreview();
   var dv = mrgState.last ? Math.max(mrgState.last.devA, mrgState.last.devB) : 0;
-  mrgMsg('🎯 Tolerans <b>' + mrgF(found) + ' mm</b> yapıldı — dikey hareket sayısı limite indi. '
+  mrgMsg('🎯 <b>' + alName + ' hizalama</b> + tolerans <b>' + mrgF(found) + ' mm</b>. '
        + (dv > 0.001
-          ? '<span style="color:var(--red)">Dikkat: bu yüzden kutu ölçülerinde en fazla <b>' + mrgF(dv) + ' mm</b> kayma oluşuyor — yukarıdaki tabloda “Sapma” sütununa bakın.</span>'
+          ? '<span style="color:var(--red)">Dikkat: ölçülerde en fazla <b>' + mrgF(dv) + ' mm</b> kayma oluşuyor — tablodaki “Sapma” sütununa bakın.</span>'
           : 'Ölçülerde kayma yok.'), 'ok');
 }
 
@@ -4096,7 +4193,7 @@ function mrgApply(){
   catch(e){ mrgMsg('❌ ' + e.message, 'err'); return; }
   if(!res){ mrgMsg('Önce iki .cudbox dosyası seçin.', 'err'); return; }
 
-  if(!res.okY && !confirm('Dikey hareket sayısı (' + res.cntY + ') girdiğiniz limiti (' + res.ctx.o.limitY + ') aşıyor.\nYine de tasarımcıya aktarılsın mı?')) return;
+  if(!res.okDikey && !confirm('Dikey hareket (kaset) sayısı (' + res.cntDikey + ') girdiğiniz limiti (' + res.ctx.o.limitDikey + ') aşıyor.\nYine de tasarımcıya aktarılsın mı?')) return;
 
   dsnState.xSegs  = res.xSegs;
   dsnState.ySegs  = res.ySegs;
@@ -4105,6 +4202,7 @@ function mrgApply(){
   dsnState.vLines = res.vLines;
   dsnState.hLines = res.hLines;
   dsnState.vars   = res.vars;
+  dsnState.meta   = mrgState.A.meta || {};
 
   recalcAllSegs();
 
@@ -4135,11 +4233,12 @@ function mrgSaveDirect(){
   try { res = mrgCompute(); }
   catch(e){ mrgMsg('❌ ' + e.message, 'err'); return; }
   if(!res){ mrgMsg('Önce iki .cudbox dosyası seçin.', 'err'); return; }
-  if(!res.okY && !confirm('Dikey hareket sayısı (' + res.cntY + ') limiti (' + res.ctx.o.limitY + ') aşıyor.\nYine de kaydedilsin mi?')) return;
+  if(!res.okDikey && !confirm('Dikey hareket (kaset) sayısı (' + res.cntDikey + ') limiti (' + res.ctx.o.limitDikey + ') aşıyor.\nYine de kaydedilsin mi?')) return;
 
   var bak = {
     xSegs: dsnState.xSegs, ySegs: dsnState.ySegs, xCount: dsnState.xCount,
-    yCount: dsnState.yCount, vLines: dsnState.vLines, hLines: dsnState.hLines, vars: dsnState.vars
+    yCount: dsnState.yCount, vLines: dsnState.vLines, hLines: dsnState.hLines,
+    vars: dsnState.vars, meta: dsnState.meta
   };
   var fnEl = mrgEl('dsnFileName');
   var bakName = fnEl ? fnEl.value : '';
@@ -4147,14 +4246,14 @@ function mrgSaveDirect(){
     dsnState.xSegs  = res.xSegs;  dsnState.ySegs  = res.ySegs;
     dsnState.xCount = res.xSegs.length; dsnState.yCount = res.ySegs.length;
     dsnState.vLines = res.vLines; dsnState.hLines = res.hLines;
-    dsnState.vars   = res.vars;
+    dsnState.vars   = res.vars;   dsnState.meta   = mrgState.A.meta || {};
     if(fnEl) fnEl.value = (mrgState.A.name + '__' + mrgState.B.name).replace(/[^A-Za-z0-9_\-]+/g,'_').slice(0,60);
     saveDesignAsCudbox();
     mrgMsg('💾 Birleşik .cudbox indirildi.', 'ok');
   } finally {
     dsnState.xSegs = bak.xSegs; dsnState.ySegs = bak.ySegs; dsnState.xCount = bak.xCount;
     dsnState.yCount = bak.yCount; dsnState.vLines = bak.vLines; dsnState.hLines = bak.hLines;
-    dsnState.vars = bak.vars;
+    dsnState.vars = bak.vars;     dsnState.meta = bak.meta;
     if(fnEl) fnEl.value = bakName;
   }
 }
