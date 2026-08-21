@@ -1303,6 +1303,130 @@ tr:hover td { background: var(--surface2); }
     </div>
   </div>
 
+
+  <!-- ═══ İKİ KUTUYU BİRLEŞTİR (YAN YANA) ═══ -->
+  <div class="card" id="designerMergeCard">
+    <div class="card-header">
+      <h3>🔗 İki Kutuyu Birleştir — Yan Yana <span class="badge" id="mrgBadge">Çoklu Kutu</span></h3>
+    </div>
+    <div class="card-body">
+
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">
+        Ölçüleri <b>farklı</b> iki <b>.cudbox</b> dosyasını tek bir kalıpta yan yana birleştirir.
+        Dikey hareketler (Unit_Y) iki kutu tarafından <b>ortak</b> kullanılır: bir kutuda hareket olan hizada
+        diğer kutuda hareket yoksa o parça otomatik <b style="color:#9aa0ab;">None</b> yapılır ve o bölgenin ölçüsü
+        <b>fark formülü</b> ile yazılır (ör. <span style="font-family:var(--mono);color:var(--accent);">B_K0+B_K1-A_H0</span>).
+        Yatay (Unit_X) hareketler alt alta değil <b>art arda</b> eklenir, bu yüzden yatay limit (32) genelde sorun olmaz.
+      </p>
+
+      <!-- Dosya seçiciler -->
+      <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:250px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;">◧ SOL Kutu (A)</div>
+          <label class="btn btn-sm btn-primary" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;">
+            📂 .cudbox Seç
+            <input type="file" accept=".cudbox" style="display:none;" onchange="mrgLoad(this.files[0],'A')">
+          </label>
+          <div id="mrgStatusA" style="margin-top:8px;font-size:11px;color:var(--text3);font-family:var(--mono);">— dosya seçilmedi —</div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:center;">
+          <button class="btn btn-sm" title="Sol / Sağ kutuyu yer değiştir" onclick="mrgSwap()"
+            style="padding:6px 10px;">⇄</button>
+        </div>
+
+        <div style="flex:1;min-width:250px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;">◨ SAĞ Kutu (B)</div>
+          <label class="btn btn-sm btn-primary" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;">
+            📂 .cudbox Seç
+            <input type="file" accept=".cudbox" style="display:none;" onchange="mrgLoad(this.files[0],'B')">
+          </label>
+          <div id="mrgStatusB" style="margin-top:8px;font-size:11px;color:var(--text3);font-family:var(--mono);">— dosya seçilmedi —</div>
+        </div>
+      </div>
+
+      <!-- Makine limitleri -->
+      <div style="background:var(--surface2);border:1px solid var(--accent);border-radius:8px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:10px;">⚙️ Makine Hareket Limitleri</div>
+        <div class="dq-grid">
+          <div>
+            <label class="dq-lb">↕ Dikey hareket limiti</label>
+            <input type="number" min="2" max="64" step="1" id="mrgLimitY" class="dq-in mono" value="8" oninput="mrgPreview()">
+            <div style="font-size:10px;color:var(--text3);margin-top:3px;">Makinede izin verilen (7 / 8 / 12 …)</div>
+          </div>
+          <div>
+            <label class="dq-lb">↔ Yatay hareket limiti</label>
+            <input type="number" min="2" max="128" step="1" id="mrgLimitX" class="dq-in mono" value="32" oninput="mrgPreview()">
+            <div style="font-size:10px;color:var(--text3);margin-top:3px;">Genelde 32</div>
+          </div>
+          <div style="grid-column:span 2;">
+            <label class="dq-lb">Limit neyi sayıyor?</label>
+            <select id="mrgLimitMode" class="dq-in" onchange="mrgPreview()">
+              <option value="unit">Unit sayısı (çizgi adedi — Unit_X / Unit_Y)</option>
+              <option value="seg">Segment sayısı (aralık adedi = unit − 1)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Yerleşim ayarları -->
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;">📐 Yerleşim</div>
+        <div class="dq-grid">
+          <div>
+            <label class="dq-lb">↔ Aralık (mm)</label>
+            <input type="number" step="any" min="0" id="mrgGap" class="dq-in mono" value="0" oninput="mrgPreview()">
+            <div style="font-size:10px;color:var(--text3);margin-top:3px;">0 = ortak kesim çizgisi</div>
+          </div>
+          <div>
+            <label class="dq-lb">↕ Dikey hizalama</label>
+            <select id="mrgAlign" class="dq-in" onchange="mrgPreview()">
+              <option value="top">Üstten hizala</option>
+              <option value="bottom">Alttan hizala</option>
+              <option value="center">Ortala</option>
+            </select>
+          </div>
+          <div>
+            <label class="dq-lb">↕ Ek Y ofset (mm)</label>
+            <input type="number" step="any" id="mrgOfs" class="dq-in mono" value="0" oninput="mrgPreview()">
+            <div style="font-size:10px;color:var(--text3);margin-top:3px;">Sağ kutuyu kaydır</div>
+          </div>
+          <div>
+            <label class="dq-lb">◎ Tolerans (mm)</label>
+            <input type="number" step="any" min="0" id="mrgTol" class="dq-in mono" value="0.5" oninput="mrgPreview()">
+            <div style="font-size:10px;color:var(--text3);margin-top:3px;">Bu kadar yakın hizalar tek harekete birleşir</div>
+          </div>
+
+          <div style="grid-column:span 2;">
+            <label class="dq-lb">Değişken önekleri (A / B)</label>
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="mrgPa" class="dq-in mono" value="A_" oninput="mrgPreview()" style="flex:1;">
+              <input type="text" id="mrgPb" class="dq-in mono" value="B_" oninput="mrgPreview()" style="flex:1;">
+            </div>
+            <div style="font-size:10px;color:var(--text3);margin-top:3px;">Aynı isimli ama farklı değerli değişkenler otomatik öneklenir</div>
+          </div>
+          <div style="grid-column:span 2;display:flex;align-items:center;gap:8px;padding-top:20px;">
+            <input type="checkbox" id="mrgForcePrefix" onchange="mrgPreview()" style="width:16px;height:16px;accent-color:var(--accent);">
+            <label for="mrgForcePrefix" style="font-size:12px;color:var(--text2);cursor:pointer;">Tüm ortak değişkenleri zorla önekle (değerleri aynı olsa bile)</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rapor -->
+      <div id="mrgReport" style="margin-bottom:14px;"></div>
+
+      <!-- Aksiyonlar -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-primary" style="flex:2;min-width:230px;" onclick="mrgApply()">🔗 Birleştir ve Tasarımcıya Aktar</button>
+        <button class="btn" style="flex:1;min-width:190px;" onclick="mrgAutoTol()" title="Dikey limiti sağlayacak en küçük toleransı bul">🎯 Limite Sığdır (oto tolerans)</button>
+        <button class="btn" style="flex:1;min-width:150px;color:var(--green);border-color:var(--green);" onclick="mrgSaveDirect()">💾 Direkt .cudbox Kaydet</button>
+        <button class="btn btn-sm btn-danger" onclick="mrgClear()">🗑️ Temizle</button>
+      </div>
+      <div id="mrgMsg" style="margin-top:10px;font-size:12px;color:var(--text3);"></div>
+
+    </div>
+  </div>
+
   <!-- Step 2: Dimensions + Canvas -->
   <div id="designerWorkArea" style="display:none;">
     <div class="designer-layout">
@@ -1953,6 +2077,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.dataTransfer.files.length) handleExcelUpload(e.dataTransfer.files[0]);
   });
   loadTemplatesFromStorage();
+  try { mrgPreview(); } catch(e){}
 });
 
 function handleExcelUpload(file) {
@@ -2458,6 +2583,7 @@ function initDesignerGrid() {
 
   renderAllInputs();
   document.getElementById('designerSetupCard').style.display = 'none';
+  { var _mc0 = document.getElementById('designerMergeCard'); if (_mc0) _mc0.style.display = 'none'; }
   document.getElementById('designerWorkArea').style.display = 'block';
 
   bindDesignerCanvas();
@@ -2602,6 +2728,8 @@ function removeLastSegment(axis) {
 function resetDesigner() {
   if (!confirm('Tasarımı sıfırlamak istiyor musunuz?')) return;
   document.getElementById('designerSetupCard').style.display = 'block';
+  var _mc = document.getElementById('designerMergeCard');
+  if (_mc) _mc.style.display = 'block';
   document.getElementById('designerWorkArea').style.display = 'none';
   document.getElementById('dsnXCount').value = 4;
   document.getElementById('dsnYCount').value = 3;
@@ -2729,6 +2857,7 @@ function parseCudboxIntoState(xmlStr, fileName) {
 
   // Arayüzü göster
   document.getElementById('designerSetupCard').style.display = 'none';
+  { var _mc0 = document.getElementById('designerMergeCard'); if (_mc0) _mc0.style.display = 'none'; }
   document.getElementById('designerWorkArea').style.display = 'block';
 
   if (dsnZoomRAF) { cancelAnimationFrame(dsnZoomRAF); dsnZoomRAF = null; }
@@ -3404,6 +3533,631 @@ window.addEventListener('resize', () => {
     drawDesignerCanvas();
   }
 });
+
+// =====================================================================
+// 🔗 İKİ KUTUYU BİRLEŞTİR (YAN YANA) — MULTI-BOX MERGE
+// ---------------------------------------------------------------------
+// Ölçüleri farklı iki .cudbox tek kalıpta yan yana birleştirilir.
+// • Dikey hareketler (Unit_Y) ORTAK kullanılır → union alınır
+// • Bir kutuda hareket olmayan hizada o kutunun parçası 'None' olur
+// • Bölünen segmentlerin ölçüsü FARK FORMÜLÜ ile yazılır (A-B çıkarma)
+// =====================================================================
+
+var mrgState = { A: null, B: null, last: null };
+
+function mrgEl(id){ return document.getElementById(id); }
+function mrgF(v){
+  if(v===null||v===undefined||!isFinite(v)) return '—';
+  var s = (Math.round(v*1000)/1000).toString();
+  return s;
+}
+function mrgNumOf(id, d){
+  var el = mrgEl(id); if(!el) return d;
+  var v = parseFloat(el.value);
+  return isFinite(v) ? v : d;
+}
+function mrgMsg(txt, kind){
+  var el = mrgEl('mrgMsg'); if(!el) return;
+  el.style.color = kind==='ok' ? 'var(--green)' : (kind==='err' ? 'var(--red)' : 'var(--text3)');
+  el.innerHTML = txt || '';
+}
+function mrgEsc(s){
+  return String(s===null||s===undefined?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Seçenekleri oku ─────────────────────────────────────────────────
+function mrgOpts(){
+  return {
+    limitY:    Math.max(2, parseInt(mrgNumOf('mrgLimitY', 8), 10) || 8),
+    limitX:    Math.max(2, parseInt(mrgNumOf('mrgLimitX', 32), 10) || 32),
+    limitMode: (mrgEl('mrgLimitMode') ? mrgEl('mrgLimitMode').value : 'unit'),
+    gap:       Math.max(0, mrgNumOf('mrgGap', 0)),
+    align:     (mrgEl('mrgAlign') ? mrgEl('mrgAlign').value : 'top'),
+    ofs:       mrgNumOf('mrgOfs', 0),
+    tol:       Math.max(0, mrgNumOf('mrgTol', 0.5)),
+    pa:        ((mrgEl('mrgPa') && mrgEl('mrgPa').value.trim()) || 'A_'),
+    pb:        ((mrgEl('mrgPb') && mrgEl('mrgPb').value.trim()) || 'B_'),
+    forcePrefix: !!(mrgEl('mrgForcePrefix') && mrgEl('mrgForcePrefix').checked)
+  };
+}
+
+// ── .cudbox → saf veri nesnesi (global state'e dokunmaz) ────────────
+function mrgParseCudbox(xmlStr, fileName){
+  var doc  = new DOMParser().parseFromString(xmlStr, 'text/xml');
+  var root = doc.documentElement;
+  if(!root || root.nodeName === 'parsererror') throw new Error('Geçersiz XML');
+
+  var argMap = {};
+  root.querySelectorAll('bx_Arguments > Bx_Argument').forEach(function(n){
+    var nm = n.querySelector('name');
+    var vl = n.querySelector('value');
+    var name = nm ? (nm.textContent||'').trim() : '';
+    var value = vl ? parseFloat(vl.textContent) : NaN;
+    if(name) argMap[name] = isFinite(value) ? value : 0;
+  });
+
+  function idxOf(el){ var i = el.querySelector('index'); return i ? parseInt(i.textContent,10) : 0; }
+  function byIdx(a,b){ return idxOf(a) - idxOf(b); }
+  function linesOf(u){ return Array.prototype.slice.call(u.querySelectorAll('Lines > Line')).sort(byIdx); }
+  function txt(el, sel){ var n = el.querySelector(sel); return n ? (n.textContent||'').trim() : ''; }
+
+  var unitXs = Array.prototype.slice.call(root.querySelectorAll('unit_Xs > Unit_X')).sort(byIdx);
+  var unitYs = Array.prototype.slice.call(root.querySelectorAll('unit_Ys > Unit_Y')).sort(byIdx);
+  if(unitXs.length < 2 || unitYs.length < 2) throw new Error('Yetersiz Unit_X / Unit_Y verisi');
+
+  function segFrom(line, i, pre){
+    var formula = txt(line, 'Formula') || (pre + i);
+    var pname   = txt(line, 'Parameter > Parameter > text');
+    var len     = parseFloat(txt(line, 'Length'));
+    if(!isFinite(len) || len <= 0){
+      try { var v = evalFormula(formula, argMap); if(isFinite(v) && v > 0) len = v; } catch(e){}
+    }
+    if(!isFinite(len)) len = 0;
+    var name = pname || (/^[A-Za-z_][A-Za-z0-9_]*$/.test(formula) ? formula : (pre + i));
+    return { name: name, formula: formula, len: Math.round(len*1000)/1000 };
+  }
+  function typesOf(u){
+    return linesOf(u).map(function(l){
+      var t = txt(l, 'Line_Type');
+      return (t==='Cut' || t==='Crease' || t==='None') ? t : 'None';
+    });
+  }
+
+  // ySegs → ilk Unit_X'in satırları (dikey yükseklikler)
+  var ySegs = linesOf(unitXs[0]).map(function(l,i){ return segFrom(l, i, 'H'); });
+  // xSegs → ilk Unit_Y'nin satırları (yatay genişlikler)
+  var xSegs = linesOf(unitYs[0]).map(function(l,i){ return segFrom(l, i, 'B'); });
+
+  var vLines = unitXs.map(typesOf);   // vLines[ux][yi]
+  var hLines = unitYs.map(typesOf);   // hLines[uy][xi]
+
+  var totalX = xSegs.reduce(function(s,g){ return s + g.len; }, 0);
+  var totalY = ySegs.reduce(function(s,g){ return s + g.len; }, 0);
+  if(totalX <= 0 || totalY <= 0) throw new Error('Ölçüler okunamadı (Length/Formula boş)');
+
+  return {
+    name: (fileName || 'Kutu').replace(/\.cudbox$/i, ''),
+    xSegs: xSegs, ySegs: ySegs,
+    vLines: vLines, hLines: hLines,
+    vars: Object.keys(argMap).map(function(k){ return { name:k, value: argMap[k] }; }),
+    totalX: Math.round(totalX*1000)/1000,
+    totalY: Math.round(totalY*1000)/1000
+  };
+}
+
+// ── Sembolik terim cebiri (formül farkı almak için) ─────────────────
+// terim listesi: [{s:'H0', k:+1}, {s:'t', k:-1} ...]
+function mrgDiffTerms(after, before){
+  var all = after.map(function(t){ return {s:t.s, k:t.k}; })
+      .concat(before.map(function(t){ return {s:t.s, k:-t.k}; }));
+  var order = [], acc = {};
+  all.forEach(function(t){
+    if(!(t.s in acc)){ acc[t.s] = 0; order.push(t.s); }
+    acc[t.s] += t.k;
+  });
+  var pos = [], neg = [];
+  order.forEach(function(s){
+    var k = acc[s];
+    for(var i=0; i<k; i++)  pos.push(s);
+    for(var j=0; j<-k; j++) neg.push(s);
+  });
+  return { pos: pos, neg: neg };
+}
+function mrgWrap(s){
+  return (/^[A-Za-z_][A-Za-z0-9_]*$/.test(s) || /^[0-9.]+$/.test(s)) ? s : ('(' + s + ')');
+}
+function mrgExprStr(d){
+  var out = d.pos.map(mrgWrap).join('+');
+  if(!out) out = '0';
+  d.neg.forEach(function(s){ out += '-' + mrgWrap(s); });
+  return out;
+}
+function mrgRenameF(f, map){
+  return String(f===null||f===undefined?'':f).replace(/[A-Za-z_][A-Za-z0-9_]*/g, function(m){
+    return Object.prototype.hasOwnProperty.call(map, m) ? map[m] : m;
+  });
+}
+function mrgRenSeg(s, map){
+  return { name: mrgRenameF(s.name, map), formula: mrgRenameF(s.formula, map), len: s.len };
+}
+function mrgUniqName(base, vars){
+  var used = {}; vars.forEach(function(v){ used[v.name] = 1; });
+  var n = base, c = 2;
+  while(used[n]){ n = base + '_' + c; c++; }
+  return n;
+}
+
+// ── Değişken adı çakışmalarını çöz ──────────────────────────────────
+function mrgVarMaps(A, B, o){
+  var aM = {}, bM = {};
+  A.vars.forEach(function(v){ aM[v.name] = v.value; });
+  B.vars.forEach(function(v){ bM[v.name] = v.value; });
+  var mapA = {}, mapB = {}, vars = [], used = {};
+  function put(name, val){
+    var n = name, c = 2;
+    while(used[n]){ n = name + '_' + c; c++; }
+    used[n] = 1; vars.push({ name: n, value: val });
+    return n;
+  }
+  A.vars.forEach(function(v){
+    var shared = Object.prototype.hasOwnProperty.call(bM, v.name);
+    var same   = shared && Math.abs(bM[v.name] - v.value) < 1e-9;
+    mapA[v.name] = (shared && (!same || o.forcePrefix)) ? put(o.pa + v.name, v.value) : put(v.name, v.value);
+  });
+  B.vars.forEach(function(v){
+    var shared = Object.prototype.hasOwnProperty.call(aM, v.name);
+    var same   = shared && Math.abs(aM[v.name] - v.value) < 1e-9;
+    if(shared && same && !o.forcePrefix) mapB[v.name] = mapA[v.name];
+    else if(shared)                      mapB[v.name] = put(o.pb + v.name, v.value);
+    else                                 mapB[v.name] = put(v.name, v.value);
+  });
+  return { mapA: mapA, mapB: mapB, vars: vars };
+}
+
+// ── Hazırlık: yeniden adlandır, pozisyon + kümülatif formül üret ────
+function mrgPrepare(){
+  var A = mrgState.A, B = mrgState.B;
+  if(!A || !B) return null;
+  var o = mrgOpts();
+
+  var vm = mrgVarMaps(A, B, o);
+  var vars = vm.vars.slice();
+  var Ax = A.xSegs.map(function(s){ return mrgRenSeg(s, vm.mapA); });
+  var Ay = A.ySegs.map(function(s){ return mrgRenSeg(s, vm.mapA); });
+  var Bx = B.xSegs.map(function(s){ return mrgRenSeg(s, vm.mapB); });
+  var By = B.ySegs.map(function(s){ return mrgRenSeg(s, vm.mapB); });
+
+  var aY = [0]; Ay.forEach(function(s){ aY.push(Math.round((aY[aY.length-1]+s.len)*1000)/1000); });
+  var bY = [0]; By.forEach(function(s){ bY.push(Math.round((bY[bY.length-1]+s.len)*1000)/1000); });
+  var totA = aY[aY.length-1], totB = bY[bY.length-1];
+
+  // Sağ kutunun dikey ofseti — sayısal + sembolik
+  var alignOff = (o.align === 'top') ? 0 : (o.align === 'bottom' ? (totA - totB) : (totA - totB)/2);
+  var offB = Math.round((alignOff + o.ofs)*1000)/1000;
+
+  var offTerms = [];
+  if(o.align === 'bottom'){
+    // Sembolik: (A toplam) − (B toplam) → ölçü değişse bile alt hiza korunur
+    Ay.forEach(function(s){ offTerms.push({ s: s.formula, k: 1  }); });
+    By.forEach(function(s){ offTerms.push({ s: s.formula, k: -1 }); });
+  } else if(o.align === 'center' && Math.abs(alignOff) > 1e-9){
+    var cn = mrgUniqName('OFS_MID', vars);
+    vars.push({ name: cn, value: Math.round(alignOff*1000)/1000 });
+    offTerms.push({ s: cn, k: 1 });
+  }
+  if(Math.abs(o.ofs) > 1e-9){
+    var on = mrgUniqName('OFS_Y', vars);
+    vars.push({ name: on, value: o.ofs });
+    offTerms.push({ s: on, k: 1 });
+  }
+
+  // Kümülatif sembolik pozisyonlar
+  var cumA = [[]], cumB = [offTerms.slice()], i;
+  for(i = 0; i < Ay.length; i++) cumA.push(cumA[i].concat([{ s: Ay[i].formula, k: 1 }]));
+  for(i = 0; i < By.length; i++) cumB.push(cumB[i].concat([{ s: By[i].formula, k: 1 }]));
+
+  // Tüm dikey hiza adayları
+  var cand = [];
+  aY.forEach(function(y,k){ cand.push({ y: y,        box:'A', idx:k, terms: cumA[k] }); });
+  bY.forEach(function(y,k){ cand.push({ y: y + offB, box:'B', idx:k, terms: cumB[k] }); });
+  cand.sort(function(p,q){ return (p.y - q.y) || (p.box === 'A' ? -1 : 1); });
+
+  return { o:o, A:A, B:B, vars:vars, Ax:Ax, Ay:Ay, Bx:Bx, By:By,
+           aY:aY, bY:bY, totA:totA, totB:totB, offB:offB, cand:cand };
+}
+
+// ── Adayları toleransla kümele → ortak dikey hareket satırları ──────
+function mrgCluster(cand, tol){
+  var rows = [];
+  cand.forEach(function(c){
+    var last = rows[rows.length-1];
+    var free = last && ((c.box === 'A' && last.aIdx === null) || (c.box === 'B' && last.bIdx === null));
+    if(last && free && Math.abs(c.y - last.y) <= tol){
+      if(c.box === 'A'){
+        last.aIdx = c.idx;
+        if(last.src !== 'A'){ last.terms = c.terms; last.src = 'A'; }   // formülde A tercih
+      } else {
+        last.bIdx = c.idx;
+      }
+      last.both = true;
+    } else {
+      rows.push({ y: c.y, terms: c.terms, src: c.box, both: false,
+                  aIdx: (c.box === 'A' ? c.idx : null),
+                  bIdx: (c.box === 'B' ? c.idx : null) });
+    }
+  });
+  return rows;
+}
+
+// ── Bir kutunun dikey çizgisinin, verilen global satırdaki tipi ─────
+function mrgTypeAt(types, ypos, off, yTop, yBot, tol){
+  var total = ypos[ypos.length-1];
+  var t = yTop - off, b = yBot - off;
+  if(b <= tol || t >= total - tol) return 'None';   // kutunun dışında
+  var mid = (t + b) / 2;
+  for(var k = 0; k < ypos.length-1; k++){
+    if(mid >= ypos[k] - tol && mid <= ypos[k+1] + tol) return types[k] || 'None';
+  }
+  return 'None';
+}
+function mrgCombineType(a, b){
+  if(a === 'Cut'    || b === 'Cut')    return 'Cut';
+  if(a === 'Crease' || b === 'Crease') return 'Crease';
+  return 'None';
+}
+
+// ── ANA BİRLEŞTİRME ────────────────────────────────────────────────
+function mrgCompute(){
+  var ctx = mrgPrepare();
+  if(!ctx) return null;
+  var o = ctx.o;
+  var rows = mrgCluster(ctx.cand, o.tol);
+  if(rows.length < 2) return null;
+
+  var vars = ctx.vars.slice();
+
+  // ---- Dikey (Y) segmentler: fark formülü ile -----------------------
+  var ySegsM = [], r;
+  for(r = 0; r < rows.length-1; r++){
+    var d   = mrgDiffTerms(rows[r+1].terms, rows[r].terms);
+    var f   = mrgExprStr(d);
+    var len = Math.round((rows[r+1].y - rows[r].y)*1000)/1000;
+    var nm  = /^[A-Za-z_][A-Za-z0-9_]*$/.test(f) ? f : ('MY' + r);
+    ySegsM.push({ name: nm, formula: f, len: len });
+  }
+
+  // ---- Yatay (X) segmentler: A · [aralık] · B ----------------------
+  var nxA = ctx.Ax.length, nxB = ctx.Bx.length;
+  var xSegsM = [], colOwner = [], k;
+  for(k = 0; k < nxA; k++){ xSegsM.push({ name: ctx.Ax[k].name, formula: ctx.Ax[k].formula, len: ctx.Ax[k].len }); colOwner.push({ box:'A', i:k }); }
+  var gapName = null;
+  if(o.gap > 0){
+    gapName = mrgUniqName('GAP', vars);
+    vars.push({ name: gapName, value: o.gap });
+    xSegsM.push({ name: gapName, formula: gapName, len: o.gap });
+    colOwner.push({ box:'G', i:-1 });
+  }
+  for(k = 0; k < nxB; k++){ xSegsM.push({ name: ctx.Bx[k].name, formula: ctx.Bx[k].formula, len: ctx.Bx[k].len }); colOwner.push({ box:'B', i:k }); }
+
+  // ---- Dikey çizgi sahipliği (Unit_X) ------------------------------
+  var vOwner = [];
+  for(k = 0; k <= nxA; k++) vOwner.push({ a:k, b:null });
+  if(o.gap > 0){
+    for(k = 0; k <= nxB; k++) vOwner.push({ a:null, b:k });
+  } else {
+    vOwner[nxA].b = 0;                                   // ortak kesim çizgisi
+    for(k = 1; k <= nxB; k++) vOwner.push({ a:null, b:k });
+  }
+
+  // ---- vLines[ux][yi] ---------------------------------------------
+  var vLinesM = [];
+  for(var ux = 0; ux < vOwner.length; ux++){
+    var own = vOwner[ux], col = [];
+    for(r = 0; r < rows.length-1; r++){
+      var tA = (own.a === null) ? 'None' : mrgTypeAt(ctx.A.vLines[own.a] || [], ctx.aY, 0,        rows[r].y, rows[r+1].y, o.tol);
+      var tB = (own.b === null) ? 'None' : mrgTypeAt(ctx.B.vLines[own.b] || [], ctx.bY, ctx.offB, rows[r].y, rows[r+1].y, o.tol);
+      col.push(mrgCombineType(tA, tB));
+    }
+    vLinesM.push(col);
+  }
+
+  // ---- hLines[uy][xi]  ← "hareket yoksa None" kuralı ---------------
+  var hLinesM = [];
+  for(var uy = 0; uy < rows.length; uy++){
+    var rr = rows[uy], line = [];
+    for(var xi = 0; xi < xSegsM.length; xi++){
+      var ow = colOwner[xi], ty = 'None';
+      if(ow.box === 'A' && rr.aIdx !== null)      ty = (ctx.A.hLines[rr.aIdx] || [])[ow.i] || 'None';
+      else if(ow.box === 'B' && rr.bIdx !== null) ty = (ctx.B.hLines[rr.bIdx] || [])[ow.i] || 'None';
+      line.push(ty);
+    }
+    hLinesM.push(line);
+  }
+
+  // ---- Sapma: tolerans nedeniyle kayan hizalar ----------------------
+  // (Bir A hizası ile B hizası tek harekete birleştiyse kutulardan biri kayar)
+  var devA = 0, devB = 0;
+  rows.forEach(function(rw){
+    if(rw.aIdx !== null) devA = Math.max(devA, Math.abs(rw.y - ctx.aY[rw.aIdx]));
+    if(rw.bIdx !== null) devB = Math.max(devB, Math.abs(rw.y - (ctx.bY[rw.bIdx] + ctx.offB)));
+    rw.devA = (rw.aIdx !== null) ? Math.round((rw.y - ctx.aY[rw.aIdx])*1000)/1000 : null;
+    rw.devB = (rw.bIdx !== null) ? Math.round((rw.y - (ctx.bY[rw.bIdx] + ctx.offB))*1000)/1000 : null;
+  });
+  devA = Math.round(devA*1000)/1000; devB = Math.round(devB*1000)/1000;
+
+  // ---- Doğrulama: formül ↔ geometri --------------------------------
+  var vmap = {}; vars.forEach(function(v){ vmap[v.name] = v.value; });
+  var warns = [];
+  ySegsM.forEach(function(s, i){
+    var v = null;
+    try { v = evalFormula(s.formula, vmap); } catch(e){ v = null; }
+    if(v === null || !isFinite(v))          warns.push('Dikey #' + (i+1) + ': formül çözülemedi → ' + s.formula);
+    else if(v <= 0)                          warns.push('Dikey #' + (i+1) + ': formül ≤ 0 (' + mrgF(v) + ' mm) → ' + s.formula);
+    else if(Math.abs(v - s.len) > 0.05)      warns.push('Dikey #' + (i+1) + ': formül ' + mrgF(v) + ' mm ↔ çizim ' + mrgF(s.len) + ' mm');
+  });
+
+  var numUX = vLinesM.length, numUY = rows.length;
+  var cntX = (o.limitMode === 'unit') ? numUX : xSegsM.length;
+  var cntY = (o.limitMode === 'unit') ? numUY : ySegsM.length;
+
+  return {
+    rows: rows, ySegs: ySegsM, xSegs: xSegsM, vLines: vLinesM, hLines: hLinesM,
+    vars: vars, ctx: ctx, warns: warns, devA: devA, devB: devB,
+    numUX: numUX, numUY: numUY, cntX: cntX, cntY: cntY,
+    okX: cntX <= o.limitX, okY: cntY <= o.limitY,
+    totalW: xSegsM.reduce(function(s,g){ return s+g.len; }, 0),
+    totalH: rows[rows.length-1].y - rows[0].y
+  };
+}
+
+// ── Rapor / önizleme ────────────────────────────────────────────────
+function mrgPreview(){
+  var box = mrgEl('mrgReport'); if(!box) return;
+  if(!mrgState.A || !mrgState.B){
+    box.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:10px;background:var(--surface2);border:1px dashed var(--border);border-radius:6px;">'
+      + 'İki .cudbox dosyası da seçildiğinde birleştirme raporu burada görünür.</div>';
+    mrgState.last = null;
+    return;
+  }
+  var res;
+  try { res = mrgCompute(); }
+  catch(e){
+    box.innerHTML = '<div style="font-size:12px;color:var(--red);padding:10px;">❌ ' + mrgEsc(e.message) + '</div>';
+    mrgState.last = null; return;
+  }
+  if(!res){ box.innerHTML = ''; mrgState.last = null; return; }
+  mrgState.last = res;
+  var o = res.ctx.o;
+
+  function chip(label, val, ok){
+    var c = ok === undefined ? 'var(--text)' : (ok ? 'var(--green)' : 'var(--red)');
+    var bg = ok === undefined ? 'var(--surface2)' : (ok ? 'var(--green-bg)' : 'var(--red-bg)');
+    return '<div style="flex:1;min-width:120px;background:' + bg + ';border:1px solid var(--border);border-radius:6px;padding:8px 10px;">'
+      + '<div style="font-size:10px;color:var(--text3);font-weight:600;">' + label + '</div>'
+      + '<div style="font-size:15px;font-weight:800;font-family:var(--mono);color:' + c + ';">' + val + '</div></div>';
+  }
+
+  var unitTxt = (o.limitMode === 'unit') ? 'unit' : 'segment';
+  var h = '';
+  h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">';
+  h += chip('↕ DİKEY (' + unitTxt + ')', res.cntY + ' / ' + o.limitY, res.okY);
+  h += chip('↔ YATAY (' + unitTxt + ')', res.cntX + ' / ' + o.limitX, res.okX);
+  h += chip('Unit_X · Unit_Y', res.numUX + ' · ' + res.numUY);
+  h += chip('Toplam ölçü', mrgF(res.totalW) + ' × ' + mrgF(res.totalH) + ' mm');
+  var dmax = Math.max(res.devA, res.devB);
+  h += chip('◎ Ölçü sapması', mrgF(dmax) + ' mm', dmax <= 0.001);
+  h += '</div>';
+
+  if(dmax > 0.001){
+    h += '<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:6px;padding:10px;margin-bottom:10px;font-size:12px;color:var(--red);">'
+      + '⚠️ <b>Tolerans nedeniyle ölçü kaydı!</b> Yakın hizalar tek harekete birleştirildiği için '
+      + 'SOL kutu en fazla <b>' + mrgF(res.devA) + ' mm</b>, SAĞ kutu en fazla <b>' + mrgF(res.devB) + ' mm</b> kaydı. '
+      + 'Kabul edilebilir değilse toleransı küçültün (kutu ölçüsü birebir korunur, ama dikey hareket sayısı artar).</div>';
+  }
+
+  if(!res.okY){
+    h += '<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:6px;padding:10px;margin-bottom:10px;font-size:12px;color:var(--red);">'
+      + '⚠️ <b>Dikey hareket limiti aşıldı</b> (' + res.cntY + ' > ' + o.limitY + ').'
+      + ' “🎯 Limite Sığdır” ile yakın hizaları birleştirmeyi deneyin veya hizalamayı/ofseti değiştirin.</div>';
+  }
+  if(!res.okX){
+    h += '<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:6px;padding:10px;margin-bottom:10px;font-size:12px;color:var(--red);">'
+      + '⚠️ <b>Yatay hareket limiti aşıldı</b> (' + res.cntX + ' > ' + o.limitX + '). Aralığı 0 yaparak ortak kesim çizgisi kullanabilirsiniz.</div>';
+  }
+
+  // Dikey satır tablosu
+  h += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;overflow:hidden;">';
+  h += '<div style="padding:8px 12px;font-size:11px;font-weight:700;color:var(--text2);border-bottom:1px solid var(--border);">'
+     + '↕ Ortak dikey hareketler ve segment formülleri</div>';
+  h += '<div style="max-height:260px;overflow:auto;">';
+  h += '<table style="width:100%;border-collapse:collapse;font-size:11px;font-family:var(--mono);">';
+  h += '<thead><tr style="color:var(--text3);text-align:left;">'
+     + '<th style="padding:5px 10px;">#</th><th style="padding:5px 10px;">Y (mm)</th>'
+     + '<th style="padding:5px 10px;">Kaynak</th><th style="padding:5px 10px;">Sapma</th>'
+     + '<th style="padding:5px 10px;">Segment ölçüsü</th>'
+     + '<th style="padding:5px 10px;">Formül</th></tr></thead><tbody>';
+  res.rows.forEach(function(rw, i){
+    var src = rw.aIdx !== null && rw.bIdx !== null ? '<span style="color:var(--green)">A+B</span>'
+            : (rw.aIdx !== null ? '<span style="color:var(--accent)">A</span>'
+                                : '<span style="color:var(--blue)">B</span>');
+    var dv = Math.max(Math.abs(rw.devA || 0), Math.abs(rw.devB || 0));
+    var dvTxt = dv > 0.001 ? '<span style="color:var(--red)">' + mrgF(dv) + '</span>' : '<span style="color:var(--text3)">0</span>';
+    var seg = res.ySegs[i];
+    h += '<tr style="border-top:1px solid var(--border);">'
+       + '<td style="padding:4px 10px;color:var(--text3);">' + i + '</td>'
+       + '<td style="padding:4px 10px;">' + mrgF(rw.y) + '</td>'
+       + '<td style="padding:4px 10px;">' + src + '</td>'
+       + '<td style="padding:4px 10px;">' + dvTxt + '</td>'
+       + '<td style="padding:4px 10px;color:var(--text2);">' + (seg ? mrgF(seg.len) + ' mm' : '—') + '</td>'
+       + '<td style="padding:4px 10px;color:var(--accent);">' + (seg ? mrgEsc(seg.formula) : '—') + '</td>'
+       + '</tr>';
+  });
+  h += '</tbody></table></div></div>';
+
+  if(res.warns.length){
+    h += '<div style="margin-top:10px;background:var(--surface2);border:1px solid var(--border-hi);border-radius:6px;padding:10px;font-size:11px;color:var(--text2);">'
+       + '<b style="color:var(--accent);">ℹ️ Formül kontrolü (' + res.warns.length + ')</b><br>'
+       + res.warns.slice(0,8).map(mrgEsc).join('<br>')
+       + (res.warns.length > 8 ? '<br>… +' + (res.warns.length-8) + ' satır daha' : '')
+       + '<div style="margin-top:6px;color:var(--text3);">Kaynak dosyalardaki Length ile Formula birebir örtüşmüyorsa görülür; çizim ölçüleri korunur.</div></div>';
+  }
+
+  box.innerHTML = h;
+}
+
+// ── Dosya yükleme ───────────────────────────────────────────────────
+function mrgLoad(file, slot){
+  if(!file) return;
+  var st = mrgEl('mrgStatus' + slot);
+  st.style.color = 'var(--text3)'; st.textContent = '⏳ Okunuyor...';
+  var rd = new FileReader();
+  rd.onload = function(e){
+    try {
+      var b = mrgParseCudbox(e.target.result, file.name);
+      mrgState[slot] = b;
+      st.style.color = 'var(--green)';
+      st.textContent = '✅ ' + b.name + ' · ' + b.xSegs.length + '×' + b.ySegs.length
+                     + ' seg · ' + mrgF(b.totalX) + '×' + mrgF(b.totalY) + ' mm';
+    } catch(err){
+      mrgState[slot] = null;
+      st.style.color = 'var(--red)'; st.textContent = '❌ ' + err.message;
+    }
+    mrgPreview();
+  };
+  rd.readAsText(file);
+}
+
+function mrgSwap(){
+  var t = mrgState.A; mrgState.A = mrgState.B; mrgState.B = t;
+  ['A','B'].forEach(function(s){
+    var b = mrgState[s], el = mrgEl('mrgStatus' + s);
+    if(!el) return;
+    if(b){ el.style.color = 'var(--green)';
+           el.textContent = '✅ ' + b.name + ' · ' + b.xSegs.length + '×' + b.ySegs.length
+                          + ' seg · ' + mrgF(b.totalX) + '×' + mrgF(b.totalY) + ' mm'; }
+    else { el.style.color = 'var(--text3)'; el.textContent = '— dosya seçilmedi —'; }
+  });
+  mrgPreview();
+  mrgMsg('⇄ Sol/Sağ kutular yer değiştirdi.', 'ok');
+}
+
+function mrgClear(){
+  mrgState.A = null; mrgState.B = null; mrgState.last = null;
+  ['A','B'].forEach(function(s){
+    var el = mrgEl('mrgStatus' + s);
+    if(el){ el.style.color = 'var(--text3)'; el.textContent = '— dosya seçilmedi —'; }
+  });
+  mrgPreview(); mrgMsg('');
+}
+
+// ── Dikey limite sığdıracak en küçük toleransı bul ─────────────────
+function mrgAutoTol(){
+  var ctx = mrgPrepare();
+  if(!ctx){ mrgMsg('Önce iki .cudbox dosyası seçin.', 'err'); return; }
+  var o = ctx.o;
+  var limitRows = (o.limitMode === 'unit') ? o.limitY : (o.limitY + 1);
+
+  if(mrgCluster(ctx.cand, 0).length <= limitRows){
+    mrgEl('mrgTol').value = 0;
+    mrgPreview();
+    mrgMsg('✅ Tolerans gerekmedi — hizalar zaten limite sığıyor.', 'ok');
+    return;
+  }
+  var diffs = [], i;
+  for(i = 1; i < ctx.cand.length; i++){
+    var d = ctx.cand[i].y - ctx.cand[i-1].y;
+    if(d > 1e-9) diffs.push(d);
+  }
+  diffs.sort(function(a,b){ return a-b; });
+  var found = null;
+  for(i = 0; i < diffs.length; i++){
+    var tol = Math.round((diffs[i] + 0.001)*1000)/1000;
+    if(mrgCluster(ctx.cand, tol).length <= limitRows){ found = tol; break; }
+  }
+  if(found === null){
+    mrgMsg('❌ Bu iki kutu, ' + o.limitY + ' dikey hareketle yan yana birleştirilemiyor. '
+         + 'Hizalamayı değiştirin, ofset verin veya kutulardan birini sadeleştirin.', 'err');
+    return;
+  }
+  mrgEl('mrgTol').value = found;
+  mrgPreview();
+  var dv = mrgState.last ? Math.max(mrgState.last.devA, mrgState.last.devB) : 0;
+  mrgMsg('🎯 Tolerans <b>' + mrgF(found) + ' mm</b> yapıldı — dikey hareket sayısı limite indi. '
+       + (dv > 0.001
+          ? '<span style="color:var(--red)">Dikkat: bu yüzden kutu ölçülerinde en fazla <b>' + mrgF(dv) + ' mm</b> kayma oluşuyor — yukarıdaki tabloda “Sapma” sütununa bakın.</span>'
+          : 'Ölçülerde kayma yok.'), 'ok');
+}
+
+// ── Birleştir → Tasarımcıya aktar ──────────────────────────────────
+function mrgApply(){
+  var res;
+  try { res = mrgCompute(); }
+  catch(e){ mrgMsg('❌ ' + e.message, 'err'); return; }
+  if(!res){ mrgMsg('Önce iki .cudbox dosyası seçin.', 'err'); return; }
+
+  if(!res.okY && !confirm('Dikey hareket sayısı (' + res.cntY + ') girdiğiniz limiti (' + res.ctx.o.limitY + ') aşıyor.\nYine de tasarımcıya aktarılsın mı?')) return;
+
+  dsnState.xSegs  = res.xSegs;
+  dsnState.ySegs  = res.ySegs;
+  dsnState.xCount = res.xSegs.length;
+  dsnState.yCount = res.ySegs.length;
+  dsnState.vLines = res.vLines;
+  dsnState.hLines = res.hLines;
+  dsnState.vars   = res.vars;
+
+  recalcAllSegs();
+
+  var nm = (mrgState.A.name + '__' + mrgState.B.name).replace(/[^A-Za-z0-9_\-]+/g, '_').slice(0, 60);
+  var fn = mrgEl('dsnFileName'); if(fn) fn.value = nm;
+  var bd = mrgEl('designerBadge'); if(bd) bd.textContent = '🔗 ' + nm;
+
+  mrgEl('designerSetupCard').style.display = 'none';
+  mrgEl('designerMergeCard').style.display = 'none';
+  mrgEl('designerWorkArea').style.display  = 'block';
+
+  if(typeof dsnZoomRAF !== 'undefined' && dsnZoomRAF){ cancelAnimationFrame(dsnZoomRAF); dsnZoomRAF = null; }
+  dsnZoom = 1; dsnZoomTarget = 1; dsnPanX = 0; dsnPanY = 0;
+
+  renderAllInputs();
+  bindDesignerCanvas();
+  setDrawMode('Cut');
+  drawDesignerCanvas();
+
+  var info = mrgEl('canvasInfo');
+  if(info) info.textContent = '🔗 Birleştirildi — Unit_X: ' + res.numUX + ' · Unit_Y: ' + res.numUY
+    + ' · ' + mrgF(res.totalW) + '×' + mrgF(res.totalH) + ' mm';
+}
+
+// ── Birleştirip doğrudan .cudbox indir ─────────────────────────────
+function mrgSaveDirect(){
+  var res;
+  try { res = mrgCompute(); }
+  catch(e){ mrgMsg('❌ ' + e.message, 'err'); return; }
+  if(!res){ mrgMsg('Önce iki .cudbox dosyası seçin.', 'err'); return; }
+  if(!res.okY && !confirm('Dikey hareket sayısı (' + res.cntY + ') limiti (' + res.ctx.o.limitY + ') aşıyor.\nYine de kaydedilsin mi?')) return;
+
+  var bak = {
+    xSegs: dsnState.xSegs, ySegs: dsnState.ySegs, xCount: dsnState.xCount,
+    yCount: dsnState.yCount, vLines: dsnState.vLines, hLines: dsnState.hLines, vars: dsnState.vars
+  };
+  var fnEl = mrgEl('dsnFileName');
+  var bakName = fnEl ? fnEl.value : '';
+  try {
+    dsnState.xSegs  = res.xSegs;  dsnState.ySegs  = res.ySegs;
+    dsnState.xCount = res.xSegs.length; dsnState.yCount = res.ySegs.length;
+    dsnState.vLines = res.vLines; dsnState.hLines = res.hLines;
+    dsnState.vars   = res.vars;
+    if(fnEl) fnEl.value = (mrgState.A.name + '__' + mrgState.B.name).replace(/[^A-Za-z0-9_\-]+/g,'_').slice(0,60);
+    saveDesignAsCudbox();
+    mrgMsg('💾 Birleşik .cudbox indirildi.', 'ok');
+  } finally {
+    dsnState.xSegs = bak.xSegs; dsnState.ySegs = bak.ySegs; dsnState.xCount = bak.xCount;
+    dsnState.yCount = bak.yCount; dsnState.vLines = bak.vLines; dsnState.hLines = bak.hLines;
+    dsnState.vars = bak.vars;
+    if(fnEl) fnEl.value = bakName;
+  }
+}
 
 function formatNum(v) {
   if (v === Math.floor(v)) return v.toString();
