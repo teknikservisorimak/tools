@@ -1183,47 +1183,68 @@ tr:hover td { background: var(--surface2); }
 .dg-srcbtn{font-family:var(--sans);font-size:13px;font-weight:600;padding:9px 16px;border-radius:8px;
   border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;user-select:none;}
 .dg-srcbtn.active{border-color:var(--accent);color:var(--accent);background:var(--bg);}
+.dg-coltable select,.dg-coltable input{font-family:var(--mono);font-size:12px;background:var(--bg);
+  border:1px solid var(--border);color:var(--text);border-radius:5px;padding:5px 7px;width:100%;}
+.dg-coltable td{vertical-align:middle;}
+.dg-mini{font-family:var(--sans);font-size:12px;font-weight:700;line-height:1;padding:5px 8px;border-radius:5px;
+  border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;}
+.dg-mini:hover{border-color:var(--accent);color:var(--accent);}
 </style>
 <div id="panel-datolustur" class="panel">
 
-  <!-- Çıktı düzeni -->
+  <!-- .dat şablonu -->
   <div class="card">
     <div class="card-header">
-      <h3>⚙️ Çıktı Düzeni (.dat sütun sırası)</h3>
+      <h3>📄 .dat Şablonu <span class="badge" id="dgTplBadge">yüklenmedi</span></h3>
       <div class="btn-group">
+        <label class="btn btn-primary btn-sm" style="cursor:pointer;">📄 Örnek .dat Yükle
+          <input type="file" id="dgDatTplInput" accept=".dat,.txt" style="display:none">
+        </label>
         <button class="btn btn-sm" onclick="dgDownloadSampleExcel()">📥 Örnek Excel İndir</button>
       </div>
     </div>
     <div class="card-body">
       <div class="info-banner" style="margin-bottom:14px;">
-        <strong>.dat</strong> makinenin not defteri formatıdır: <strong>sekme (TAB) ile ayrılmış</strong>, <strong>UTF-16 LE</strong> kodlu, başlıksız düz metin.<br>
-        Varsayılan düzen programın kendi DAT okuyucusuyla birebir uyumludur:
-        <code>TARİH → B → T → K1 → İSİM → L → H</code><br>
-        <span style="color:var(--text3);">Yani burada ürettiğiniz dosyayı ① Üretim sekmesindeki DAT alanına geri yükleyebilirsiniz.</span>
+        <strong>En sağlıklı yol:</strong> makineden çıkan gerçek bir <code>.dat</code> dosyasını buraya yükleyin.
+        Program <strong>sütun sayısını, hangi sütunun ne olduğunu, sayı biçimini (ör. <code>960.000000</code>),
+        kodlamayı ve satır sonunu</strong> öğrenir; üretirken sadece <strong>ölçü, isim ve tarih/saat</strong> alanlarını
+        günceller — kalan her şey birebir aynı kalır.
       </div>
+      <div id="dgDatTplInfo" style="display:none;"></div>
+    </div>
+  </div>
 
-      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;">
-        <div style="flex:1;min-width:250px;">
-          <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">Hazır Düzen</label>
-          <select id="dgPreset" onchange="dgApplyPreset(this.value)" style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;">
-            <option value="machine">Makine Formatı — TARİH, B, T, K1, İSİM, L, H</option>
-            <option value="machine_nodate">Tarihsiz — B, T, K1, İSİM, L, H</option>
-            <option value="short">Kısa — B, T, İSİM, L, H</option>
-            <option value="custom">Özel (aşağıdan düzenleyin)</option>
-          </select>
-        </div>
-        <div style="flex:1;min-width:250px;">
-          <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">Sütun Sırası (virgülle)</label>
-          <input type="text" id="dgLayout" onchange="dgOnLayoutEdit()" oninput="dgOnLayoutEdit()"
-            style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;">
-          <div style="font-size:11px;color:var(--text3);margin-top:5px;">
-            Kullanılabilir: <code>TARIH</code>, <code>ISIM</code>, <code>B</code>, <code>L</code>, <code>H</code>, <code>T</code>, <code>K1</code>…<code>K4</code>, <code>P</code>, <code>ADET</code>, <code>BOS</code>
-          </div>
-        </div>
+  <!-- Çıktı düzeni -->
+  <div class="card">
+    <div class="card-header">
+      <h3>⚙️ Çıktı Düzeni (.dat sütunları)</h3>
+      <div class="btn-group">
+        <select id="dgPreset" onchange="dgApplyPreset(this.value)" style="font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 10px;">
+          <option value="machine9">Makine (9 sütun) — DAMGA, MS, DAMGA, boş, B, T, İSİM, L, H</option>
+          <option value="machine7">Sade (7 sütun) — TARİH, B, T, K1, İSİM, L, H</option>
+          <option value="short">Kısa (5 sütun) — B, T, İSİM, L, H</option>
+          <option value="custom" disabled>Özel / şablondan</option>
+        </select>
+        <button class="btn btn-sm" onclick="dgAddCol()">➕ Sütun Ekle</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="table-wrap dg-coltable" style="margin-bottom:16px;">
+        <table>
+          <thead><tr>
+            <th style="width:44px;">#</th>
+            <th style="min-width:190px;">Rol</th>
+            <th style="width:110px;">Ondalık</th>
+            <th style="min-width:150px;">Sabit Değer</th>
+            <th style="min-width:170px;">Örnek Çıktı</th>
+            <th style="width:110px;">Sıra</th>
+          </tr></thead>
+          <tbody id="dgColsBody"></tbody>
+        </table>
       </div>
 
       <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
-        <div style="min-width:190px;">
+        <div style="min-width:200px;">
           <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">Kodlama</label>
           <select id="dgEncoding" style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;">
             <option value="utf16le">UTF-16 LE (makine — önerilen)</option>
@@ -1231,34 +1252,43 @@ tr:hover td { background: var(--surface2); }
             <option value="utf8">UTF-8 (BOM'suz)</option>
           </select>
         </div>
-        <div style="min-width:170px;">
+        <div style="min-width:160px;">
           <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">Ondalık Ayracı</label>
-          <select id="dgDecimal" onchange="dgRenderPreview()" style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;">
-            <option value=".">Nokta (12.5)</option>
-            <option value=",">Virgül (12,5)</option>
+          <select id="dgDecimal" onchange="dgRenderAll()" style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;">
+            <option value=".">Nokta (960.000000)</option>
+            <option value=",">Virgül (960,000000)</option>
           </select>
         </div>
-        <div style="min-width:170px;">
-          <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">Tarih (TARIH sütunu)</label>
-          <input type="date" id="dgDate" onchange="dgRenderPreview()" style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:7px 12px;">
+        <div style="min-width:160px;">
+          <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">Tarih</label>
+          <input type="date" id="dgDate" onchange="dgRenderAll()" style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:7px 12px;">
+        </div>
+        <div style="min-width:130px;">
+          <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">Saat</label>
+          <input type="time" id="dgTime" step="1" onchange="dgRenderAll()" style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:7px 12px;">
         </div>
         <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:9px 12px;cursor:pointer;">
-          <input type="checkbox" id="dgHeaderRow" onchange="dgRenderPreview()" style="accent-color:var(--accent);width:14px;height:14px;cursor:pointer;">
-          Başlık satırı ekle <span style="color:var(--text3);">(makine için kapalı bırakın)</span>
+          <input type="checkbox" id="dgUniqTime" checked onchange="dgRenderAll()" style="accent-color:var(--accent);width:14px;height:14px;cursor:pointer;">
+          Her satıra ayrı zaman damgası
         </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:9px 12px;cursor:pointer;">
+          <input type="checkbox" id="dgHeaderRow" onchange="dgRenderAll()" style="accent-color:var(--accent);width:14px;height:14px;cursor:pointer;">
+          Başlık satırı ekle <span style="color:var(--text3);">(makine için kapalı)</span>
+        </label>
+        <button class="btn btn-sm" onclick="dgSetNow()">🕒 Şimdiye Ayarla</button>
       </div>
     </div>
   </div>
 
-  <!-- Ölçü şablonu -->
+  <!-- Ölçü şablonu (.cudbox) -->
   <div class="card">
     <div class="card-header">
-      <h3>📐 Ölçü Şablonu <span class="badge">opsiyonel</span></h3>
+      <h3>📐 Ölçü Şablonu (.cudbox) <span class="badge">opsiyonel</span></h3>
     </div>
     <div class="card-body">
       <p style="font-size:12.5px;color:var(--text2);line-height:1.7;margin-bottom:14px;">
-        Bir şablon seçerseniz, o şablonun <code>bx_Arguments</code> alanları okunur ve sütun düzeni otomatik olarak
-        o ölçülere göre kurulur. Böylece kutu tipi ne olursa olsun .dat sütunları sabit kalır.
+        Bir <code>.cudbox</code> şablonu seçerseniz onun <code>bx_Arguments</code> alanları okunur ve sütun düzeni
+        o ölçülere göre <strong>yeniden kurulur</strong>. Yukarıda bir .dat şablonu yüklediyseniz bunu kullanmanıza gerek yok.
       </p>
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
         <div style="flex:1;min-width:230px;">
@@ -1324,6 +1354,7 @@ tr:hover td { background: var(--surface2); }
     </div>
     <div class="card-body">
       <span class="status-wait" id="dgStatus" style="font-size:12px;font-family:var(--mono);display:block;margin-bottom:10px;"></span>
+      <div id="dgCmpWrap" style="display:none;margin-bottom:16px;"></div>
       <div id="dgPreview">
         <div class="empty">
           <div class="icon">📝</div>
@@ -1331,7 +1362,7 @@ tr:hover td { background: var(--surface2); }
         </div>
       </div>
       <div id="dgRawWrap" style="margin-top:16px;display:none;">
-        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Ham .dat içeriği (ilk 30 satır — → sekme karakteri)</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Ham .dat içeriği (ilk 25 satır — <code>→</code> sekme karakteri)</div>
         <pre id="dgRawPreview" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;overflow:auto;max-height:300px;font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--text2);white-space:pre;"></pre>
       </div>
     </div>
@@ -5647,6 +5678,19 @@ function parseDatData(text, fileName) {
 
 // Sütunları otomatik tahmin et
 function autoDetectDatMapping() {
+  // Önce gelişmiş analizörü dene (zaman damgası / milisaniye / sabit sütunları eler)
+  try {
+    if (typeof dgAnalyzeRows === 'function') {
+      const an = dgAnalyzeRows(datRawRows);
+      const idxOf = role => an.cols.findIndex(c => c.role === role);
+      const nameI = idxOf('ISIM');
+      if (nameI >= 0) {
+        const m = { name: nameI, B: idxOf('B'), L: idxOf('L'), H: idxOf('H'), T: idxOf('T'), K1: idxOf('K1') };
+        if (m.B >= 0 && m.L >= 0 && m.H >= 0) { datMapping = m; return; }
+      }
+    }
+  } catch (e) { /* analiz başarısızsa eski yönteme düş */ }
+
   const colCount = Math.max(...datRawRows.map(r => r.length));
   const sample = datRawRows.slice(0, Math.min(20, datRawRows.length));
 
@@ -6524,26 +6568,46 @@ function koToast(m){
 }
 
 
+
 // =============================================================================
-// DAT OLUŞTURUCU  (Excel → .dat  /  .cudbox → .dat)
+// DAT OLUŞTURUCU  (Excel → .dat  /  .cudbox → .dat)  + .dat şablonu öğrenme
 // =============================================================================
-const DG_TOKENS = ['TARIH','ISIM','B','L','H','T','K1','K2','K3','K4','P','ADET','BOS'];
+const DG_ROLES = [
+  { k:'BOS',   l:'— boş —' },
+  { k:'SABIT', l:'Sabit değer' },
+  { k:'DAMGA', l:'Zaman damgası (2026/08/26 09:21:47.807)' },
+  { k:'TARIH', l:'Tarih (2026/08/26)' },
+  { k:'SAAT',  l:'Saat (09:21:47)' },
+  { k:'MS',    l:'Milisaniye (807)' },
+  { k:'ISIM',  l:'İsim / Ürün Adı' },
+  { k:'B',     l:'B — Genişlik' },
+  { k:'L',     l:'L — Uzunluk' },
+  { k:'H',     l:'H — Yükseklik' },
+  { k:'T',     l:'T — Kalınlık' },
+  { k:'K1',    l:'K1' }, { k:'K2', l:'K2' }, { k:'K3', l:'K3' }, { k:'K4', l:'K4' },
+  { k:'P',     l:'P' },  { k:'ADET', l:'Adet' }, { k:'SIRA', l:'Satır No' }
+];
+const DG_NUMERIC = ['B','L','H','T','K1','K2','K3','K4','P','ADET','MS','SIRA'];
+const DG_MEASURE = ['B','L','H','T','K1','K2','K3','K4','P','ADET'];
+
+// col = { role, dec, fixed }
+function dgCol(role, dec, fixed) { return { role: role, dec: (dec === undefined ? 0 : dec), fixed: fixed || '' }; }
 
 const DG_PRESETS = {
-  machine:        ['TARIH','B','T','K1','ISIM','L','H'],
-  machine_nodate: ['B','T','K1','ISIM','L','H'],
-  short:          ['B','T','ISIM','L','H']
+  machine9: () => [dgCol('DAMGA'), dgCol('MS'), dgCol('DAMGA'), dgCol('BOS'),
+                   dgCol('B',6), dgCol('T',6), dgCol('ISIM'), dgCol('L',6), dgCol('H',6)],
+  machine7: () => [dgCol('TARIH'), dgCol('B'), dgCol('T'), dgCol('K1'), dgCol('ISIM'), dgCol('L'), dgCol('H')],
+  short:    () => [dgCol('B'), dgCol('T'), dgCol('ISIM'), dgCol('L'), dgCol('H')]
 };
 
-let dgLayout  = DG_PRESETS.machine.slice();
-let dgRows    = [];      // { name, vals:{B,L,H,...}, src }
-let dgSource  = 'excel'; // 'excel' | 'cudbox'
+let dgCols    = DG_PRESETS.machine9();
+let dgRows    = [];      // { name, vals:{...}, src }
+let dgSource  = 'excel';
 let dgSrcName = '';
+let dgDatTpl  = null;    // yüklenen .dat şablonunun analizi
 
 // Excel tarafı
-let dgExRaw     = [];
-let dgExHeaders = [];
-let dgExMap     = {};
+let dgExRaw = [], dgExHeaders = [], dgExMap = {};
 
 const DG_EX_FIELDS = [
   { key:'ISIM', label:'İsim / Ürün Adı' },
@@ -6551,12 +6615,9 @@ const DG_EX_FIELDS = [
   { key:'L',    label:'L — Uzunluk' },
   { key:'H',    label:'H — Yükseklik' },
   { key:'T',    label:'T — Kalınlık' },
-  { key:'K1',   label:'K1' },
-  { key:'K2',   label:'K2' },
-  { key:'K3',   label:'K3' },
-  { key:'K4',   label:'K4' },
-  { key:'P',    label:'P' },
-  { key:'ADET', label:'Adet' }
+  { key:'K1',   label:'K1' }, { key:'K2', label:'K2' },
+  { key:'K3',   label:'K3' }, { key:'K4', label:'K4' },
+  { key:'P',    label:'P' },  { key:'ADET', label:'Adet' }
 ];
 
 function dgNormToken(s) {
@@ -6565,130 +6626,326 @@ function dgNormToken(s) {
     .replace(/Ü/g,'U').replace(/Ö/g,'O').replace(/Ç/g,'C')
     .replace(/[^A-Z0-9]/g,'');
 }
-
 function dgSetStatus(msg, cls) {
   const el = document.getElementById('dgStatus');
   if (!el) return;
   el.textContent = msg || '';
   el.className = cls || 'status-wait';
 }
+function dgEsc(s) { return exrEsc(s === undefined || s === null ? '' : String(s)); }
 
-// ── Sütun düzeni ─────────────────────────────────────────────────────────────
-function dgApplyPreset(name) {
-  if (DG_PRESETS[name]) {
-    dgLayout = DG_PRESETS[name].slice();
-    document.getElementById('dgLayout').value = dgLayout.join(', ');
+// =============================================================================
+// .dat ŞABLONU — dosyayı çöz, yapıyı öğren
+// =============================================================================
+const DG_RE_DAMGA = /^\d{4}[\/.\-]\d{1,2}[\/.\-]\d{1,2}[ T]\d{1,2}:\d{2}(:\d{2})?([.,]\d{1,6})?$/;
+const DG_RE_TARIH = /^\d{4}[\/.\-]\d{1,2}[\/.\-]\d{1,2}$/;
+const DG_RE_SAAT  = /^\d{1,2}:\d{2}(:\d{2})?([.,]\d{1,6})?$/;
+const DG_RE_NUM   = /^-?\d+([.,]\d+)?$/;
+
+function dgDecodeBytes(arr) {
+  let enc = 'utf8', text = '';
+  if (arr.length >= 2 && arr[0] === 0xFF && arr[1] === 0xFE) { enc = 'utf16le'; text = new TextDecoder('utf-16le').decode(arr); }
+  else if (arr.length >= 2 && arr[0] === 0xFE && arr[1] === 0xFF) { enc = 'utf16be'; text = new TextDecoder('utf-16be').decode(arr); }
+  else if (arr.length >= 3 && arr[0] === 0xEF && arr[1] === 0xBB && arr[2] === 0xBF) { enc = 'utf8bom'; text = new TextDecoder('utf-8').decode(arr); }
+  else { enc = 'utf8'; text = new TextDecoder('utf-8').decode(arr); }
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  return { text: text, encoding: enc };
+}
+
+function dgAnalyzeDat(text) {
+  const crlf = text.indexOf('\r\n') >= 0;
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+  if (!lines.length) throw new Error('Dosyada okunabilir satır yok');
+  const rows = lines.map(l => l.split('\t'));
+  const an = dgAnalyzeRows(rows);
+  an.crlf = crlf;
+  an.lineCount = lines.length;
+  an.sampleLines = lines.slice(0, 3);
+  return an;
+}
+
+// Ham satır dizisinden sütun rollerini çıkar (hem .dat şablonu hem DAT okuyucusu kullanır)
+function dgAnalyzeRows(rows) {
+  const colCount = Math.max(...rows.map(r => r.length));
+
+  // Sütun istatistikleri
+  const stat = [];
+  for (let c = 0; c < colCount; c++) {
+    const vals = rows.map(r => (r[c] === undefined ? '' : r[c]));
+    const nonEmpty = vals.filter(v => v.trim() !== '');
+    const uniq = new Set(vals).size;
+    let nDamga = 0, nTarih = 0, nSaat = 0, nNum = 0, maxDec = 0, comma = 0;
+    nonEmpty.forEach(v => {
+      const t = v.trim();
+      if (DG_RE_DAMGA.test(t)) { nDamga++; return; }
+      if (DG_RE_TARIH.test(t)) { nTarih++; return; }
+      if (DG_RE_SAAT.test(t))  { nSaat++;  return; }
+      if (DG_RE_NUM.test(t))   {
+        nNum++;
+        const m = t.match(/[.,](\d+)$/);
+        if (m) { maxDec = Math.max(maxDec, m[1].length); if (t.indexOf(',') >= 0) comma++; }
+      }
+    });
+    stat.push({
+      idx: c, vals: vals, uniq: uniq, filled: nonEmpty.length,
+      allEmpty: nonEmpty.length === 0,
+      isDamga: nonEmpty.length > 0 && nDamga >= nonEmpty.length * 0.8,
+      isTarih: nonEmpty.length > 0 && nTarih >= nonEmpty.length * 0.8,
+      isSaat:  nonEmpty.length > 0 && nSaat  >= nonEmpty.length * 0.8,
+      isNum:   nonEmpty.length > 0 && nNum   >= nonEmpty.length * 0.8,
+      dec: maxDec, comma: comma > 0,
+      sample: nonEmpty.length ? nonEmpty[0] : ''
+    });
   }
-  dgRenderPreview();
+
+  const cols = stat.map(() => null);
+
+  // 1) Zaman sütunları
+  stat.forEach(s => {
+    if (s.isDamga) cols[s.idx] = dgCol('DAMGA');
+    else if (s.isTarih) cols[s.idx] = dgCol('TARIH');
+    else if (s.isSaat) cols[s.idx] = dgCol('SAAT');
+  });
+
+  // 2) Milisaniye sütunu: bir DAMGA sütununun ondalık kısmına eşit sayısal sütun
+  const damgaIdx = stat.filter(s => s.isDamga).map(s => s.idx);
+  stat.forEach(s => {
+    if (cols[s.idx] || !s.isNum || s.dec > 0) return;
+    for (const di of damgaIdx) {
+      let hit = 0, tot = 0;
+      s.vals.forEach((v, i) => {
+        const d = (stat[di].vals[i] || '').trim();
+        const m = d.match(/[.,](\d+)$/);
+        if (!m) return;
+        tot++;
+        if (m[1] === v.trim()) hit++;
+      });
+      if (tot > 0 && hit >= tot * 0.9) { cols[s.idx] = dgCol('MS'); break; }
+    }
+  });
+
+  // 3) Tamamen boş sütun
+  stat.forEach(s => { if (!cols[s.idx] && s.allEmpty) cols[s.idx] = dgCol('BOS'); });
+
+  // 4) Tek değerli sabit sütun (sayısal olmayan)
+  stat.forEach(s => {
+    if (cols[s.idx] || s.isNum) return;
+    if (s.uniq === 1 && s.filled === s.vals.length) cols[s.idx] = dgCol('SABIT', 0, s.sample);
+  });
+
+  // 5) İsim sütunu = en çok farklı değere sahip metin sütunu
+  let nameIdx = -1, bestUniq = -1;
+  stat.forEach(s => {
+    if (cols[s.idx] || s.isNum) return;
+    if (s.uniq > bestUniq) { bestUniq = s.uniq; nameIdx = s.idx; }
+  });
+  if (nameIdx >= 0) cols[nameIdx] = dgCol('ISIM');
+
+  // 6) Sayısal sütunlar: isim sütununa göre  ... B, T, K1, K2 | İSİM | L, H ...
+  const nums = stat.filter(s => !cols[s.idx] && s.isNum).map(s => s.idx);
+  const before = nums.filter(i => nameIdx < 0 || i < nameIdx);
+  const after  = nums.filter(i => nameIdx >= 0 && i > nameIdx);
+  const beforeRoles = ['B','T','K1','K2','K3','K4'];
+  const afterRoles  = ['L','H','P','ADET'];
+  before.forEach((ci, k) => { cols[ci] = dgCol(beforeRoles[k] || 'K4', stat[ci].dec); });
+  after.forEach((ci, k)  => { cols[ci] = dgCol(afterRoles[k]  || 'P',  stat[ci].dec); });
+
+  // Kalanları boş yap
+  for (let c = 0; c < colCount; c++) if (!cols[c]) cols[c] = dgCol('BOS');
+
+  const anyComma = stat.some(s => s.comma);
+
+  return { cols: cols, stat: stat, colCount: colCount, comma: anyComma, nameIdx: nameIdx };
 }
 
-function dgOnLayoutEdit() {
-  const raw = document.getElementById('dgLayout').value || '';
-  const parts = raw.split(/[,;|]/).map(s => dgNormToken(s)).filter(s => s !== '');
-  dgLayout = parts.filter(p => DG_TOKENS.includes(p));
-  const presetSel = document.getElementById('dgPreset');
-  const match = Object.keys(DG_PRESETS).find(k => DG_PRESETS[k].join(',') === dgLayout.join(','));
-  if (presetSel) presetSel.value = match || 'custom';
-  dgRenderPreview();
+function dgLoadDatTemplate(file) {
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const dec = dgDecodeBytes(new Uint8Array(e.target.result));
+      const an = dgAnalyzeDat(dec.text);
+      an.encoding = dec.encoding;
+      an.fileName = file.name;
+      dgDatTpl = an;
+
+      dgCols = an.cols.map(c => dgCol(c.role, c.dec, c.fixed));
+      const encSel = document.getElementById('dgEncoding');
+      if (encSel) encSel.value = (dec.encoding === 'utf16le' || dec.encoding === 'utf16be') ? 'utf16le'
+                               : (dec.encoding === 'utf8bom' ? 'utf8bom' : 'utf8');
+      const decSel = document.getElementById('dgDecimal');
+      if (decSel) decSel.value = an.comma ? ',' : '.';
+      const pre = document.getElementById('dgPreset');
+      if (pre) pre.value = 'custom';
+      document.getElementById('dgTplBadge').textContent = file.name + ' — ' + an.colCount + ' sütun';
+
+      dgRenderDatTplInfo();
+      dgRenderAll();
+    } catch (err) {
+      alert('.dat şablonu okunamadı: ' + err.message);
+    }
+  };
+  r.readAsArrayBuffer(file);
 }
 
-function dgSetLayout(arr) {
-  dgLayout = arr.slice();
-  const inp = document.getElementById('dgLayout');
-  if (inp) inp.value = dgLayout.join(', ');
-  const presetSel = document.getElementById('dgPreset');
-  const match = Object.keys(DG_PRESETS).find(k => DG_PRESETS[k].join(',') === dgLayout.join(','));
-  if (presetSel) presetSel.value = match || 'custom';
-  dgRenderPreview();
+function dgRenderDatTplInfo() {
+  const div = document.getElementById('dgDatTplInfo');
+  if (!div || !dgDatTpl) return;
+  const a = dgDatTpl;
+  const encLbl = { utf16le:'UTF-16 LE', utf16be:'UTF-16 BE', utf8bom:'UTF-8 (BOM)', utf8:'UTF-8' }[a.encoding] || a.encoding;
+
+  let html = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+    <span class="badge">${a.lineCount} satır</span>
+    <span class="badge">${a.colCount} sütun</span>
+    <span class="badge">${encLbl}</span>
+    <span class="badge">${a.crlf ? 'CRLF' : 'LF'}</span>
+    <span class="badge">ondalık: ${a.comma ? 'virgül' : 'nokta'}</span>
+  </div>`;
+
+  html += '<div class="table-wrap" style="max-height:280px;"><table><thead><tr><th>Sütun</th><th>Şablondaki örnek</th><th>Farklı değer</th><th>Algılanan rol</th></tr></thead><tbody>';
+  a.stat.forEach((s, i) => {
+    const role = a.cols[i];
+    const roleLbl = (DG_ROLES.find(r => r.k === role.role) || {}).l || role.role;
+    const changes = DG_MEASURE.includes(role.role) || role.role === 'ISIM';
+    const timeish = ['DAMGA','TARIH','SAAT','MS'].includes(role.role);
+    const tag = changes ? '<span class="status-ok">değişecek</span>'
+              : timeish ? '<span class="status-ok">şimdiye ayarlanacak</span>'
+              : '<span style="color:var(--text3);">aynı kalacak</span>';
+    html += `<tr><td>${i + 1}</td><td style="font-size:11px;">${dgEsc(s.sample || '(boş)')}</td><td>${s.uniq}</td>
+      <td style="font-family:var(--sans);font-size:12px;">${dgEsc(roleLbl)} &nbsp; ${tag}</td></tr>`;
+  });
+  html += '</tbody></table></div>';
+  html += '<p style="margin-top:10px;font-size:12px;color:var(--text3);line-height:1.7;">Yanlış algılanan sütun varsa aşağıdaki <strong>Çıktı Düzeni</strong> tablosundan rolünü değiştirin.</p>';
+
+  div.style.display = 'block';
+  div.innerHTML = html;
 }
 
-// Şablonun ölçü alanlarından sütun düzeni kur:  B, T, <diğerleri>, İSİM, L, H
-function dgLayoutFromArgs(argNames) {
-  const known = argNames.map(a => dgNormToken(a)).filter(a => DG_TOKENS.includes(a) && a !== 'ISIM' && a !== 'TARIH');
-  const uniq = [];
-  known.forEach(k => { if (!uniq.includes(k)) uniq.push(k); });
-
-  const head = [];
-  ['B','T'].forEach(k => { if (uniq.includes(k)) head.push(k); });
-  const tail = [];
-  ['L','H'].forEach(k => { if (uniq.includes(k)) tail.push(k); });
-  const middle = uniq.filter(k => !head.includes(k) && !tail.includes(k));
-
-  const hasDate = dgLayout.includes('TARIH');
-  const out = [];
-  if (hasDate) out.push('TARIH');
-  out.push(...head, ...middle, 'ISIM', ...tail);
-  return out;
+// =============================================================================
+// SÜTUN DÜZENİ UI
+// =============================================================================
+function dgApplyPreset(name) {
+  if (DG_PRESETS[name]) { dgCols = DG_PRESETS[name](); dgRenderAll(); }
+}
+function dgMarkCustom() {
+  const p = document.getElementById('dgPreset');
+  if (p) p.value = 'custom';
+}
+function dgAddCol() { dgCols.push(dgCol('BOS')); dgMarkCustom(); dgRenderAll(); }
+function dgDelCol(i) { dgCols.splice(i, 1); dgMarkCustom(); dgRenderAll(); }
+function dgMoveCol(i, d) {
+  const j = i + d;
+  if (j < 0 || j >= dgCols.length) return;
+  const t = dgCols[i]; dgCols[i] = dgCols[j]; dgCols[j] = t;
+  dgMarkCustom(); dgRenderAll();
+}
+function dgColChange(i, field, val) {
+  if (field === 'dec') dgCols[i].dec = Math.max(0, Math.min(6, parseInt(val, 10) || 0));
+  else if (field === 'fixed') dgCols[i].fixed = val;
+  else dgCols[i].role = val;
+  dgMarkCustom(); dgRenderAll();
 }
 
+function dgRenderCols() {
+  const tb = document.getElementById('dgColsBody');
+  if (!tb) return;
+  const sample = dgRows[0] || { name: 'ÖRNEK KUTU', vals: { B:960, L:2000, H:40, T:2, K1:100 } };
+  let html = '';
+  dgCols.forEach((c, i) => {
+    const isNum = DG_NUMERIC.includes(c.role);
+    const opts = DG_ROLES.map(r => `<option value="${r.k}" ${r.k === c.role ? 'selected' : ''}>${dgEsc(r.l)}</option>`).join('');
+    html += `<tr>
+      <td>${i + 1}</td>
+      <td><select onchange="dgColChange(${i},'role',this.value)">${opts}</select></td>
+      <td>${isNum && c.role !== 'MS' && c.role !== 'SIRA'
+            ? `<input type="number" min="0" max="6" value="${c.dec}" onchange="dgColChange(${i},'dec',this.value)">`
+            : '<span style="color:var(--text3);">—</span>'}</td>
+      <td>${c.role === 'SABIT'
+            ? `<input type="text" value="${dgEsc(c.fixed)}" onchange="dgColChange(${i},'fixed',this.value)">`
+            : '<span style="color:var(--text3);">—</span>'}</td>
+      <td style="font-size:11px;color:var(--text2);">${dgEsc(dgCellFor(sample, c, 0)) || '<span style="color:var(--text3);">(boş)</span>'}</td>
+      <td style="white-space:nowrap;">
+        <button class="dg-mini" onclick="dgMoveCol(${i},-1)">↑</button>
+        <button class="dg-mini" onclick="dgMoveCol(${i},1)">↓</button>
+        <button class="dg-mini" style="color:var(--red);" onclick="dgDelCol(${i})">✕</button>
+      </td>
+    </tr>`;
+  });
+  tb.innerHTML = html || '<tr><td colspan="6"><div class="empty"><div class="msg">Sütun yok — “Sütun Ekle” ile başlayın.</div></div></td></tr>';
+}
+
+// =============================================================================
+// ŞABLON (.cudbox) → sütun düzeni
+// =============================================================================
 function dgUpdateTemplateSelect() {
   const sel = document.getElementById('dgTemplateSelect');
   if (!sel) return;
   const names = Object.keys(templates).sort();
   const prev = sel.value;
   sel.innerHTML = '<option value="">— Şablon seçin —</option>';
-  names.forEach(n => {
-    const o = document.createElement('option');
-    o.value = n; o.textContent = n;
-    sel.appendChild(o);
-  });
+  names.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o); });
   if (prev && templates[prev]) sel.value = prev;
 }
 
 function dgArgsOfCudbox(xmlStr, fileName) {
-  const parsed = exrParseCudbox(xmlStr, fileName || 'sablon.cudbox');
-  return Object.keys(parsed.args);
+  return Object.keys(exrParseCudbox(xmlStr, fileName || 'sablon.cudbox').args);
+}
+
+function dgColsFromArgs(argNames) {
+  const uniq = [];
+  argNames.map(a => dgNormToken(a)).forEach(k => { if (DG_MEASURE.includes(k) && !uniq.includes(k)) uniq.push(k); });
+  const head = ['B','T'].filter(k => uniq.includes(k));
+  const tail = ['L','H'].filter(k => uniq.includes(k));
+  const mid  = uniq.filter(k => !head.includes(k) && !tail.includes(k));
+  const dec  = (dgCols.find(c => DG_MEASURE.includes(c.role)) || {}).dec || 0;
+  const out = [];
+  const lead = dgCols.filter(c => ['DAMGA','TARIH','SAAT','MS','SABIT','BOS'].includes(c.role));
+  if (lead.length) out.push(...lead.map(c => dgCol(c.role, c.dec, c.fixed)));
+  else out.push(dgCol('TARIH'));
+  head.forEach(k => out.push(dgCol(k, dec)));
+  mid.forEach(k  => out.push(dgCol(k, dec)));
+  out.push(dgCol('ISIM'));
+  tail.forEach(k => out.push(dgCol(k, dec)));
+  return out;
 }
 
 function dgApplyTemplateFields() {
   const name = document.getElementById('dgTemplateSelect').value;
   const st = document.getElementById('dgTplStatus');
-  if (!name || !templates[name]) {
-    st.textContent = '⚠ Önce bir şablon seçin';
-    st.className = 'status-err';
-    return;
-  }
+  if (!name || !templates[name]) { st.textContent = '⚠ Önce bir şablon seçin'; st.className = 'status-err'; return; }
   try {
     const argNames = dgArgsOfCudbox(templates[name], name + '.cudbox');
-    if (!argNames.length) {
-      st.textContent = '⚠ Şablonda ölçü argümanı yok';
-      st.className = 'status-err';
-      return;
-    }
-    dgSetLayout(dgLayoutFromArgs(argNames));
+    if (!argNames.length) { st.textContent = '⚠ Şablonda ölçü argümanı yok'; st.className = 'status-err'; return; }
+    dgCols = dgColsFromArgs(argNames);
+    dgMarkCustom(); dgRenderAll();
     st.textContent = '✅ ' + name + ' → ' + argNames.join(', ');
     st.className = 'status-ok';
-  } catch (e) {
-    st.textContent = '❌ ' + e.message;
-    st.className = 'status-err';
-  }
+  } catch (e) { st.textContent = '❌ ' + e.message; st.className = 'status-err'; }
 }
 
-// ── Kaynak seçimi ────────────────────────────────────────────────────────────
+// =============================================================================
+// KAYNAK
+// =============================================================================
 function dgSetSource(src) {
   dgSource = src;
-  document.getElementById('dgExcelWrap').style.display   = (src === 'excel')  ? 'block' : 'none';
-  document.getElementById('dgCudboxWrap').style.display  = (src === 'cudbox') ? 'block' : 'none';
+  document.getElementById('dgExcelWrap').style.display  = (src === 'excel')  ? 'block' : 'none';
+  document.getElementById('dgCudboxWrap').style.display = (src === 'cudbox') ? 'block' : 'none';
   document.getElementById('dgSrcExcelBtn').classList.toggle('active',  src === 'excel');
   document.getElementById('dgSrcCudboxBtn').classList.toggle('active', src === 'cudbox');
   dgRows = [];
-  dgRenderPreview();
+  dgRenderAll();
 }
 
 function dgClearAll() {
-  dgRows = [];
-  dgExRaw = []; dgExHeaders = []; dgExMap = {};
-  dgSrcName = '';
-  const mw = document.getElementById('dgExcelMapWrap');
-  mw.style.display = 'none'; mw.innerHTML = '';
+  dgRows = []; dgExRaw = []; dgExHeaders = []; dgExMap = {}; dgCudboxFiles = []; dgSrcName = '';
+  const mw = document.getElementById('dgExcelMapWrap'); mw.style.display = 'none'; mw.innerHTML = '';
   document.getElementById('dgCudboxList').innerHTML = '';
   const fi = document.getElementById('dgExcelFileInput'); if (fi) fi.value = '';
   const fc = document.getElementById('dgCudboxFileInput'); if (fc) fc.value = '';
   dgSetStatus('', '');
-  dgRenderPreview();
+  dgRenderAll();
 }
 
-// ── EXCEL → satırlar ─────────────────────────────────────────────────────────
+// ── EXCEL ────────────────────────────────────────────────────────────────────
 function dgHandleExcel(file) {
   if (!file) return;
   dgSrcName = file.name;
@@ -6699,7 +6956,6 @@ function dgHandleExcel(file) {
       const wb = isCsv
         ? XLSX.read(String(e.target.result).replace(/^﻿/, ''), { type: 'string' })
         : XLSX.read(e.target.result, { type: 'array' });
-
       let rows = null, used = wb.SheetNames[0];
       for (const sn of wb.SheetNames) {
         const r = XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, defval: '' });
@@ -6709,19 +6965,13 @@ function dgHandleExcel(file) {
       }
       if (!rows) rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
       if (!rows.length) { alert('Excel boş görünüyor.'); return; }
-
       dgExRaw = rows;
       dgExHeaders = (rows[0] || []).map((h, i) => (h === '' || h === undefined) ? ('Sütun ' + (i + 1)) : String(h));
       dgSrcName = file.name + (wb.SheetNames.length > 1 ? ' › ' + used : '');
-      dgExAutoMap();
-      dgRenderExcelMapping();
-      dgBuildRowsFromExcel();
-    } catch (err) {
-      alert('Excel okuma hatası: ' + err.message);
-    }
+      dgExAutoMap(); dgRenderExcelMapping(); dgBuildRowsFromExcel();
+    } catch (err) { alert('Excel okuma hatası: ' + err.message); }
   };
-  if (isCsv) reader.readAsText(file, 'UTF-8');
-  else reader.readAsArrayBuffer(file);
+  if (isCsv) reader.readAsText(file, 'UTF-8'); else reader.readAsArrayBuffer(file);
 }
 
 function dgExAutoMap() {
@@ -6740,27 +6990,23 @@ function dgRenderExcelMapping() {
   const wrap = document.getElementById('dgExcelMapWrap');
   if (!dgExRaw.length) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
   wrap.style.display = 'block';
-
   const sample = dgExRaw[1] || [];
   const opts = (sel) => {
     let s = `<option value="-1" ${sel === null || sel === -1 ? 'selected' : ''}>— kullanma —</option>`;
     dgExHeaders.forEach((h, i) => {
       const ex = (sample[i] === undefined || sample[i] === '') ? '' : ' — ör: ' + String(sample[i]).substring(0, 16);
-      s += `<option value="${i}" ${sel === i ? 'selected' : ''}>${exrEsc(h)}${exrEsc(ex)}</option>`;
+      s += `<option value="${i}" ${sel === i ? 'selected' : ''}>${dgEsc(h)}${dgEsc(ex)}</option>`;
     });
     return s;
   };
-
   let html = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;">
     <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">🔗 Sütun Eşleştirme</div>
-    <p style="font-size:12px;color:var(--text3);margin-bottom:12px;"><strong>${exrEsc(dgSrcName)}</strong> — ${dgExRaw.length - 1} satır. Otomatik eşleştirildi, yanlışsa düzeltin.</p>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:12px;"><strong>${dgEsc(dgSrcName)}</strong> — ${dgExRaw.length - 1} satır. Otomatik eşleştirildi, yanlışsa düzeltin.</p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">`;
   DG_EX_FIELDS.forEach(f => {
     html += `<div>
       <label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;">${f.label}</label>
-      <select data-dgmap="${f.key}" onchange="dgOnExMapChange(this)" style="width:100%;font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 8px;">
-        ${opts(dgExMap[f.key])}
-      </select>
+      <select data-dgmap="${f.key}" onchange="dgOnExMapChange(this)" style="width:100%;font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 8px;">${opts(dgExMap[f.key])}</select>
     </div>`;
   });
   html += '</div></div>';
@@ -6787,52 +7033,59 @@ function dgBuildRowsFromExcel() {
   for (let i = 1; i < dgExRaw.length; i++) {
     const r = dgExRaw[i] || [];
     if (r.every(c => c === '' || c === undefined || c === null)) continue;
-
     const vals = {};
-    ['B','L','H','T','K1','K2','K3','K4','P','ADET'].forEach(k => {
+    DG_MEASURE.forEach(k => {
       const idx = dgExMap[k];
       if (idx === null || idx === undefined) return;
       const n = dgNumFrom(r[idx]);
       if (n !== null) vals[k] = n;
     });
-
     let name = '';
-    if (dgExMap['ISIM'] !== null && dgExMap['ISIM'] !== undefined) name = String(r[dgExMap['ISIM']] ?? '').trim();
+    if (dgExMap['ISIM'] !== null && dgExMap['ISIM'] !== undefined) name = String(r[dgExMap['ISIM']] === undefined ? '' : r[dgExMap['ISIM']]).trim();
     if (!name) name = 'Kutu_' + String(i).padStart(3, '0');
-
-    if (Object.keys(vals).length === 0 && !name) continue;
     dgRows.push({ name: name, vals: vals, src: 'satır ' + (i + 1) });
   }
-  dgRenderPreview();
+  dgRenderAll();
 }
 
-// ── CUDBOX → satırlar ────────────────────────────────────────────────────────
-let dgCudboxFiles = [];  // { fileName, boxName, args }
+// ── CUDBOX ───────────────────────────────────────────────────────────────────
+let dgCudboxFiles = [];
+
+function dgDecodeXmlBytes(arr) {
+  if (arr.length >= 2 && arr[0] === 0xFF && arr[1] === 0xFE) return new TextDecoder('utf-16le').decode(arr);
+  if (arr.length >= 2 && arr[0] === 0xFE && arr[1] === 0xFF) return new TextDecoder('utf-16be').decode(arr);
+  let head = '';
+  const n = Math.min(arr.length, 300);
+  for (let i = 0; i < n; i++) head += String.fromCharCode(arr[i]);
+  const m = head.match(/encoding\s*=\s*["']([\w\-]+)["']/i);
+  let label = m ? m[1].toLowerCase() : 'utf-8';
+  try { return new TextDecoder(label).decode(arr).replace(/^﻿/, ''); }
+  catch (e) { return new TextDecoder('utf-8').decode(arr).replace(/^﻿/, ''); }
+}
 
 function dgHandleCudbox(fileList) {
   const files = Array.from(fileList).filter(f => /\.(cudbox|xml)$/i.test(f.name));
   if (!files.length) { dgSetStatus('⚠ .cudbox dosyası bulunamadı', 'status-err'); return; }
-
   let done = 0;
   files.forEach(file => {
     const reader = new FileReader();
     reader.onload = ev => {
       try {
-        const p = exrParseCudbox(ev.target.result, file.name);
-        const existing = dgCudboxFiles.findIndex(x => x.fileName === file.name);
+        const xml = dgDecodeXmlBytes(new Uint8Array(ev.target.result));
+        const p = exrParseCudbox(xml, file.name);
+        const ex = dgCudboxFiles.findIndex(x => x.fileName === file.name);
         const rec = { fileName: file.name, boxName: p.boxName, args: p.args, error: null };
-        if (existing >= 0) dgCudboxFiles[existing] = rec; else dgCudboxFiles.push(rec);
+        if (ex >= 0) dgCudboxFiles[ex] = rec; else dgCudboxFiles.push(rec);
       } catch (e) {
         dgCudboxFiles.push({ fileName: file.name, boxName: file.name.replace(/\.(cudbox|xml)$/i, ''), args: {}, error: e.message });
       }
       done++;
       if (done === files.length) {
-        dgSrcName = files.length === 1 ? files[0].name : (dgCudboxFiles.length + ' dosya');
-        dgBuildRowsFromCudbox();
-        dgRenderCudboxList();
+        dgSrcName = files.length === 1 ? files[0].name : (dgCudboxFiles.length + '_dosya');
+        dgBuildRowsFromCudbox(); dgRenderCudboxList();
       }
     };
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
   });
 }
 
@@ -6842,14 +7095,13 @@ function dgBuildRowsFromCudbox() {
     if (f.error) return;
     const vals = {};
     Object.keys(f.args).forEach(k => {
-      const key = dgNormToken(k);
-      const v = f.args[k];
+      const key = dgNormToken(k), v = f.args[k];
       if (v === null || v === undefined || isNaN(v)) return;
       vals[key] = v;
     });
     dgRows.push({ name: f.boxName || f.fileName.replace(/\.(cudbox|xml)$/i, ''), vals: vals, src: f.fileName });
   });
-  dgRenderPreview();
+  dgRenderAll();
 }
 
 function dgRenderCudboxList() {
@@ -6857,66 +7109,94 @@ function dgRenderCudboxList() {
   if (!dgCudboxFiles.length) { div.innerHTML = ''; return; }
   let html = '<div class="table-wrap" style="max-height:260px;"><table><thead><tr><th>#</th><th>Dosya</th><th>Kutu Adı</th><th>Ölçüler</th></tr></thead><tbody>';
   dgCudboxFiles.forEach((f, i) => {
-    const argStr = f.error ? '<span class="status-err">' + exrEsc(f.error) + '</span>'
+    const argStr = f.error ? '<span class="status-err">' + dgEsc(f.error) + '</span>'
       : Object.entries(f.args).map(([k, v]) => k + '=' + v).join(' ');
-    html += `<tr><td>${i + 1}</td><td style="font-size:11px;">${exrEsc(f.fileName)}</td><td style="font-family:var(--sans);color:var(--text);">${exrEsc(f.boxName)}</td><td style="font-size:11px;">${argStr}</td></tr>`;
+    html += `<tr><td>${i + 1}</td><td style="font-size:11px;">${dgEsc(f.fileName)}</td><td style="font-family:var(--sans);color:var(--text);">${dgEsc(f.boxName)}</td><td style="font-size:11px;">${argStr}</td></tr>`;
   });
   html += '</tbody></table></div>';
   div.innerHTML = html;
 }
 
-// ── .dat metnini üret ────────────────────────────────────────────────────────
-function dgDecSep() {
-  const s = document.getElementById('dgDecimal');
-  return s ? s.value : '.';
-}
+// =============================================================================
+// SATIR → HÜCRE
+// =============================================================================
+function dgDecSep() { const s = document.getElementById('dgDecimal'); return s ? s.value : '.'; }
 
-function dgFmtNum(n) {
+function dgFmtNum(n, dec) {
   if (n === null || n === undefined || isNaN(n)) return '';
-  let s = (Math.round(n * 1000) / 1000).toString();
+  let s = (dec > 0) ? Number(n).toFixed(dec) : String(Math.round(n * 1000) / 1000);
   if (dgDecSep() === ',') s = s.replace('.', ',');
   return s;
 }
 
-function dgDateStr() {
-  const el = document.getElementById('dgDate');
-  let d;
-  if (el && el.value) {
-    const p = el.value.split('-');
-    return p[0] + '/' + p[1] + '/' + p[2];
+function dgBaseDate() {
+  const d = document.getElementById('dgDate'), t = document.getElementById('dgTime');
+  const now = new Date();
+  let y = now.getFullYear(), mo = now.getMonth(), da = now.getDate();
+  let hh = now.getHours(), mi = now.getMinutes(), ss = now.getSeconds(), ms = now.getMilliseconds();
+  if (d && d.value) { const p = d.value.split('-'); y = +p[0]; mo = +p[1] - 1; da = +p[2]; }
+  if (t && t.value) { const p = t.value.split(':'); hh = +p[0]; mi = +p[1]; ss = p[2] ? +p[2] : 0; ms = 0; }
+  return new Date(y, mo, da, hh, mi, ss, ms);
+}
+
+const DG_MS_SEED = (new Date().getMilliseconds() % 900) + 60;
+function dgRowDate(i) {
+  const base = dgBaseDate();
+  const uniq = document.getElementById('dgUniqTime');
+  const seed = base.getMilliseconds() || DG_MS_SEED;
+  if (!uniq || !uniq.checked) {
+    const b0 = new Date(base.getTime());
+    b0.setMilliseconds(seed < 10 ? seed + 100 : seed);
+    return b0;
   }
-  d = new Date();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return d.getFullYear() + '/' + mm + '/' + dd;
+  const d = new Date(base.getTime() + i * 1000);
+  let ms = (seed + i * 137) % 1000;
+  if (ms < 10) ms += 100;              // makine dosyasında ms hep 2-3 hane
+  d.setMilliseconds(ms);
+  return d;
 }
 
-function dgCleanName(s) {
-  return (s || '').toString().replace(/[\t\r\n]+/g, ' ').trim();
-}
+function dgPad(n, w) { return String(n).padStart(w || 2, '0'); }
 
-function dgCellFor(row, token) {
-  if (token === 'BOS')   return '';
-  if (token === 'TARIH') return dgDateStr();
-  if (token === 'ISIM')  return dgCleanName(row.name);
-  const v = row.vals[token];
-  return (v === undefined || v === null) ? '' : dgFmtNum(v);
+function dgFmtTarih(d) { return d.getFullYear() + '/' + dgPad(d.getMonth() + 1) + '/' + dgPad(d.getDate()); }
+function dgFmtSaat(d)  { return dgPad(d.getHours()) + ':' + dgPad(d.getMinutes()) + ':' + dgPad(d.getSeconds()); }
+function dgFmtDamga(d) { return dgFmtTarih(d) + ' ' + dgFmtSaat(d) + '.' + String(d.getMilliseconds()); }
+
+function dgCleanName(s) { return (s || '').toString().replace(/[\t\r\n]+/g, ' ').trim(); }
+
+function dgCellFor(row, col, rowIndex) {
+  const r = col.role;
+  if (r === 'BOS')   return '';
+  if (r === 'SABIT') return col.fixed || '';
+  if (r === 'SIRA')  return String(rowIndex + 1);
+  const d = dgRowDate(rowIndex || 0);
+  if (r === 'DAMGA') return dgFmtDamga(d);
+  if (r === 'TARIH') return dgFmtTarih(d);
+  if (r === 'SAAT')  return dgFmtSaat(d);
+  if (r === 'MS')    return String(d.getMilliseconds());
+  if (r === 'ISIM')  return dgCleanName(row.name);
+  const v = row.vals ? row.vals[r] : undefined;
+  return (v === undefined || v === null) ? '' : dgFmtNum(v, col.dec);
 }
 
 function dgBuildMatrix() {
   const m = [];
-  if (document.getElementById('dgHeaderRow') && document.getElementById('dgHeaderRow').checked) {
-    m.push(dgLayout.map(t => t === 'BOS' ? '' : t));
-  }
-  dgRows.forEach(r => m.push(dgLayout.map(t => dgCellFor(r, t))));
+  const hdr = document.getElementById('dgHeaderRow');
+  if (hdr && hdr.checked) m.push(dgCols.map(c => (c.role === 'BOS' || c.role === 'SABIT') ? '' : c.role));
+  dgRows.forEach((row, i) => m.push(dgCols.map(c => dgCellFor(row, c, i))));
   return m;
 }
 
 function dgBuildText() {
-  return dgBuildMatrix().map(r => r.join('\t')).join('\r\n') + '\r\n';
+  const eol = (dgDatTpl && !dgDatTpl.crlf) ? '\n' : '\r\n';
+  return dgBuildMatrix().map(r => r.join('\t')).join(eol) + eol;
 }
 
-// ── Önizleme ─────────────────────────────────────────────────────────────────
+// =============================================================================
+// ÖNİZLEME
+// =============================================================================
+function dgRenderAll() { dgRenderCols(); dgRenderPreview(); }
+
 function dgRenderPreview() {
   const cnt = document.getElementById('dgRowCount');
   const btn = document.getElementById('dgDownloadBtn');
@@ -6926,25 +7206,28 @@ function dgRenderPreview() {
   if (!div) return;
 
   if (cnt) cnt.textContent = dgRows.length + ' satır';
-  const ok = dgRows.length > 0 && dgLayout.length > 0;
+  const ok = dgRows.length > 0 && dgCols.length > 0;
   if (btn) btn.disabled = !ok;
   if (snd) snd.disabled = !ok;
 
+  dgRenderCompare();
+
   if (!ok) {
     div.innerHTML = '<div class="empty"><div class="icon">📝</div><div class="msg">' +
-      (dgLayout.length === 0 ? 'Sütun düzeni boş — en az bir sütun seçin.' : 'Henüz kaynak yüklenmedi.') +
-      '</div></div>';
+      (dgCols.length === 0 ? 'Sütun düzeni boş — en az bir sütun ekleyin.' : 'Henüz kaynak yüklenmedi.') + '</div></div>';
     if (rawWrap) rawWrap.style.display = 'none';
     return;
   }
 
   const matrix = dgBuildMatrix();
+  const hdr = document.getElementById('dgHeaderRow');
+  const start = (hdr && hdr.checked) ? 1 : 0;
+
   let html = '<div class="table-wrap" style="max-height:420px;"><table><thead><tr><th>#</th>';
-  dgLayout.forEach(t => html += '<th>' + (t === 'BOS' ? '—' : t) + '</th>');
+  dgCols.forEach(c => html += '<th>' + (c.role === 'BOS' ? '—' : c.role) + '</th>');
   html += '</tr></thead><tbody>';
-  const startIdx = (document.getElementById('dgHeaderRow') && document.getElementById('dgHeaderRow').checked) ? 1 : 0;
-  matrix.slice(startIdx, startIdx + 200).forEach((r, i) => {
-    html += '<tr><td>' + (i + 1) + '</td>' + r.map(c => '<td>' + exrEsc(c) + '</td>').join('') + '</tr>';
+  matrix.slice(start, start + 200).forEach((r, i) => {
+    html += '<tr><td>' + (i + 1) + '</td>' + r.map(c => '<td>' + dgEsc(c) + '</td>').join('') + '</tr>';
   });
   html += '</tbody></table></div>';
   if (dgRows.length > 200) html += '<p style="font-size:12px;color:var(--text3);margin-top:8px;">İlk 200 satır gösteriliyor — dosyada ' + dgRows.length + ' satır olacak.</p>';
@@ -6952,116 +7235,147 @@ function dgRenderPreview() {
 
   if (rawWrap) {
     rawWrap.style.display = 'block';
-    document.getElementById('dgRawPreview').textContent =
-      matrix.slice(0, 30).map(r => r.join(' → ')).join('\n');
+    document.getElementById('dgRawPreview').textContent = matrix.slice(0, 25).map(r => r.join(' → ')).join('\n');
   }
 
-  dgSetStatus(dgCompatMessage(), dgCompatOk() ? 'status-ok' : 'status-wait');
+  const msgs = [];
+  if (dgCompatOk()) msgs.push('✅ Düzen programın kendi DAT okuyucusuyla uyumlu.');
+  else msgs.push('⚠ Bu düzen geri okunurken otomatik tanınmayabilir (isim sütunundan önce ve sonra en az 2’şer sayısal sütun gerekir).');
+  const missing = dgMissingMeasures();
+  if (missing.length) msgs.push('⚠ Kaynakta değeri olmayan sütunlar boş kalacak: ' + missing.join(', '));
+  dgSetStatus(msgs.join('  '), (dgCompatOk() && !missing.length) ? 'status-ok' : 'status-wait');
 }
 
-// Üretilen dosyanın kendi DAT okuyucumuzla uyumlu olup olmadığını kontrol et
+function dgMissingMeasures() {
+  const out = [];
+  dgCols.forEach(c => {
+    if (!DG_MEASURE.includes(c.role)) return;
+    const any = dgRows.some(r => r.vals && r.vals[c.role] !== undefined && r.vals[c.role] !== null);
+    if (!any && dgRows.length) out.push(c.role);
+  });
+  return out;
+}
+
 function dgCompatOk() {
-  const nameIdx = dgLayout.indexOf('ISIM');
+  const nameIdx = dgCols.findIndex(c => c.role === 'ISIM');
   if (nameIdx < 0) return false;
-  const numeric = dgLayout.map((t, i) => ({ t, i })).filter(x => ['B','L','H','T','K1','K2','K3','K4','P','ADET'].includes(x.t));
-  const before = numeric.filter(x => x.i < nameIdx).length;
-  const after  = numeric.filter(x => x.i > nameIdx).length;
-  return before >= 2 && after >= 2;
+  const numeric = dgCols.map((c, i) => ({ c, i })).filter(x => DG_MEASURE.includes(x.c.role));
+  return numeric.filter(x => x.i < nameIdx).length >= 2 && numeric.filter(x => x.i > nameIdx).length >= 2;
 }
 
-function dgCompatMessage() {
-  if (dgCompatOk()) return '✅ Düzen, programın DAT okuyucusuyla uyumlu (isim sütunundan önce ≥2, sonra ≥2 sayısal sütun).';
-  return '⚠ Bu düzen geri okunurken otomatik tanınmayabilir — ① Üretim sekmesinde sütunları elle eşleştirmeniz gerekebilir.';
+// Şablonla üretilen dosyayı yan yana karşılaştır
+function dgRenderCompare() {
+  const w = document.getElementById('dgCmpWrap');
+  if (!w) return;
+  if (!dgDatTpl || !dgRows.length) { w.style.display = 'none'; w.innerHTML = ''; return; }
+  const mine = dgBuildMatrix()[document.getElementById('dgHeaderRow').checked ? 1 : 0] || [];
+  const theirs = (dgDatTpl.sampleLines[0] || '').split('\t');
+  const n = Math.max(mine.length, theirs.length);
+  let html = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;">
+    <div style="font-size:13px;font-weight:700;margin-bottom:8px;">🔍 Şablonla Karşılaştırma <span style="font-weight:400;color:var(--text3);font-size:12px;">(${dgEsc(dgDatTpl.fileName)} ilk satırı ↔ senin ilk satırın)</span></div>
+    <div class="table-wrap"><table><thead><tr><th>Sütun</th><th>Şablon</th><th>Üretilen</th><th>Durum</th></tr></thead><tbody>`;
+  for (let i = 0; i < n; i++) {
+    const a = theirs[i] === undefined ? '—' : (theirs[i] === '' ? '(boş)' : theirs[i]);
+    const b = mine[i]   === undefined ? '—' : (mine[i]   === '' ? '(boş)' : mine[i]);
+    let st;
+    if (theirs[i] === undefined)      st = '<span class="status-err">şablonda yok (fazla sütun)</span>';
+    else if (mine[i] === undefined)   st = '<span class="status-err">eksik sütun</span>';
+    else if ((theirs[i] === '') !== (mine[i] === '')) st = '<span class="status-wait">biri boş</span>';
+    else st = '<span class="status-ok">tamam</span>';
+    html += `<tr><td>${i + 1}</td><td style="font-size:11px;">${dgEsc(a)}</td><td style="font-size:11px;">${dgEsc(b)}</td><td style="font-family:var(--sans);font-size:12px;">${st}</td></tr>`;
+  }
+  html += '</tbody></table></div>';
+  if (mine.length !== theirs.length) {
+    html += `<p style="margin-top:10px;font-size:12px;" class="status-err">⚠ Sütun sayısı farklı — şablon ${theirs.length}, üretilen ${mine.length}.</p>`;
+  } else {
+    html += '<p style="margin-top:10px;font-size:12px;" class="status-ok">✅ Sütun sayısı ve yapısı şablonla aynı.</p>';
+  }
+  html += '</div>';
+  w.style.display = 'block';
+  w.innerHTML = html;
 }
 
-// ── İndir ────────────────────────────────────────────────────────────────────
+// =============================================================================
+// İNDİR
+// =============================================================================
 function dgEncode(text, mode) {
   if (mode === 'utf16le') {
     const buf = new Uint8Array(2 + text.length * 2);
     buf[0] = 0xFF; buf[1] = 0xFE;
     for (let i = 0; i < text.length; i++) {
       const c = text.charCodeAt(i);
-      buf[2 + i * 2]     = c & 0xFF;
+      buf[2 + i * 2] = c & 0xFF;
       buf[2 + i * 2 + 1] = (c >> 8) & 0xFF;
     }
     return new Blob([buf], { type: 'application/octet-stream' });
   }
-  if (mode === 'utf8bom') {
-    return new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), text], { type: 'text/plain;charset=utf-8' });
-  }
+  if (mode === 'utf8bom') return new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), text], { type: 'text/plain;charset=utf-8' });
   return new Blob([text], { type: 'text/plain;charset=utf-8' });
 }
 
 function dgDownloadDat() {
   if (!dgRows.length) return;
   const text = dgBuildText();
-  const mode = document.getElementById('dgEncoding').value;
-  const blob = dgEncode(text, mode);
-
+  const blob = dgEncode(text, document.getElementById('dgEncoding').value);
   let base = (dgSrcName || 'kutu_listesi').replace(/\.(xlsx|xls|csv|cudbox|xml)$/i, '').replace(/\s*›\s*/g, '_');
   base = base.replace(/[\/\\:*?"<>|]/g, '_').replace(/\s+/g, '_') || 'kutu_listesi';
   saveAs(blob, base + '.dat');
   dgSetStatus('✅ ' + dgRows.length + ' satır → ' + base + '.dat indirildi', 'status-ok');
 }
 
-// Üretilen .dat'ı doğrudan Üretim sekmesindeki DAT okuyucusuna aktar
 function dgSendToGenerate() {
   if (!dgRows.length) return;
-  const text = dgBuildText();
-  parseDatData(text, (dgSrcName || 'olusturulan') + '.dat');
+  parseDatData(dgBuildText(), (dgSrcName || 'olusturulan') + '.dat');
   switchTab('generate');
   const el = document.getElementById('datPreview');
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-// ── Örnek Excel ──────────────────────────────────────────────────────────────
+function dgSetNow() {
+  const n = new Date();
+  const d = document.getElementById('dgDate'), t = document.getElementById('dgTime');
+  if (d) d.value = n.getFullYear() + '-' + dgPad(n.getMonth() + 1) + '-' + dgPad(n.getDate());
+  if (t) t.value = dgPad(n.getHours()) + ':' + dgPad(n.getMinutes()) + ':' + dgPad(n.getSeconds());
+  dgRenderAll();
+}
+
 function dgDownloadSampleExcel() {
   const wb = XLSX.utils.book_new();
   const data = [
-    ['İSİM', 'B', 'T', 'K1', 'L', 'H'],
-    ['Kutu_001', 300, 3, 100, 200, 500],
-    ['Kutu_002', 450, 3, 100, 850, 600],
-    ['Kutu_003', 200, 3, 50, 400, 75]
+    ['İSİM', 'B', 'T', 'L', 'H'],
+    ['SMART RANZA 1/8', 960, 2, 2000, 40],
+    ['PROJE 1400 BANYO', 610, 6, 1420, 355],
+    ['PUZZLE ALT TABLA 4/5', 978, 2, 2092, 22]
   ];
   const ws = XLSX.utils.aoa_to_sheet(data);
-  ws['!cols'] = [{wch:16},{wch:8},{wch:8},{wch:8},{wch:8},{wch:8}];
+  ws['!cols'] = [{wch:30},{wch:8},{wch:8},{wch:8},{wch:8}];
   XLSX.utils.book_append_sheet(wb, ws, 'DAT Kaynagi');
   XLSX.writeFile(wb, 'DAT_Kaynak_Ornek.xlsx');
 }
 
-// ── Kurulum ──────────────────────────────────────────────────────────────────
+// =============================================================================
+// KURULUM
+// =============================================================================
 document.addEventListener('DOMContentLoaded', () => {
-  const li = document.getElementById('dgLayout');
-  if (li) li.value = dgLayout.join(', ');
-
-  const dd = document.getElementById('dgDate');
-  if (dd && !dd.value) {
-    const n = new Date();
-    dd.value = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
-  }
+  dgSetNow();
 
   const dz1 = document.getElementById('dgExcelDropZone');
   if (dz1) {
     dz1.addEventListener('dragover', e => { e.preventDefault(); dz1.classList.add('dragover'); });
     dz1.addEventListener('dragleave', () => dz1.classList.remove('dragover'));
-    dz1.addEventListener('drop', e => {
-      e.preventDefault(); dz1.classList.remove('dragover');
-      if (e.dataTransfer.files.length) dgHandleExcel(e.dataTransfer.files[0]);
-    });
+    dz1.addEventListener('drop', e => { e.preventDefault(); dz1.classList.remove('dragover'); if (e.dataTransfer.files.length) dgHandleExcel(e.dataTransfer.files[0]); });
   }
-
   const dz2 = document.getElementById('dgCudboxDropZone');
   if (dz2) {
     dz2.addEventListener('dragover', e => { e.preventDefault(); dz2.classList.add('dragover'); });
     dz2.addEventListener('dragleave', () => dz2.classList.remove('dragover'));
-    dz2.addEventListener('drop', e => {
-      e.preventDefault(); dz2.classList.remove('dragover');
-      if (e.dataTransfer.files.length) dgHandleCudbox(e.dataTransfer.files);
-    });
+    dz2.addEventListener('drop', e => { e.preventDefault(); dz2.classList.remove('dragover'); if (e.dataTransfer.files.length) dgHandleCudbox(e.dataTransfer.files); });
   }
-
   const fi = document.getElementById('dgCudboxFileInput');
   if (fi) fi.addEventListener('change', e => { if (e.target.files.length) dgHandleCudbox(e.target.files); });
+
+  const dt = document.getElementById('dgDatTplInput');
+  if (dt) dt.addEventListener('change', e => { const f = e.target.files[0]; if (f) dgLoadDatTemplate(f); e.target.value = ''; });
 
   const tf = document.getElementById('dgTplFileInput');
   if (tf) tf.addEventListener('change', e => {
@@ -7070,28 +7384,25 @@ document.addEventListener('DOMContentLoaded', () => {
     r.onload = ev => {
       const st = document.getElementById('dgTplStatus');
       try {
-        const argNames = dgArgsOfCudbox(ev.target.result, f.name);
+        const argNames = dgArgsOfCudbox(dgDecodeXmlBytes(new Uint8Array(ev.target.result)), f.name);
         if (!argNames.length) { st.textContent = '⚠ Dosyada ölçü argümanı yok'; st.className = 'status-err'; return; }
-        dgSetLayout(dgLayoutFromArgs(argNames));
+        dgCols = dgColsFromArgs(argNames); dgMarkCustom(); dgRenderAll();
         st.textContent = '✅ ' + f.name + ' → ' + argNames.join(', ');
         st.className = 'status-ok';
       } catch (err) { st.textContent = '❌ ' + err.message; st.className = 'status-err'; }
     };
-    r.readAsText(f);
+    r.readAsArrayBuffer(f);
     e.target.value = '';
   });
 
   dgSetSource('excel');
   dgUpdateTemplateSelect();
+  dgRenderAll();
 });
 
-// Şablon listesi değiştiğinde DAT Oluşturucu dropdown'ını da tazele
 (function () {
   const prev = refreshTemplateUI;
-  refreshTemplateUI = function () {
-    prev();
-    try { dgUpdateTemplateSelect(); } catch (e) {}
-  };
+  refreshTemplateUI = function () { prev(); try { dgUpdateTemplateSelect(); } catch (e) {} };
 })();
 
 </script>
