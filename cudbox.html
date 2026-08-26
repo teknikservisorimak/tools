@@ -726,6 +726,7 @@ tr:hover td { background: var(--surface2); }
   <div class="tab" onclick="switchTab('excelrapor')">📦 CUDBOX → Excel</div>
   <div class="tab" data-i18n-tab="tab_offset" onclick="switchTab('offset')">📏 Kaset Ofset</div>
   <div class="tab" onclick="switchTab('txtolustur')">📝 TXT Oluşturucu</div>
+  <div class="tab" onclick="switchTab('datolustur')">📄 DAT Oluşturucu</div>
   <div class="tab" data-i18n-tab="tab_langmgr" onclick="switchTab('langmgr')" id="tabLangMgr" style="display:none;">🌐 Dil Yönetimi</div>
   <div class="tab" data-i18n-tab="tab_help" onclick="switchTab('help')">📖 Yardım</div>
 </div>
@@ -1175,6 +1176,167 @@ tr:hover td { background: var(--surface2); }
     </div>
     <iframe id="qboxFrame" style="width:100%;height:82vh;border:0;display:block;background:#0d1117;"></iframe>
   </div>
+</div>
+
+<!-- ========== DAT OLUŞTURUCU PANEL ========== -->
+<style>
+.dg-srcbtn{font-family:var(--sans);font-size:13px;font-weight:600;padding:9px 16px;border-radius:8px;
+  border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;user-select:none;}
+.dg-srcbtn.active{border-color:var(--accent);color:var(--accent);background:var(--bg);}
+</style>
+<div id="panel-datolustur" class="panel">
+
+  <!-- Çıktı düzeni -->
+  <div class="card">
+    <div class="card-header">
+      <h3>⚙️ Çıktı Düzeni (.dat sütun sırası)</h3>
+      <div class="btn-group">
+        <button class="btn btn-sm" onclick="dgDownloadSampleExcel()">📥 Örnek Excel İndir</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="info-banner" style="margin-bottom:14px;">
+        <strong>.dat</strong> makinenin not defteri formatıdır: <strong>sekme (TAB) ile ayrılmış</strong>, <strong>UTF-16 LE</strong> kodlu, başlıksız düz metin.<br>
+        Varsayılan düzen programın kendi DAT okuyucusuyla birebir uyumludur:
+        <code>TARİH → B → T → K1 → İSİM → L → H</code><br>
+        <span style="color:var(--text3);">Yani burada ürettiğiniz dosyayı ① Üretim sekmesindeki DAT alanına geri yükleyebilirsiniz.</span>
+      </div>
+
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;">
+        <div style="flex:1;min-width:250px;">
+          <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">Hazır Düzen</label>
+          <select id="dgPreset" onchange="dgApplyPreset(this.value)" style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;">
+            <option value="machine">Makine Formatı — TARİH, B, T, K1, İSİM, L, H</option>
+            <option value="machine_nodate">Tarihsiz — B, T, K1, İSİM, L, H</option>
+            <option value="short">Kısa — B, T, İSİM, L, H</option>
+            <option value="custom">Özel (aşağıdan düzenleyin)</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:250px;">
+          <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">Sütun Sırası (virgülle)</label>
+          <input type="text" id="dgLayout" onchange="dgOnLayoutEdit()" oninput="dgOnLayoutEdit()"
+            style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;">
+          <div style="font-size:11px;color:var(--text3);margin-top:5px;">
+            Kullanılabilir: <code>TARIH</code>, <code>ISIM</code>, <code>B</code>, <code>L</code>, <code>H</code>, <code>T</code>, <code>K1</code>…<code>K4</code>, <code>P</code>, <code>ADET</code>, <code>BOS</code>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
+        <div style="min-width:190px;">
+          <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">Kodlama</label>
+          <select id="dgEncoding" style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;">
+            <option value="utf16le">UTF-16 LE (makine — önerilen)</option>
+            <option value="utf8bom">UTF-8 (BOM'lu)</option>
+            <option value="utf8">UTF-8 (BOM'suz)</option>
+          </select>
+        </div>
+        <div style="min-width:170px;">
+          <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">Ondalık Ayracı</label>
+          <select id="dgDecimal" onchange="dgRenderPreview()" style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;">
+            <option value=".">Nokta (12.5)</option>
+            <option value=",">Virgül (12,5)</option>
+          </select>
+        </div>
+        <div style="min-width:170px;">
+          <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">Tarih (TARIH sütunu)</label>
+          <input type="date" id="dgDate" onchange="dgRenderPreview()" style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:7px 12px;">
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:9px 12px;cursor:pointer;">
+          <input type="checkbox" id="dgHeaderRow" onchange="dgRenderPreview()" style="accent-color:var(--accent);width:14px;height:14px;cursor:pointer;">
+          Başlık satırı ekle <span style="color:var(--text3);">(makine için kapalı bırakın)</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ölçü şablonu -->
+  <div class="card">
+    <div class="card-header">
+      <h3>📐 Ölçü Şablonu <span class="badge">opsiyonel</span></h3>
+    </div>
+    <div class="card-body">
+      <p style="font-size:12.5px;color:var(--text2);line-height:1.7;margin-bottom:14px;">
+        Bir şablon seçerseniz, o şablonun <code>bx_Arguments</code> alanları okunur ve sütun düzeni otomatik olarak
+        o ölçülere göre kurulur. Böylece kutu tipi ne olursa olsun .dat sütunları sabit kalır.
+      </p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+        <div style="flex:1;min-width:230px;">
+          <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">Yüklü Şablonlardan</label>
+          <select id="dgTemplateSelect" style="width:100%;font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;">
+            <option value="">— Şablon seçin —</option>
+          </select>
+        </div>
+        <button class="btn btn-sm" onclick="dgApplyTemplateFields()">📐 Şablondan Sütunları Kur</button>
+        <label class="btn btn-sm" style="cursor:pointer;">📄 Örnek .cudbox'tan
+          <input type="file" id="dgTplFileInput" accept=".cudbox,.xml" style="display:none">
+        </label>
+        <span id="dgTplStatus" style="font-size:12px;font-family:var(--mono);"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kaynak -->
+  <div class="card">
+    <div class="card-header">
+      <h3>① Kaynak Seçin</h3>
+      <div class="btn-group">
+        <button class="btn btn-danger btn-sm" onclick="dgClearAll()">🗑 Temizle</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+        <label class="dg-srcbtn" id="dgSrcExcelBtn" onclick="dgSetSource('excel')">📊 Excel'den</label>
+        <label class="dg-srcbtn" id="dgSrcCudboxBtn" onclick="dgSetSource('cudbox')">📦 .cudbox'tan</label>
+      </div>
+
+      <div id="dgExcelWrap">
+        <div class="drop-zone" id="dgExcelDropZone">
+          <input type="file" id="dgExcelFileInput" accept=".xlsx,.xls,.csv" onchange="dgHandleExcel(this.files[0])">
+          <div class="icon">📊</div>
+          <div class="label">Excel dosyasını sürükleyin veya tıklayın</div>
+          <div class="hint">.xlsx / .xls / .csv — sütunlar otomatik eşleştirilir</div>
+        </div>
+        <div id="dgExcelMapWrap" style="margin-top:16px;display:none;"></div>
+      </div>
+
+      <div id="dgCudboxWrap" style="display:none;">
+        <div class="drop-zone" id="dgCudboxDropZone">
+          <input type="file" id="dgCudboxFileInput" multiple accept=".cudbox,.xml">
+          <div class="icon">📦</div>
+          <div class="label">.cudbox dosyalarını sürükleyin veya tıklayın</div>
+          <div class="hint">Birden fazla dosya seçebilirsiniz — her dosya .dat içinde bir satır olur</div>
+        </div>
+        <div id="dgCudboxList" style="margin-top:16px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Önizleme + indirme -->
+  <div class="card">
+    <div class="card-header">
+      <h3>② Önizleme &amp; İndir</h3>
+      <div class="btn-group">
+        <span class="badge" id="dgRowCount">0 satır</span>
+        <button class="btn btn-primary btn-sm" id="dgDownloadBtn" onclick="dgDownloadDat()" disabled>📥 .dat İndir</button>
+        <button class="btn btn-sm" id="dgSendBtn" onclick="dgSendToGenerate()" disabled>⚡ Üretim Sekmesine Gönder</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <span class="status-wait" id="dgStatus" style="font-size:12px;font-family:var(--mono);display:block;margin-bottom:10px;"></span>
+      <div id="dgPreview">
+        <div class="empty">
+          <div class="icon">📝</div>
+          <div class="msg">Henüz kaynak yüklenmedi.</div>
+        </div>
+      </div>
+      <div id="dgRawWrap" style="margin-top:16px;display:none;">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Ham .dat içeriği (ilk 30 satır — → sekme karakteri)</div>
+        <pre id="dgRawPreview" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;overflow:auto;max-height:300px;font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--text2);white-space:pre;"></pre>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ========== LANG MANAGER PANEL ========== -->
@@ -6360,6 +6522,577 @@ function koToast(m){
   document.body.appendChild(d);
   setTimeout(function(){ d.style.transition='.35s'; d.style.opacity='0'; setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },380); },1500);
 }
+
+
+// =============================================================================
+// DAT OLUŞTURUCU  (Excel → .dat  /  .cudbox → .dat)
+// =============================================================================
+const DG_TOKENS = ['TARIH','ISIM','B','L','H','T','K1','K2','K3','K4','P','ADET','BOS'];
+
+const DG_PRESETS = {
+  machine:        ['TARIH','B','T','K1','ISIM','L','H'],
+  machine_nodate: ['B','T','K1','ISIM','L','H'],
+  short:          ['B','T','ISIM','L','H']
+};
+
+let dgLayout  = DG_PRESETS.machine.slice();
+let dgRows    = [];      // { name, vals:{B,L,H,...}, src }
+let dgSource  = 'excel'; // 'excel' | 'cudbox'
+let dgSrcName = '';
+
+// Excel tarafı
+let dgExRaw     = [];
+let dgExHeaders = [];
+let dgExMap     = {};
+
+const DG_EX_FIELDS = [
+  { key:'ISIM', label:'İsim / Ürün Adı' },
+  { key:'B',    label:'B — Genişlik' },
+  { key:'L',    label:'L — Uzunluk' },
+  { key:'H',    label:'H — Yükseklik' },
+  { key:'T',    label:'T — Kalınlık' },
+  { key:'K1',   label:'K1' },
+  { key:'K2',   label:'K2' },
+  { key:'K3',   label:'K3' },
+  { key:'K4',   label:'K4' },
+  { key:'P',    label:'P' },
+  { key:'ADET', label:'Adet' }
+];
+
+function dgNormToken(s) {
+  return (s || '').toString().trim().toUpperCase()
+    .replace(/İ/g,'I').replace(/Ş/g,'S').replace(/Ğ/g,'G')
+    .replace(/Ü/g,'U').replace(/Ö/g,'O').replace(/Ç/g,'C')
+    .replace(/[^A-Z0-9]/g,'');
+}
+
+function dgSetStatus(msg, cls) {
+  const el = document.getElementById('dgStatus');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.className = cls || 'status-wait';
+}
+
+// ── Sütun düzeni ─────────────────────────────────────────────────────────────
+function dgApplyPreset(name) {
+  if (DG_PRESETS[name]) {
+    dgLayout = DG_PRESETS[name].slice();
+    document.getElementById('dgLayout').value = dgLayout.join(', ');
+  }
+  dgRenderPreview();
+}
+
+function dgOnLayoutEdit() {
+  const raw = document.getElementById('dgLayout').value || '';
+  const parts = raw.split(/[,;|]/).map(s => dgNormToken(s)).filter(s => s !== '');
+  dgLayout = parts.filter(p => DG_TOKENS.includes(p));
+  const presetSel = document.getElementById('dgPreset');
+  const match = Object.keys(DG_PRESETS).find(k => DG_PRESETS[k].join(',') === dgLayout.join(','));
+  if (presetSel) presetSel.value = match || 'custom';
+  dgRenderPreview();
+}
+
+function dgSetLayout(arr) {
+  dgLayout = arr.slice();
+  const inp = document.getElementById('dgLayout');
+  if (inp) inp.value = dgLayout.join(', ');
+  const presetSel = document.getElementById('dgPreset');
+  const match = Object.keys(DG_PRESETS).find(k => DG_PRESETS[k].join(',') === dgLayout.join(','));
+  if (presetSel) presetSel.value = match || 'custom';
+  dgRenderPreview();
+}
+
+// Şablonun ölçü alanlarından sütun düzeni kur:  B, T, <diğerleri>, İSİM, L, H
+function dgLayoutFromArgs(argNames) {
+  const known = argNames.map(a => dgNormToken(a)).filter(a => DG_TOKENS.includes(a) && a !== 'ISIM' && a !== 'TARIH');
+  const uniq = [];
+  known.forEach(k => { if (!uniq.includes(k)) uniq.push(k); });
+
+  const head = [];
+  ['B','T'].forEach(k => { if (uniq.includes(k)) head.push(k); });
+  const tail = [];
+  ['L','H'].forEach(k => { if (uniq.includes(k)) tail.push(k); });
+  const middle = uniq.filter(k => !head.includes(k) && !tail.includes(k));
+
+  const hasDate = dgLayout.includes('TARIH');
+  const out = [];
+  if (hasDate) out.push('TARIH');
+  out.push(...head, ...middle, 'ISIM', ...tail);
+  return out;
+}
+
+function dgUpdateTemplateSelect() {
+  const sel = document.getElementById('dgTemplateSelect');
+  if (!sel) return;
+  const names = Object.keys(templates).sort();
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Şablon seçin —</option>';
+  names.forEach(n => {
+    const o = document.createElement('option');
+    o.value = n; o.textContent = n;
+    sel.appendChild(o);
+  });
+  if (prev && templates[prev]) sel.value = prev;
+}
+
+function dgArgsOfCudbox(xmlStr, fileName) {
+  const parsed = exrParseCudbox(xmlStr, fileName || 'sablon.cudbox');
+  return Object.keys(parsed.args);
+}
+
+function dgApplyTemplateFields() {
+  const name = document.getElementById('dgTemplateSelect').value;
+  const st = document.getElementById('dgTplStatus');
+  if (!name || !templates[name]) {
+    st.textContent = '⚠ Önce bir şablon seçin';
+    st.className = 'status-err';
+    return;
+  }
+  try {
+    const argNames = dgArgsOfCudbox(templates[name], name + '.cudbox');
+    if (!argNames.length) {
+      st.textContent = '⚠ Şablonda ölçü argümanı yok';
+      st.className = 'status-err';
+      return;
+    }
+    dgSetLayout(dgLayoutFromArgs(argNames));
+    st.textContent = '✅ ' + name + ' → ' + argNames.join(', ');
+    st.className = 'status-ok';
+  } catch (e) {
+    st.textContent = '❌ ' + e.message;
+    st.className = 'status-err';
+  }
+}
+
+// ── Kaynak seçimi ────────────────────────────────────────────────────────────
+function dgSetSource(src) {
+  dgSource = src;
+  document.getElementById('dgExcelWrap').style.display   = (src === 'excel')  ? 'block' : 'none';
+  document.getElementById('dgCudboxWrap').style.display  = (src === 'cudbox') ? 'block' : 'none';
+  document.getElementById('dgSrcExcelBtn').classList.toggle('active',  src === 'excel');
+  document.getElementById('dgSrcCudboxBtn').classList.toggle('active', src === 'cudbox');
+  dgRows = [];
+  dgRenderPreview();
+}
+
+function dgClearAll() {
+  dgRows = [];
+  dgExRaw = []; dgExHeaders = []; dgExMap = {};
+  dgSrcName = '';
+  const mw = document.getElementById('dgExcelMapWrap');
+  mw.style.display = 'none'; mw.innerHTML = '';
+  document.getElementById('dgCudboxList').innerHTML = '';
+  const fi = document.getElementById('dgExcelFileInput'); if (fi) fi.value = '';
+  const fc = document.getElementById('dgCudboxFileInput'); if (fc) fc.value = '';
+  dgSetStatus('', '');
+  dgRenderPreview();
+}
+
+// ── EXCEL → satırlar ─────────────────────────────────────────────────────────
+function dgHandleExcel(file) {
+  if (!file) return;
+  dgSrcName = file.name;
+  const isCsv = /\.csv$/i.test(file.name);
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = isCsv
+        ? XLSX.read(String(e.target.result).replace(/^﻿/, ''), { type: 'string' })
+        : XLSX.read(e.target.result, { type: 'array' });
+
+      let rows = null, used = wb.SheetNames[0];
+      for (const sn of wb.SheetNames) {
+        const r = XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, defval: '' });
+        if (!r.length) continue;
+        const hdr = (r[0] || []).map(h => normHeaderTr(h));
+        if (hdr.some(h => KNOWN_ARGS.has(h))) { rows = r; used = sn; break; }
+      }
+      if (!rows) rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
+      if (!rows.length) { alert('Excel boş görünüyor.'); return; }
+
+      dgExRaw = rows;
+      dgExHeaders = (rows[0] || []).map((h, i) => (h === '' || h === undefined) ? ('Sütun ' + (i + 1)) : String(h));
+      dgSrcName = file.name + (wb.SheetNames.length > 1 ? ' › ' + used : '');
+      dgExAutoMap();
+      dgRenderExcelMapping();
+      dgBuildRowsFromExcel();
+    } catch (err) {
+      alert('Excel okuma hatası: ' + err.message);
+    }
+  };
+  if (isCsv) reader.readAsText(file, 'UTF-8');
+  else reader.readAsArrayBuffer(file);
+}
+
+function dgExAutoMap() {
+  dgExMap = {};
+  DG_EX_FIELDS.forEach(f => dgExMap[f.key] = null);
+  dgExHeaders.forEach((h, i) => {
+    const n = normHeaderTr(h);
+    if (dgExMap['ISIM'] === null && (NAME_HEADERS.has((h || '').toString().trim().toUpperCase()) || isNameHeader(h))) { dgExMap['ISIM'] = i; return; }
+    if (dgExMap['ADET'] === null && ['ADET','MIKTAR','QTY','QUANTITY'].includes(n)) { dgExMap['ADET'] = i; return; }
+    if (n === 'P' && dgExMap['P'] === null) { dgExMap['P'] = i; return; }
+    if (KNOWN_ARGS.has(n) && dgExMap[n] === null) dgExMap[n] = i;
+  });
+}
+
+function dgRenderExcelMapping() {
+  const wrap = document.getElementById('dgExcelMapWrap');
+  if (!dgExRaw.length) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+  wrap.style.display = 'block';
+
+  const sample = dgExRaw[1] || [];
+  const opts = (sel) => {
+    let s = `<option value="-1" ${sel === null || sel === -1 ? 'selected' : ''}>— kullanma —</option>`;
+    dgExHeaders.forEach((h, i) => {
+      const ex = (sample[i] === undefined || sample[i] === '') ? '' : ' — ör: ' + String(sample[i]).substring(0, 16);
+      s += `<option value="${i}" ${sel === i ? 'selected' : ''}>${exrEsc(h)}${exrEsc(ex)}</option>`;
+    });
+    return s;
+  };
+
+  let html = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;">
+    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">🔗 Sütun Eşleştirme</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:12px;"><strong>${exrEsc(dgSrcName)}</strong> — ${dgExRaw.length - 1} satır. Otomatik eşleştirildi, yanlışsa düzeltin.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">`;
+  DG_EX_FIELDS.forEach(f => {
+    html += `<div>
+      <label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;">${f.label}</label>
+      <select data-dgmap="${f.key}" onchange="dgOnExMapChange(this)" style="width:100%;font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 8px;">
+        ${opts(dgExMap[f.key])}
+      </select>
+    </div>`;
+  });
+  html += '</div></div>';
+  wrap.innerHTML = html;
+}
+
+function dgOnExMapChange(sel) {
+  const k = sel.getAttribute('data-dgmap');
+  const v = parseInt(sel.value, 10);
+  dgExMap[k] = (isNaN(v) || v < 0) ? null : v;
+  dgBuildRowsFromExcel();
+}
+
+function dgNumFrom(cell) {
+  if (cell === undefined || cell === null || cell === '') return null;
+  if (typeof cell === 'number') return cell;
+  const v = String(cell).trim().replace(/\s/g, '').replace(',', '.');
+  const n = parseFloat(v);
+  return isNaN(n) ? null : n;
+}
+
+function dgBuildRowsFromExcel() {
+  dgRows = [];
+  for (let i = 1; i < dgExRaw.length; i++) {
+    const r = dgExRaw[i] || [];
+    if (r.every(c => c === '' || c === undefined || c === null)) continue;
+
+    const vals = {};
+    ['B','L','H','T','K1','K2','K3','K4','P','ADET'].forEach(k => {
+      const idx = dgExMap[k];
+      if (idx === null || idx === undefined) return;
+      const n = dgNumFrom(r[idx]);
+      if (n !== null) vals[k] = n;
+    });
+
+    let name = '';
+    if (dgExMap['ISIM'] !== null && dgExMap['ISIM'] !== undefined) name = String(r[dgExMap['ISIM']] ?? '').trim();
+    if (!name) name = 'Kutu_' + String(i).padStart(3, '0');
+
+    if (Object.keys(vals).length === 0 && !name) continue;
+    dgRows.push({ name: name, vals: vals, src: 'satır ' + (i + 1) });
+  }
+  dgRenderPreview();
+}
+
+// ── CUDBOX → satırlar ────────────────────────────────────────────────────────
+let dgCudboxFiles = [];  // { fileName, boxName, args }
+
+function dgHandleCudbox(fileList) {
+  const files = Array.from(fileList).filter(f => /\.(cudbox|xml)$/i.test(f.name));
+  if (!files.length) { dgSetStatus('⚠ .cudbox dosyası bulunamadı', 'status-err'); return; }
+
+  let done = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const p = exrParseCudbox(ev.target.result, file.name);
+        const existing = dgCudboxFiles.findIndex(x => x.fileName === file.name);
+        const rec = { fileName: file.name, boxName: p.boxName, args: p.args, error: null };
+        if (existing >= 0) dgCudboxFiles[existing] = rec; else dgCudboxFiles.push(rec);
+      } catch (e) {
+        dgCudboxFiles.push({ fileName: file.name, boxName: file.name.replace(/\.(cudbox|xml)$/i, ''), args: {}, error: e.message });
+      }
+      done++;
+      if (done === files.length) {
+        dgSrcName = files.length === 1 ? files[0].name : (dgCudboxFiles.length + ' dosya');
+        dgBuildRowsFromCudbox();
+        dgRenderCudboxList();
+      }
+    };
+    reader.readAsText(file);
+  });
+}
+
+function dgBuildRowsFromCudbox() {
+  dgRows = [];
+  dgCudboxFiles.forEach(f => {
+    if (f.error) return;
+    const vals = {};
+    Object.keys(f.args).forEach(k => {
+      const key = dgNormToken(k);
+      const v = f.args[k];
+      if (v === null || v === undefined || isNaN(v)) return;
+      vals[key] = v;
+    });
+    dgRows.push({ name: f.boxName || f.fileName.replace(/\.(cudbox|xml)$/i, ''), vals: vals, src: f.fileName });
+  });
+  dgRenderPreview();
+}
+
+function dgRenderCudboxList() {
+  const div = document.getElementById('dgCudboxList');
+  if (!dgCudboxFiles.length) { div.innerHTML = ''; return; }
+  let html = '<div class="table-wrap" style="max-height:260px;"><table><thead><tr><th>#</th><th>Dosya</th><th>Kutu Adı</th><th>Ölçüler</th></tr></thead><tbody>';
+  dgCudboxFiles.forEach((f, i) => {
+    const argStr = f.error ? '<span class="status-err">' + exrEsc(f.error) + '</span>'
+      : Object.entries(f.args).map(([k, v]) => k + '=' + v).join(' ');
+    html += `<tr><td>${i + 1}</td><td style="font-size:11px;">${exrEsc(f.fileName)}</td><td style="font-family:var(--sans);color:var(--text);">${exrEsc(f.boxName)}</td><td style="font-size:11px;">${argStr}</td></tr>`;
+  });
+  html += '</tbody></table></div>';
+  div.innerHTML = html;
+}
+
+// ── .dat metnini üret ────────────────────────────────────────────────────────
+function dgDecSep() {
+  const s = document.getElementById('dgDecimal');
+  return s ? s.value : '.';
+}
+
+function dgFmtNum(n) {
+  if (n === null || n === undefined || isNaN(n)) return '';
+  let s = (Math.round(n * 1000) / 1000).toString();
+  if (dgDecSep() === ',') s = s.replace('.', ',');
+  return s;
+}
+
+function dgDateStr() {
+  const el = document.getElementById('dgDate');
+  let d;
+  if (el && el.value) {
+    const p = el.value.split('-');
+    return p[0] + '/' + p[1] + '/' + p[2];
+  }
+  d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return d.getFullYear() + '/' + mm + '/' + dd;
+}
+
+function dgCleanName(s) {
+  return (s || '').toString().replace(/[\t\r\n]+/g, ' ').trim();
+}
+
+function dgCellFor(row, token) {
+  if (token === 'BOS')   return '';
+  if (token === 'TARIH') return dgDateStr();
+  if (token === 'ISIM')  return dgCleanName(row.name);
+  const v = row.vals[token];
+  return (v === undefined || v === null) ? '' : dgFmtNum(v);
+}
+
+function dgBuildMatrix() {
+  const m = [];
+  if (document.getElementById('dgHeaderRow') && document.getElementById('dgHeaderRow').checked) {
+    m.push(dgLayout.map(t => t === 'BOS' ? '' : t));
+  }
+  dgRows.forEach(r => m.push(dgLayout.map(t => dgCellFor(r, t))));
+  return m;
+}
+
+function dgBuildText() {
+  return dgBuildMatrix().map(r => r.join('\t')).join('\r\n') + '\r\n';
+}
+
+// ── Önizleme ─────────────────────────────────────────────────────────────────
+function dgRenderPreview() {
+  const cnt = document.getElementById('dgRowCount');
+  const btn = document.getElementById('dgDownloadBtn');
+  const snd = document.getElementById('dgSendBtn');
+  const div = document.getElementById('dgPreview');
+  const rawWrap = document.getElementById('dgRawWrap');
+  if (!div) return;
+
+  if (cnt) cnt.textContent = dgRows.length + ' satır';
+  const ok = dgRows.length > 0 && dgLayout.length > 0;
+  if (btn) btn.disabled = !ok;
+  if (snd) snd.disabled = !ok;
+
+  if (!ok) {
+    div.innerHTML = '<div class="empty"><div class="icon">📝</div><div class="msg">' +
+      (dgLayout.length === 0 ? 'Sütun düzeni boş — en az bir sütun seçin.' : 'Henüz kaynak yüklenmedi.') +
+      '</div></div>';
+    if (rawWrap) rawWrap.style.display = 'none';
+    return;
+  }
+
+  const matrix = dgBuildMatrix();
+  let html = '<div class="table-wrap" style="max-height:420px;"><table><thead><tr><th>#</th>';
+  dgLayout.forEach(t => html += '<th>' + (t === 'BOS' ? '—' : t) + '</th>');
+  html += '</tr></thead><tbody>';
+  const startIdx = (document.getElementById('dgHeaderRow') && document.getElementById('dgHeaderRow').checked) ? 1 : 0;
+  matrix.slice(startIdx, startIdx + 200).forEach((r, i) => {
+    html += '<tr><td>' + (i + 1) + '</td>' + r.map(c => '<td>' + exrEsc(c) + '</td>').join('') + '</tr>';
+  });
+  html += '</tbody></table></div>';
+  if (dgRows.length > 200) html += '<p style="font-size:12px;color:var(--text3);margin-top:8px;">İlk 200 satır gösteriliyor — dosyada ' + dgRows.length + ' satır olacak.</p>';
+  div.innerHTML = html;
+
+  if (rawWrap) {
+    rawWrap.style.display = 'block';
+    document.getElementById('dgRawPreview').textContent =
+      matrix.slice(0, 30).map(r => r.join(' → ')).join('\n');
+  }
+
+  dgSetStatus(dgCompatMessage(), dgCompatOk() ? 'status-ok' : 'status-wait');
+}
+
+// Üretilen dosyanın kendi DAT okuyucumuzla uyumlu olup olmadığını kontrol et
+function dgCompatOk() {
+  const nameIdx = dgLayout.indexOf('ISIM');
+  if (nameIdx < 0) return false;
+  const numeric = dgLayout.map((t, i) => ({ t, i })).filter(x => ['B','L','H','T','K1','K2','K3','K4','P','ADET'].includes(x.t));
+  const before = numeric.filter(x => x.i < nameIdx).length;
+  const after  = numeric.filter(x => x.i > nameIdx).length;
+  return before >= 2 && after >= 2;
+}
+
+function dgCompatMessage() {
+  if (dgCompatOk()) return '✅ Düzen, programın DAT okuyucusuyla uyumlu (isim sütunundan önce ≥2, sonra ≥2 sayısal sütun).';
+  return '⚠ Bu düzen geri okunurken otomatik tanınmayabilir — ① Üretim sekmesinde sütunları elle eşleştirmeniz gerekebilir.';
+}
+
+// ── İndir ────────────────────────────────────────────────────────────────────
+function dgEncode(text, mode) {
+  if (mode === 'utf16le') {
+    const buf = new Uint8Array(2 + text.length * 2);
+    buf[0] = 0xFF; buf[1] = 0xFE;
+    for (let i = 0; i < text.length; i++) {
+      const c = text.charCodeAt(i);
+      buf[2 + i * 2]     = c & 0xFF;
+      buf[2 + i * 2 + 1] = (c >> 8) & 0xFF;
+    }
+    return new Blob([buf], { type: 'application/octet-stream' });
+  }
+  if (mode === 'utf8bom') {
+    return new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), text], { type: 'text/plain;charset=utf-8' });
+  }
+  return new Blob([text], { type: 'text/plain;charset=utf-8' });
+}
+
+function dgDownloadDat() {
+  if (!dgRows.length) return;
+  const text = dgBuildText();
+  const mode = document.getElementById('dgEncoding').value;
+  const blob = dgEncode(text, mode);
+
+  let base = (dgSrcName || 'kutu_listesi').replace(/\.(xlsx|xls|csv|cudbox|xml)$/i, '').replace(/\s*›\s*/g, '_');
+  base = base.replace(/[\/\\:*?"<>|]/g, '_').replace(/\s+/g, '_') || 'kutu_listesi';
+  saveAs(blob, base + '.dat');
+  dgSetStatus('✅ ' + dgRows.length + ' satır → ' + base + '.dat indirildi', 'status-ok');
+}
+
+// Üretilen .dat'ı doğrudan Üretim sekmesindeki DAT okuyucusuna aktar
+function dgSendToGenerate() {
+  if (!dgRows.length) return;
+  const text = dgBuildText();
+  parseDatData(text, (dgSrcName || 'olusturulan') + '.dat');
+  switchTab('generate');
+  const el = document.getElementById('datPreview');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ── Örnek Excel ──────────────────────────────────────────────────────────────
+function dgDownloadSampleExcel() {
+  const wb = XLSX.utils.book_new();
+  const data = [
+    ['İSİM', 'B', 'T', 'K1', 'L', 'H'],
+    ['Kutu_001', 300, 3, 100, 200, 500],
+    ['Kutu_002', 450, 3, 100, 850, 600],
+    ['Kutu_003', 200, 3, 50, 400, 75]
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{wch:16},{wch:8},{wch:8},{wch:8},{wch:8},{wch:8}];
+  XLSX.utils.book_append_sheet(wb, ws, 'DAT Kaynagi');
+  XLSX.writeFile(wb, 'DAT_Kaynak_Ornek.xlsx');
+}
+
+// ── Kurulum ──────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const li = document.getElementById('dgLayout');
+  if (li) li.value = dgLayout.join(', ');
+
+  const dd = document.getElementById('dgDate');
+  if (dd && !dd.value) {
+    const n = new Date();
+    dd.value = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
+  }
+
+  const dz1 = document.getElementById('dgExcelDropZone');
+  if (dz1) {
+    dz1.addEventListener('dragover', e => { e.preventDefault(); dz1.classList.add('dragover'); });
+    dz1.addEventListener('dragleave', () => dz1.classList.remove('dragover'));
+    dz1.addEventListener('drop', e => {
+      e.preventDefault(); dz1.classList.remove('dragover');
+      if (e.dataTransfer.files.length) dgHandleExcel(e.dataTransfer.files[0]);
+    });
+  }
+
+  const dz2 = document.getElementById('dgCudboxDropZone');
+  if (dz2) {
+    dz2.addEventListener('dragover', e => { e.preventDefault(); dz2.classList.add('dragover'); });
+    dz2.addEventListener('dragleave', () => dz2.classList.remove('dragover'));
+    dz2.addEventListener('drop', e => {
+      e.preventDefault(); dz2.classList.remove('dragover');
+      if (e.dataTransfer.files.length) dgHandleCudbox(e.dataTransfer.files);
+    });
+  }
+
+  const fi = document.getElementById('dgCudboxFileInput');
+  if (fi) fi.addEventListener('change', e => { if (e.target.files.length) dgHandleCudbox(e.target.files); });
+
+  const tf = document.getElementById('dgTplFileInput');
+  if (tf) tf.addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = ev => {
+      const st = document.getElementById('dgTplStatus');
+      try {
+        const argNames = dgArgsOfCudbox(ev.target.result, f.name);
+        if (!argNames.length) { st.textContent = '⚠ Dosyada ölçü argümanı yok'; st.className = 'status-err'; return; }
+        dgSetLayout(dgLayoutFromArgs(argNames));
+        st.textContent = '✅ ' + f.name + ' → ' + argNames.join(', ');
+        st.className = 'status-ok';
+      } catch (err) { st.textContent = '❌ ' + err.message; st.className = 'status-err'; }
+    };
+    r.readAsText(f);
+    e.target.value = '';
+  });
+
+  dgSetSource('excel');
+  dgUpdateTemplateSelect();
+});
+
+// Şablon listesi değiştiğinde DAT Oluşturucu dropdown'ını da tazele
+(function () {
+  const prev = refreshTemplateUI;
+  refreshTemplateUI = function () {
+    prev();
+    try { dgUpdateTemplateSelect(); } catch (e) {}
+  };
+})();
 
 </script>
 
