@@ -434,7 +434,7 @@ body[dir="rtl"] .card-arrow{ transform:scaleX(-1) translateX(-8px); }
 <!-- HERO -->
 <div class="hero">
   <h2 data-i18n="idx_hero_h2">ORİMAK DİJİTAL ARAÇLAR</h2>
-  <p data-i18n="idx_hero_p">Koli üretim süreçlerinizi dijitalleştirin. FEFCO hesaplama, 3D koli görüntüleme, CUDBOX üretim araçları, Cargo 3D yük hesaplama ve parametrik kutu kataloğuna tek noktadan erişin.</p>
+  <p data-i18n="idx_hero_p">Koli üretim süreçlerinizi dijitalleştirin. FEFCO hesaplama, 3D koli görüntüleme, CUDBOX üretim araçları, Cargo 3D yük hesaplama, yazıcı etiket düzenleme ve parametrik kutu kataloğuna tek noktadan erişin.</p>
 </div>
 
 <!-- TOOLS GRID -->
@@ -583,6 +583,26 @@ body[dir="rtl"] .card-arrow{ transform:scaleX(-1) translateX(-8px); }
       <span class="card-arrow">→</span>
     </div>
   </a>
+  <!-- YAZICI ETİKET DÜZENLEYİCİ -->
+  <a href="yazici.html" class="tool-card card-1">
+    <div class="new-badge" data-i18n="idx_yeni">YENİ</div>
+    <div class="card-preview">
+      <div class="card-icon">🏷️</div>
+    </div>
+    <div class="card-body">
+      <div class="card-tag" data-i18n="idx_c8_tag">KODLAMA &amp; ETİKET</div>
+      <div class="card-title" data-i18n="idx_c8_title">Yazıcı Etiket Düzenleyici</div>
+      <div class="card-desc" data-i18n="idx_c8_desc">SmartDate X40 termal transfer yazıcı şablonlarını tarayıcıda tasarlayın. CoLOS .itf / .image / .job dosyalarını açın, düzenleyin ve birebir aynı biçimde geri üretin.</div>
+    </div>
+    <div class="card-footer">
+      <div class="card-features">
+        <span class="card-feature"><span class="dot"></span><span data-i18n="idx_c8_f1">CoLOS Uyumlu</span></span>
+        <span class="card-feature"><span class="dot"></span><span data-i18n="idx_c8_f2">Logo → BMP</span></span>
+        <span class="card-feature"><span class="dot"></span><span data-i18n="idx_c8_f3">Seri Üretim</span></span>
+      </div>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
 
 </div>
 <div class="footer">
@@ -633,6 +653,12 @@ body[dir="rtl"] .card-arrow{ transform:scaleX(-1) translateX(-8px); }
 // ============================================================
 const I18N_DEFAULTS = {
   "tr": {
+    "idx_c8_tag": "KODLAMA & ETİKET",
+    "idx_c8_title": "Yazıcı Etiket Düzenleyici",
+    "idx_c8_desc": "SmartDate X40 termal transfer yazıcı şablonlarını tarayıcıda tasarlayın. CoLOS .itf / .image / .job dosyalarını açın, düzenleyin ve birebir aynı biçimde geri üretin.",
+    "idx_c8_f1": "CoLOS Uyumlu",
+    "idx_c8_f2": "Logo → BMP",
+    "idx_c8_f3": "Seri Üretim",
     "idx_c7_tag": "KESİM REÇETESİ",
     "idx_c7_title": "HCUT Ölçü & Yerleşim",
     "idx_c7_desc": ".hcut2 kesim reçetelerini ölçülü levha çizimi ve tablo olarak açın. Fire bloklarını görün, kesim hatalarını teşhis edin, kendi ölçülerinizle yeni reçete oluşturup indirin.",
@@ -643,7 +669,7 @@ const I18N_DEFAULTS = {
     "idx_sub": "Koli Üretim & Tasarım Platformu",
     "idx_langmgr": "Dil Yönetimi",
     "idx_hero_h2": "ORİMAK DİJİTAL ARAÇLAR",
-    "idx_hero_p": "Koli üretim süreçlerinizi dijitalleştirin. FEFCO hesaplama, 3D koli görüntüleme, CUDBOX üretim araçları, Cargo 3D yük hesaplama ve parametrik kutu kataloğuna tek noktadan erişin.",
+    "idx_hero_p": "Koli üretim süreçlerinizi dijitalleştirin. FEFCO hesaplama, 3D koli görüntüleme, CUDBOX üretim araçları, Cargo 3D yük hesaplama, yazıcı etiket düzenleme ve parametrik kutu kataloğuna tek noktadan erişin.",
     "idx_yeni": "YENİ",
     "idx_c1_tag": "3D İNTERAKTİF",
     "idx_c1_title": "FEFCO 3D Koli Görüntüleyici",
@@ -692,6 +718,12 @@ const I18N_DEFAULTS = {
     "idx_lm_import": "📥 İçe Aktar"
   },
   "en": {
+    "idx_c8_tag": "CODING & LABELLING",
+    "idx_c8_title": "Printer Label Editor",
+    "idx_c8_desc": "Design SmartDate X40 thermal transfer printer templates in your browser. Open, edit and regenerate CoLOS .itf / .image / .job files byte-for-byte.",
+    "idx_c8_f1": "CoLOS Compatible",
+    "idx_c8_f2": "Logo → BMP",
+    "idx_c8_f3": "Batch Output",
     "idx_c7_tag": "CUTTING RECIPE",
     "idx_c7_title": "HCUT Sizes & Nesting",
     "idx_c7_desc": "Open .hcut2 cutting recipes as a dimensioned sheet drawing and table. Inspect waste blocks, diagnose cutting errors, and build your own recipe from your sizes.",
@@ -751,6 +783,12 @@ const I18N_DEFAULTS = {
     "idx_lm_import": "📥 Import"
   },
   "de": {
+    "idx_c8_tag": "CODIERUNG & ETIKETT",
+    "idx_c8_title": "Drucker-Etiketteneditor",
+    "idx_c8_desc": "SmartDate X40 Thermotransfer-Vorlagen im Browser gestalten. CoLOS .itf / .image / .job Dateien öffnen, bearbeiten und byte-genau zurückschreiben.",
+    "idx_c8_f1": "CoLOS-kompatibel",
+    "idx_c8_f2": "Logo → BMP",
+    "idx_c8_f3": "Serienausgabe",
     "idx_h1": "DIGITALE WERKZEUGE",
     "idx_sub": "Plattform für Kartonproduktion & Design",
     "idx_langmgr": "Sprache",
@@ -804,6 +842,12 @@ const I18N_DEFAULTS = {
     "idx_lm_import": "📥 Importieren"
   },
   "fr": {
+    "idx_c8_tag": "CODAGE & ÉTIQUETTE",
+    "idx_c8_title": "Éditeur d'étiquettes imprimante",
+    "idx_c8_desc": "Concevez les modèles de l'imprimante à transfert thermique SmartDate X40 dans le navigateur. Ouvrez, modifiez et régénérez les fichiers CoLOS .itf / .image / .job à l'octet près.",
+    "idx_c8_f1": "Compatible CoLOS",
+    "idx_c8_f2": "Logo → BMP",
+    "idx_c8_f3": "Production en série",
     "idx_h1": "OUTILS NUMÉRIQUES",
     "idx_sub": "Plateforme de production et conception de cartons",
     "idx_langmgr": "Langue",
@@ -857,6 +901,12 @@ const I18N_DEFAULTS = {
     "idx_lm_import": "📥 Importer"
   },
   "es": {
+    "idx_c8_tag": "CODIFICACIÓN Y ETIQUETA",
+    "idx_c8_title": "Editor de etiquetas de impresora",
+    "idx_c8_desc": "Diseñe plantillas de la impresora de transferencia térmica SmartDate X40 en el navegador. Abra, edite y regenere archivos CoLOS .itf / .image / .job byte a byte.",
+    "idx_c8_f1": "Compatible con CoLOS",
+    "idx_c8_f2": "Logo → BMP",
+    "idx_c8_f3": "Producción en serie",
     "idx_h1": "HERRAMIENTAS DIGITALES",
     "idx_sub": "Plataforma de producción y diseño de cajas",
     "idx_langmgr": "Idioma",
@@ -910,6 +960,12 @@ const I18N_DEFAULTS = {
     "idx_lm_import": "📥 Importar"
   },
   "ar": {
+    "idx_c8_tag": "الترميز والملصقات",
+    "idx_c8_title": "محرر ملصقات الطابعة",
+    "idx_c8_desc": "صمّم قوالب طابعة النقل الحراري SmartDate X40 داخل المتصفح. افتح ملفات CoLOS ‏.itf / .image / .job وعدّلها وأعد إنتاجها مطابقة بايت ببايت.",
+    "idx_c8_f1": "متوافق مع CoLOS",
+    "idx_c8_f2": "شعار ← BMP",
+    "idx_c8_f3": "إنتاج بالجملة",
     "idx_h1": "الأدوات الرقمية",
     "idx_sub": "منصة إنتاج وتصميم الصناديق",
     "idx_langmgr": "اللغة",
