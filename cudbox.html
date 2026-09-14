@@ -7430,5 +7430,595 @@ document.addEventListener('DOMContentLoaded', () => {
     <span style="color:var(--accent); opacity:0.6;">orimak.com.tr</span>
   </div>
 </div>
+
+<!-- ══════════════════ ORİMAK · KULLANIM KILAVUZU (otonom modül) ══════════════════ -->
+<style id="orkGuideCss">
+#orkGuideBtn{
+  --ork-a:#f59e0b; --ork-a2:#f97316;
+  all:unset; box-sizing:border-box; display:inline-flex; align-items:center; gap:7px;
+  font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif; font-size:12.5px; font-weight:800;
+  letter-spacing:.2px; color:#1a1206; cursor:pointer; padding:8px 14px; border-radius:10px;
+  background:linear-gradient(135deg,#fbbf24,#f97316); white-space:nowrap;
+  box-shadow:0 4px 16px rgba(249,115,22,.35), inset 0 1px 0 rgba(255,255,255,.45);
+  transition:transform .15s ease, box-shadow .2s ease, filter .2s ease;
+  animation:orkGlow 3.4s ease-in-out infinite;
+}
+#orkGuideBtn:hover{transform:translateY(-1px) scale(1.03);box-shadow:0 8px 26px rgba(249,115,22,.55);filter:brightness(1.07)}
+#orkGuideBtn:active{transform:translateY(0) scale(.98)}
+#orkGuideBtn.ork-fixed{position:fixed;top:12px;right:14px;z-index:2147483000}
+#orkGuideBtn.ork-mount{margin-left:auto}
+@media(max-width:1500px){#orkGuideBtn .ork-bk{display:none}}
+@media(max-width:1320px){#orkGuideBtn .ork-lw{display:none}}
+#orkGuideBtn .ork-bk{
+  font-size:9.5px;font-weight:900;background:rgba(0,0,0,.22);color:#fff7ed;
+  padding:2px 5px;border-radius:5px;letter-spacing:.4px
+}
+@keyframes orkGlow{0%,100%{box-shadow:0 4px 16px rgba(249,115,22,.32), inset 0 1px 0 rgba(255,255,255,.45)}
+50%{box-shadow:0 6px 26px rgba(249,115,22,.62), inset 0 1px 0 rgba(255,255,255,.45)}}
+
+#orkGuide{
+  --b:#0b111c; --b2:#111a28; --b3:#16212f; --ln:#243244; --tx:#e6edf6; --tx2:#9fb0c4; --tx3:#6b7f96;
+  --a:#f59e0b; --a2:#fb923c; --ok:#34d399; --warn:#fbbf24; --bad:#f87171; --info:#60a5fa;
+  position:fixed; inset:0; z-index:2147483100; display:flex; align-items:center; justify-content:center;
+  font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif; font-size:14px; line-height:1.62;
+  color:var(--tx); -webkit-font-smoothing:antialiased;
+}
+#orkGuide[hidden],#orkGuide.ork-off{display:none!important}
+#orkGuide *{box-sizing:border-box}
+/* sayfanın kendi stillerinden korunma */
+#orkGuide h2,#orkGuide h3,#orkGuide h4,#orkGuide p,#orkGuide li,#orkGuide div,#orkGuide span,
+#orkGuide td,#orkGuide th,#orkGuide button,#orkGuide input,#orkGuide nav,#orkGuide section{
+  font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;text-transform:none;letter-spacing:normal;
+  text-align:left;text-shadow:none;float:none
+}
+#orkGuide h2,#orkGuide h3,#orkGuide h4{line-height:1.3}
+#orkGuide .ork-bd{position:absolute;inset:0;background:rgba(4,8,14,.78);backdrop-filter:blur(7px);animation:orkFade .22s ease}
+#orkGuide .ork-dlg{
+  position:relative;width:min(1200px,96vw);height:min(90vh,960px);background:var(--b);
+  border:1px solid var(--ln);border-radius:18px;display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 40px 100px rgba(0,0,0,.65), 0 0 0 1px rgba(245,158,11,.12);
+  animation:orkPop .32s cubic-bezier(.2,.9,.3,1.15)
+}
+@keyframes orkFade{from{opacity:0}to{opacity:1}}
+@keyframes orkPop{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+
+#orkGuide .ork-hd{
+  display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--ln);
+  background:linear-gradient(180deg,#141f2e,#0e1724);flex:0 0 auto;position:relative;overflow:hidden
+}
+#orkGuide .ork-hd::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;
+  background:linear-gradient(90deg,transparent,var(--a),var(--a2),transparent);opacity:.75;
+  animation:orkSweep 6s linear infinite;background-size:200% 100%}
+@keyframes orkSweep{0%{background-position:0% 0}100%{background-position:200% 0}}
+#orkGuide .ork-ttl{font-size:16px;font-weight:800;letter-spacing:-.2px;display:flex;align-items:center;gap:9px}
+#orkGuide .ork-ttl small{display:block;font-size:11.5px;font-weight:600;color:var(--tx3);letter-spacing:.3px}
+#orkGuide .ork-sp{flex:1}
+#orkGuide .ork-search{
+  background:var(--b3);border:1px solid var(--ln);border-radius:9px;padding:8px 12px;color:var(--tx);
+  font-size:13px;width:250px;outline:none;font-family:inherit;transition:.18s
+}
+#orkGuide .ork-search:focus{border-color:var(--a);box-shadow:0 0 0 3px rgba(245,158,11,.16);width:290px}
+#orkGuide .ork-search::placeholder{color:var(--tx3)}
+#orkGuide .ork-ib{
+  background:var(--b3);border:1px solid var(--ln);color:var(--tx2);border-radius:9px;padding:8px 12px;
+  font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:.16s;white-space:nowrap
+}
+#orkGuide .ork-ib:hover{background:#1d2a3b;color:var(--tx);border-color:#33445c}
+#orkGuide .ork-x{background:transparent;border:1px solid var(--ln);color:var(--tx2);width:34px;height:34px;
+  border-radius:9px;font-size:18px;cursor:pointer;line-height:1;transition:.16s}
+#orkGuide .ork-x:hover{background:#3a1717;border-color:#7f2d2d;color:#fca5a5;transform:rotate(90deg)}
+
+#orkGuide .ork-wrap{flex:1;display:flex;min-height:0}
+#orkGuide .ork-toc{
+  width:262px;flex:0 0 262px;border-right:1px solid var(--ln);background:var(--b2);overflow-y:auto;padding:12px 10px
+}
+#orkGuide .ork-toc a{
+  display:flex;gap:9px;align-items:flex-start;padding:9px 11px;border-radius:9px;color:var(--tx2);
+  text-decoration:none;font-size:13px;font-weight:600;margin-bottom:3px;border:1px solid transparent;transition:.16s
+}
+#orkGuide .ork-toc a:hover{background:#1a2534;color:var(--tx)}
+#orkGuide .ork-toc a.on{background:linear-gradient(90deg,rgba(245,158,11,.2),rgba(245,158,11,.05));
+  color:#fcd34d;border-color:rgba(245,158,11,.35)}
+#orkGuide .ork-toc a i{font-style:normal;font-size:14px;width:18px;text-align:center;flex:0 0 18px}
+#orkGuide .ork-toc .ork-tochd{font-size:10.5px;font-weight:800;letter-spacing:1px;color:var(--tx3);
+  text-transform:uppercase;padding:12px 11px 6px}
+
+#orkGuide .ork-ct{flex:1;overflow-y:auto;padding:26px 34px 80px;scroll-behavior:smooth}
+#orkGuide .ork-ct::-webkit-scrollbar,#orkGuide .ork-toc::-webkit-scrollbar{width:10px}
+#orkGuide .ork-ct::-webkit-scrollbar-thumb,#orkGuide .ork-toc::-webkit-scrollbar-thumb{
+  background:#2a3a4f;border-radius:9px;border:3px solid transparent;background-clip:padding-box}
+#orkGuide section{margin-bottom:40px;scroll-margin-top:14px;animation:orkIn .4s ease both}
+@keyframes orkIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+#orkGuide section.ork-hide{display:none}
+#orkGuide h2{
+  font-size:20px;font-weight:800;letter-spacing:-.3px;margin:0 0 14px;padding-bottom:11px;
+  border-bottom:1px solid var(--ln);display:flex;align-items:center;gap:11px;color:#fff
+}
+#orkGuide h2 .n{
+  flex:0 0 auto;font-size:12px;font-weight:900;background:linear-gradient(135deg,#fbbf24,#f97316);
+  color:#1a1206;border-radius:8px;padding:4px 9px;letter-spacing:.4px
+}
+#orkGuide h3{font-size:15.5px;font-weight:800;margin:24px 0 9px;color:#fcd34d;letter-spacing:-.1px}
+#orkGuide h4{font-size:13.5px;font-weight:800;margin:16px 0 6px;color:var(--tx)}
+#orkGuide p{margin:0 0 11px;color:var(--tx2)}
+#orkGuide b,#orkGuide strong{color:var(--tx);font-weight:750}
+#orkGuide ul,#orkGuide ol{margin:0 0 12px;padding-left:22px;color:var(--tx2)}
+#orkGuide li{margin-bottom:6px}
+#orkGuide code{font-family:ui-monospace,"SF Mono",Consolas,monospace;font-size:12.5px;background:#1b2635;
+  border:1px solid var(--ln);border-radius:5px;padding:1px 6px;color:#fcd34d}
+#orkGuide kbd{font-family:inherit;font-size:11.5px;font-weight:800;background:#1f2b3c;border:1px solid #33445c;
+  border-bottom-width:2px;border-radius:6px;padding:2px 7px;color:var(--tx)}
+#orkGuide a.ork-lnk{color:#fcd34d}
+
+#orkGuide .ork-lead{
+  background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(249,115,22,.04));
+  border:1px solid rgba(245,158,11,.28);border-left:4px solid var(--a);border-radius:12px;
+  padding:15px 18px;margin-bottom:18px;color:var(--tx)
+}
+#orkGuide .ork-lead p:last-child{margin-bottom:0}
+
+#orkGuide .ork-steps{counter-reset:orks;list-style:none;padding:0;margin:14px 0 16px}
+#orkGuide .ork-steps>li{
+  counter-increment:orks;position:relative;padding:13px 16px 13px 52px;margin-bottom:10px;
+  background:var(--b2);border:1px solid var(--ln);border-radius:12px;color:var(--tx2);transition:.18s
+}
+#orkGuide .ork-steps>li:hover{border-color:rgba(245,158,11,.4);transform:translateX(3px);background:#141f2d}
+#orkGuide .ork-steps>li::before{
+  content:counter(orks);position:absolute;left:13px;top:12px;width:26px;height:26px;border-radius:8px;
+  background:linear-gradient(135deg,#fbbf24,#f97316);color:#1a1206;font-weight:900;font-size:13px;
+  display:flex;align-items:center;justify-content:center
+}
+#orkGuide .ork-steps>li b:first-child{display:block;color:#fff;margin-bottom:3px;font-size:14px}
+
+#orkGuide .ork-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}
+#orkGuide .ork-card{background:var(--b2);border:1px solid var(--ln);border-radius:12px;padding:14px 16px;transition:.18s}
+#orkGuide .ork-card:hover{border-color:rgba(245,158,11,.45);transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.35)}
+#orkGuide .ork-card h4{margin:0 0 6px;color:#fcd34d;font-size:13.5px;display:flex;align-items:center;gap:7px}
+#orkGuide .ork-card p{margin:0;font-size:13px}
+
+#orkGuide table.ork-t{width:100%;border-collapse:collapse;margin:12px 0 16px;font-size:13px;
+  background:var(--b2);border:1px solid var(--ln);border-radius:12px;overflow:hidden}
+#orkGuide table.ork-t th{background:#1a2635;color:#fcd34d;font-weight:800;text-align:left;padding:10px 13px;
+  border-bottom:1px solid var(--ln);font-size:12px;letter-spacing:.3px;text-transform:uppercase}
+#orkGuide table.ork-t td{padding:9px 13px;border-bottom:1px solid #1d2836;color:var(--tx2);vertical-align:top}
+#orkGuide table.ork-t tr:last-child td{border-bottom:none}
+#orkGuide table.ork-t tr:hover td{background:#141f2d;color:var(--tx)}
+#orkGuide table.ork-t td:first-child{color:var(--tx);font-weight:700;white-space:nowrap}
+#orkGuide .ork-scroll{overflow-x:auto}
+
+#orkGuide .ork-note,#orkGuide .ork-tip,#orkGuide .ork-warn,#orkGuide .ork-bad{
+  border-radius:11px;padding:12px 15px;margin:12px 0;font-size:13.2px;border:1px solid;position:relative;padding-left:44px
+}
+#orkGuide .ork-note::before,#orkGuide .ork-tip::before,#orkGuide .ork-warn::before,#orkGuide .ork-bad::before{
+  position:absolute;left:14px;top:11px;font-size:15px}
+#orkGuide .ork-note{background:rgba(96,165,250,.08);border-color:rgba(96,165,250,.32);color:#c7dcff}
+#orkGuide .ork-note::before{content:"ℹ️"}
+#orkGuide .ork-tip{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.32);color:#bdf0dc}
+#orkGuide .ork-tip::before{content:"💡"}
+#orkGuide .ork-warn{background:rgba(251,191,36,.09);border-color:rgba(251,191,36,.34);color:#fde9b5}
+#orkGuide .ork-warn::before{content:"⚠️"}
+#orkGuide .ork-bad{background:rgba(248,113,113,.09);border-color:rgba(248,113,113,.32);color:#fecdd3}
+#orkGuide .ork-bad::before{content:"⛔"}
+#orkGuide .ork-note b,#orkGuide .ork-tip b,#orkGuide .ork-warn b,#orkGuide .ork-bad b{color:#fff}
+
+#orkGuide .ork-ft{
+  flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:11px 18px;border-top:1px solid var(--ln);
+  background:var(--b2);font-size:12px;color:var(--tx3)
+}
+#orkGuide .ork-ft label{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none}
+#orkGuide .ork-ft input[type=checkbox]{width:15px;height:15px;accent-color:var(--a);cursor:pointer}
+#orkGuide .ork-empty{text-align:center;color:var(--tx3);padding:60px 20px;font-size:14px}
+
+@media(max-width:900px){
+  #orkGuide .ork-dlg{width:100vw;height:100vh;border-radius:0}
+  #orkGuide .ork-wrap{flex-direction:column}
+  #orkGuide .ork-toc{width:100%;flex:0 0 auto;max-height:132px;border-right:none;border-bottom:1px solid var(--ln);
+    display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:9px}
+  #orkGuide .ork-toc .ork-tochd{display:none}
+  #orkGuide .ork-toc a{white-space:nowrap;margin:0}
+  #orkGuide .ork-ct{padding:18px 16px 60px}
+  #orkGuide .ork-search{width:130px}
+  #orkGuide .ork-search:focus{width:150px}
+  #orkGuide .ork-ttl small{display:none}
+}
+</style>
+
+<button id="orkGuideBtn" type="button" title="Kullanım kılavuzunu aç (F1)">📖 <span><span class="ork-lw">Kullanım </span>Kılavuzu</span> <span class="ork-bk">F1</span></button>
+
+<div id="orkGuide" class="ork-off" role="dialog" aria-modal="true" aria-label="Kullanım Kılavuzu">
+  <div class="ork-bd" data-ork-close></div>
+  <div class="ork-dlg">
+    <div class="ork-hd">
+      <div class="ork-ttl">📖 <div>CUDBOX Üretici<small>Excel'den toplu .cudbox üretimi, tasarım ve kaset ofset</small></div></div>
+      <div class="ork-sp"></div>
+      <input class="ork-search" id="orkGuideSearch" type="search" placeholder="Kılavuzda ara…" autocomplete="off">
+      <button class="ork-ib" id="orkGuidePrint" type="button">🖨 Yazdır</button>
+      <button class="ork-x" type="button" data-ork-close aria-label="Kapat">×</button>
+    </div>
+    <div class="ork-wrap">
+      <nav class="ork-toc" id="orkGuideToc"></nav>
+      <div class="ork-ct" id="orkGuideCt">
+        <section id="g-intro" data-ico="🎯" data-nav="Bu program ne işe yarar?">
+          <h2><span class="n">01</span> Bu program ne işe yarar?</h2>
+          <div class="ork-lead">
+            <p><b>CUDBOX Üretici</b>, kesim makinesinin okuduğu <b>.cudbox</b> kutu dosyalarını <b>tek tek elle değil, toplu halde</b> üretmeye yarar.
+            Elinizde bir Excel listesi (ya da makineden gelen bir .dat dosyası) varsa, her satır için ayrı bir kutu dosyası saniyeler içinde hazırlanır.</p>
+            <p style="margin-top:8px">Ayrıca: kutuyu sıfırdan çizebilir, iki kutuyu tek kalıpta birleştirebilir, makinenin kaset ofsetlerini hesaplayabilir,
+            <b>QBOX.txt</b> ve <b>.dat</b> kesim dosyaları üretebilir, mevcut .cudbox dosyalarını Excel'e dökebilirsiniz.</p>
+          </div>
+          <h3>Temel mantık: şablon + ölçü = yeni dosya</h3>
+          <ul>
+            <li><b>Şablon (.cudbox):</b> bir kutu tipinin yapısı ve formülleri — örn. <code>Fefco_0201.cudbox</code>. Ölçüler içinde <b>değişken</b> olarak durur.</li>
+            <li><b>Ölçü listesi:</b> Excel veya .dat dosyanızdaki satırlar — her satır bir kutunun B, L, H, T… değerleri.</li>
+            <li><b>Sonuç:</b> program şablonun formüllerini yeni ölçülerle yeniden hesaplar ve her satır için ayrı bir <code>.cudbox</code> üretip ZIP olarak indirir.</li>
+          </ul>
+          <div class="ork-tip"><b>Kurulum gerekmez.</b> Tek HTML dosyasıdır; çift tıklayıp tarayıcıda (Chrome/Edge) açın. İnternet gerekmez,
+          yüklediğiniz şablonlar tarayıcıda saklanır, her seferinde yeniden yüklemeniz gerekmez.</div>
+        </section>
+
+        <section id="g-terim" data-ico="📖" data-nav="Terimler sözlüğü">
+          <h2><span class="n">02</span> Terimler — önce bunlar</h2>
+          <div class="ork-scroll">
+          <table class="ork-t">
+            <tr><th>Terim</th><th>Anlamı</th></tr>
+            <tr><td>.cudbox</td><td>Kesim makinesinin kutu tanım dosyası. İçinde kutunun bölümleri, formülleri ve <code>bx_Arguments</code> adlı ölçü değişkenleri bulunur.</td></tr>
+            <tr><td>Şablon</td><td>Örnek alınacak .cudbox dosyası. Ölçüleri değiştirilerek yenileri üretilir.</td></tr>
+            <tr><td>B / L / H / T</td><td>Boy · En · Yükseklik · Kalınlık (mm). Bazı kutularda ek olarak <b>K1, K2, P</b> gibi ölçüler bulunur.</td></tr>
+            <tr><td>FEFCO</td><td>Kutu tiplerinin uluslararası kod sistemi (0201 standart koli, 0410 sarma kutu vb.).</td></tr>
+            <tr><td>Kaset (Unit_X)</td><td>Makinedeki <b>dikey</b> kesim/bıçak istasyonu. Makinede 7, 8, 12… kaset olabilir.</td></tr>
+            <tr><td>Unit_Y</td><td><b>Yatay</b> hareket — sac boyunca yapılan kesim/kat çizgileri (genelde 32 adete kadar).</td></tr>
+            <tr><td>Segment</td><td>İki çizgi arasındaki bölüm. Segment sayısı = çizgi sayısı − 1.</td></tr>
+            <tr><td>Ofset</td><td>Bir kaseti hedeflenen aralığı tutturmak için kaydırma miktarı (mm).</td></tr>
+            <tr><td>QBOX.txt</td><td>Makineye gönderilen kesim listesi dosyası — her satır bir kutu işi.</td></tr>
+            <tr><td>.dat</td><td>Makinenin “not defteri” dosyası; ölçü satırlarını UTF-16 metin olarak tutar.</td></tr>
+          </table>
+          </div>
+        </section>
+
+        <section id="g-hizli" data-ico="🚀" data-nav="5 dakikada ilk üretim">
+          <h2><span class="n">03</span> 5 dakikada ilk toplu üretiminiz</h2>
+          <p>En sık kullanılan iş: <b>Excel listesinden toplu .cudbox üretmek</b>.</p>
+          <ol class="ork-steps">
+            <li><b>⚡ Üretim sekmesini açın</b> Program zaten burada açılır.</li>
+            <li><b>① Şablon yükleyin</b> <b>📁 Şablon Yükle (.cudbox)</b> ile makinenizden gelen orijinal kutu dosyalarını seçin
+              (örn. <code>Fefco_0201.cudbox</code>). Birden fazla seçebilirsiniz; bir kez yükleyin, tarayıcıda kalır.</li>
+            <li><b>② Excel'inizi hazırlayın</b> İlk satır başlık olsun; sütunlar: <code>B</code>, <code>L</code>, <code>H</code>, <code>T</code> (gerekirse K1, K2…).
+              Örnek dosya için <b>📥 Örnek Excel İndir</b> düğmesini kullanın.</li>
+            <li><b>② Excel'i sürükleyin</b> Dosyayı gri alana bırakın veya tıklayıp seçin (.xlsx / .xls / .csv).</li>
+            <li><b>Varsayılan şablonu seçin</b> Excel'de şablon sütunu yoksa aşağıdaki <b>Varsayılan Şablon</b> listesinden hangi kutu tipi kullanılacağını seçin.</li>
+            <li><b>③ 🚀 TOPLU ÜRETİM BAŞLAT</b> Sayaçlar (Toplam / Başarılı / Hatalı) dolar ve üretilen dosyalar <b>ZIP</b> olarak inilir.</li>
+          </ol>
+          <div class="ork-note">Excel'de <b>ŞABLON</b> (veya FEFCO) sütunu varsa her satır kendi şablonuyla üretilir.
+          Hepsini tek şablona zorlamak isterseniz <b>“Excel'deki şablon sütununu yoksay — tüm satırlara bunu uygula”</b> kutusunu işaretleyin.</div>
+        </section>
+
+        <section id="g-uretim" data-ico="⚡" data-nav="Üretim sekmesi">
+          <h2><span class="n">04</span> ⚡ Üretim sekmesi (ana ekran)</h2>
+          <h3>① Şablon Dosyaları</h3>
+          <p>Yüklü şablonlar rozet olarak listelenir; sağ üstteki sayaç kaç şablon olduğunu gösterir. Şablonlar <b>tarayıcıda saklanır</b> —
+          bilgisayarı kapatsanız da durur. Yönetimi “📐 Şablonlar” sekmesinden yapılır.</p>
+          <h3>② Excel Dosyası (kutu listesi)</h3>
+          <table class="ork-t">
+            <tr><th>Sütun</th><th>Açıklama</th><th>Zorunlu mu?</th></tr>
+            <tr><td>ŞABLON / FEFCO</td><td>O satır için kullanılacak şablon adı (örn. Fefco_0201).</td><td>Hayır — yoksa Varsayılan Şablon kullanılır</td></tr>
+            <tr><td>DOSYA ADI</td><td>Üretilecek dosyanın adı. Boşsa otomatik üretilir.</td><td>Hayır</td></tr>
+            <tr><td>B</td><td>Boy (mm)</td><td>Şablona göre</td></tr>
+            <tr><td>L</td><td>En (mm)</td><td>Şablona göre</td></tr>
+            <tr><td>H</td><td>Yükseklik (mm)</td><td>Şablona göre</td></tr>
+            <tr><td>T</td><td>Kalınlık (mm)</td><td>Şablona göre</td></tr>
+            <tr><td>K1 · K2 · K3 · K4</td><td>Kapak / ek ölçüler</td><td>Şablona göre</td></tr>
+          </table>
+          <div class="ork-tip">Sütun başlıklarınız farklıysa (örn. <code>W</code>, <code>NAME</code>) dosya yüklendikten sonra çıkan
+          <b>🔗 Sütun Eşleştirme</b> bölümünden hangi sütunun hangi ölçü olduğunu kendiniz seçebilirsiniz. Noktalı virgülle ayrılmış ve Türkçe karakterli CSV'ler de okunur.</div>
+          <h3>② ALTERNATİF — DAT dosyası</h3>
+          <p>Makinenin not defterinden gelen <code>.dat</code> dosyasını da kaynak olarak kullanabilirsiniz. Her satır ayrı bir .cudbox olur.</p>
+          <p><b>Sütun sırası:</b> Genişlik (B) · Kalınlık (T) · Ürün Adı · Uzunluk (L) · Yükseklik (H). Önce şablonu yükleyin, sonra .dat dosyasını seçin.</p>
+          <h3>③ Toplu Üretim</h3>
+          <p><b>Toplam</b> okunan satır sayısı, <b>Başarılı</b> üretilen dosya, <b>Hatalı</b> ise üretilemeyen satırdır.
+          Hatalı çıkanlar genelde: eksik ölçü, tanınmayan şablon adı veya sayı yerine metin yazılmış hücrelerdir.</p>
+        </section>
+
+        <section id="g-sablon" data-ico="📐" data-nav="Şablonlar sekmesi">
+          <h2><span class="n">05</span> 📐 Şablonlar sekmesi</h2>
+          <ul>
+            <li><b>📁 Şablon Yükle:</b> yeni .cudbox şablonları ekler (çoklu seçim yapılabilir).</li>
+            <li><b>Şablon kartına tıklayın:</b> o şablonun içindeki ölçü değişkenlerini (<code>bx_Arguments</code>) ve parametrelerini görürsünüz —
+              böylece Excel'de hangi sütunları hazırlamanız gerektiğini anlarsınız.</li>
+            <li><b>🗑️ Tümünü Sil:</b> yüklü tüm şablonları temizler. Orijinal dosyalarınız bilgisayarınızda durur, tekrar yükleyebilirsiniz.</li>
+          </ul>
+          <div class="ork-warn">Şablonlar tarayıcı hafızasında tutulur. Tarayıcı verileri temizlenirse silinir —
+          orijinal <code>.cudbox</code> dosyalarınızı her zaman bir klasörde saklayın.</div>
+        </section>
+
+        <section id="g-tasarim" data-ico="✏️" data-nav="Kutu Tasarımcısı">
+          <h2><span class="n">06</span> ✏️ Kutu Tasarımcısı</h2>
+          <p>Elinizde uygun şablon yoksa kutuyu buradan <b>sıfırdan çizip</b> .cudbox olarak kaydedebilirsiniz.</p>
+          <h3>Yeni tasarım</h3>
+          <ol class="ork-steps">
+            <li><b>Hareket sayılarını girin</b> <b>↔ Yatay hareket (X)</b> ve <b>↕ Dikey hareket (Y)</b> — yani kutuda kaç kesim/kat çizgisi olacağı.</li>
+            <li><b>▶ Ölçü Girişine Geç</b> Sol tarafta segment listeleri açılır.</li>
+            <li><b>🔢 Değişkenleri tanımlayın</b> <code>H</code>, <code>B</code>, <code>L</code>, <code>t</code> gibi değişkenler ekleyin ve değerlerini yazın.</li>
+            <li><b>Segment formüllerini yazın</b> Her segment için isim ve formül girin — örn. <code>B+2*t</code>. Hesaplanan ölçü çizimde ilgili bölümün altında görünür.</li>
+            <li><b>Çizgi tiplerini atayın</b> Önizlemede bir çizgiye tıklayın ve moddan seçin: <b>✂ Kes</b> · <b>〜 Kat</b> · <b>⌇ Ayır</b> · <b>✕ Yok</b>.
+              Sürükleyerek birden fazla çizgiyi tek seferde işaretleyebilirsiniz.</li>
+            <li><b>💾 .cudbox Kaydet</b> Tasarımı makinenin okuyacağı dosya olarak indirir.</li>
+          </ol>
+          <h4>Önizleme kontrolleri</h4>
+          <ul>
+            <li>Boş alanda sürükleme = kaydırma · fare tekerleği = yakınlaştırma · <b>⛶ Tam Ekran</b> ile büyütme.</li>
+            <li><b>⟳ 90°</b>, <b>↔ Çevir</b>, <b>↕ Çevir</b> ile kalıbı döndürüp aynalayabilirsiniz.</li>
+            <li>Toplam en ve toplam boy çizimin üzerinde yazılıdır.</li>
+          </ul>
+          <h3>📂 Mevcut .cudbox açma</h3>
+          <p>Var olan bir dosyayı açıp ölçülerini/çizgilerini değiştirip yeniden kaydedebilirsiniz.</p>
+          <h3>🔗 İki kutuyu yan yana birleştirme</h3>
+          <p>Farklı ölçülerdeki iki .cudbox'ı <b>tek kalıpta</b> birleştirir — tek geçişte iki kutu kesmek için.</p>
+          <ol class="ork-steps">
+            <li><b>Sol (A) ve Sağ (B) kutuyu seçin</b> İki .cudbox dosyasını yükleyin; <b>⇄</b> ile yerlerini değiştirebilirsiniz.</li>
+            <li><b>Makine limitlerini girin</b> Dikey hareket limiti (kaset sayısı: 7/8/12…) ve yatay hareket limiti (genelde 32).</li>
+            <li><b>Yerleşimi ayarlayın</b> <b>Aralık = 0</b> yaparsanız iki kutuyu ayıran orta çizgi <b>tek kasete</b> düşer
+              (4 + 4 kasetlik iki kutu → 7 kaset, yani 8 kasetli makinede çıkar). Dikey hizalama ve ek Y ofseti buradan verilir.</li>
+            <li><b>🔗 Birleştir ve Tasarımcıya Aktar</b> Sonucu çizimde görün; gerekiyorsa <b>🎯 Yatay Hareketi Azalt (oto)</b> ile hareket sayısını düşürün.</li>
+            <li><b>💾 Direkt .cudbox Kaydet</b> Birleşik kalıbı dosya olarak alın.</li>
+          </ol>
+          <div class="ork-note">Aynı isimli ama farklı değerli değişkenler otomatik olarak <b>A_</b> / <b>B_</b> ön ekleriyle ayrılır;
+          bir kutuda hareket olup diğerinde olmayan hizalarda ölçü <b>fark formülüyle</b> yazılır (örn. <code>B_B+T+B_L-A_B-A_L</code>).</div>
+        </section>
+
+        <section id="g-donustur" data-ico="🔄" data-nav="Excel Dönüştürücü">
+          <h2><span class="n">07</span> 🔄 Excel Dönüştürücü</h2>
+          <p>Elinizdeki <b>düzensiz</b> Excel'i, programın anladığı düzene çevirir — üretimden önce temiz bir liste elde etmek için.</p>
+          <ol class="ork-steps">
+            <li><b>① Excel'i yükleyin</b> Sürükleyin ya da tıklayıp seçin. Kaç satır ve sütun bulunduğu yazar.</li>
+            <li><b>② Sütunları eşleştirin</b> Her alan için karşılık gelen sütunu seçin; kullanmayacaklarınızı <b>“— Kullanma —”</b> bırakın.</li>
+            <li><b>Sabit şablon (opsiyonel)</b> Dosyada şablon sütunu yoksa burada seçtiğiniz şablon tüm satırlara yazılır.
+              Bunu da boş bırakırsanız Üretim ekranındaki <b>Varsayılan Şablon</b> devreye girer.</li>
+            <li><b>🔄 Dönüştür &amp; İndir</b> Düzenlenmiş Excel'i indirir; doğrudan Üretim sekmesinde kullanabilirsiniz.</li>
+          </ol>
+        </section>
+
+        <section id="g-rapor" data-ico="📦" data-nav="CUDBOX → Excel">
+          <h2><span class="n">08</span> 📦 CUDBOX → Excel (ters yön: rapor)</h2>
+          <p>Elinizdeki <b>.cudbox dosyalarının içindeki ölçüleri</b> okuyup Excel tablosu yapar. Arşiv çıkarmak, ölçü karşılaştırmak için kullanılır.</p>
+          <ol class="ork-steps">
+            <li><b>① Dosyaları yükleyin</b> Birden fazla .cudbox seçebilirsiniz. Ölçü sütunları argümanlara göre otomatik oluşur.</li>
+            <li><b>Ölçü şablonu (opsiyonel)</b> Kutu tipleri farklıysa, çıkacak sütunları sabitlemek için bir şablon uygulayın —
+              o zaman yalnızca seçtiğiniz alanlar sütun olur, dosyada yoksa hücre boş kalır.</li>
+            <li><b>② 📥 Excel İndir (.xlsx)</b> Listeyi indirin.</li>
+          </ol>
+          <div class="ork-note">Bilinen ölçü adları: <b>B</b>=Boy, <b>L</b>=En, <b>H</b>=Yükseklik, <b>T</b>=Kalınlık, <b>K1/K2/P</b>=ek ölçüler.
+          Kutu tipi dosya adındaki FEFCO kodundan bulunur. Aynı dosyayı tekrar yüklerseniz eski satırın üzerine yazılır.</div>
+        </section>
+
+        <section id="g-ofset" data-ico="📏" data-nav="Kaset Ofset">
+          <h2><span class="n">09</span> 📏 Kaset Ofset — makine ayarı</h2>
+          <div class="ork-lead"><p>Makineden çıkan kutunun aralıkları hedeften sapıyorsa, hangi kaseti <b>kaç mm, hangi yöne</b> kaydıracağınızı hesaplar.
+          Elle deneme-yanılmayı bitirir.</p></div>
+          <ol class="ork-steps">
+            <li><b>① Kaset düzenini kurun</b> Kaset sayısını ve hedef aralığı (mm) girip <b>Oluştur</b> deyin —
+              ya da <b>✏️ Tasarımcıdan Al</b> / <b>📂 .cudbox Yükle</b> ile düzeni hazır getirin. <b>Tüm hedefleri eşitle</b> ile hepsini tek değere çekebilirsiniz.</li>
+            <li><b>③ Makineden çıkan ölçüleri girin</b> Her aralık için ölçtüğünüz gerçek değeri yazın; <kbd>Enter</kbd> ile sonraki kutuya geçersiniz.
+              Sayaç “0 / 0 · Hepsi tam” olana kadar doldurun.</li>
+            <li><b>② Dağıtım ayarlarını seçin</b> <b>Kayma dağılımı</b>: Dengeli (en büyük kayma en aza iner) · Sabit kaset (seçtiğiniz kaset hiç kıpırdamaz) ·
+              Merkezi koru (kesim deseni yerinde kalır). <b>Yön yorumu</b>: makine ters tepki veriyorsa “Ters çevir”.</li>
+            <li><b>④ Sonucu okuyun</b> Tabloda her kaset için <b>Verilecek Ofset</b>, <b>Yön</b> ve <b>Yeni Konum</b> yazar.
+              Alttaki kontrol tablosu düzeltme sonrası aralıkların hedefe oturduğunu gösterir.</li>
+            <li><b>Aktarın</b> <b>📋 Kopyala</b>, <b>⬇ CSV</b> veya <b>🖨 Yazdır</b> ile değerleri makine başına götürün.</li>
+          </ol>
+          <h4>Neden tek tek düzeltilemez? (zincir etkisi)</h4>
+          <p>Her kaset <b>iki aralığı birden</b> etkiler: bir kaseti 1 mm sola alırsanız sağındaki aralık 1 mm büyür, solundaki 1 mm küçülür.
+          Bu yüzden tüm kasetler tek bir zincir olarak çözülür: <code>ofset(k+1) = ofset(k) − (hedef − ölçülen)</code>.</p>
+          <div class="ork-note">Kasetler <b>sağdan sola</b> numaralanır: en sağdaki dikey çizgi <b>K1</b>'dir.
+          Her kart iki kaset arasındaki aralığı temsil eder; küçük turuncu kutu <b>hedef</b>, büyük kutu <b>ölçülen</b> değerdir.</div>
+        </section>
+
+        <section id="g-txt" data-ico="📝" data-nav="TXT (QBOX) Oluşturucu">
+          <h2><span class="n">10</span> 📝 TXT Oluşturucu — QBOX.txt kesim listesi</h2>
+          <p>Makineye gönderilecek kesim listesini hazırlar. Her satır bir kutu işidir.</p>
+          <ol class="ork-steps">
+            <li><b>⚙ Şablon Yönet</b> FEFCO şablonlarınızı tanımlayın: kod, varsayılan H/B/L/T, K, Yön, Konum, Üretim Tipi, Kapak Farkı ve Adet.
+              Program <b>18 hazır FEFCO şablonuyla</b> gelir; düzenleyebilir, silebilir, yenisini ekleyebilirsiniz.</li>
+            <li><b>Şablon seçin</b> Formun üstündeki listeden şablonu seçin — kod ve tüm seçenekler otomatik dolar.</li>
+            <li><b>Ölçüleri yazın</b> Sadece H / B / L girip <b>Listeye Ekle</b> deyin. Farklı ölçüler için tekrarlayın.</li>
+            <li><b>İndirin</b> <b>QBOX.txt İndir</b> ile tek dosya alın veya <b>Makineye Gönder</b> ile doğrudan aktarın.</li>
+          </ol>
+          <h4>12 alanın anlamı</h4>
+          <div class="ork-scroll">
+          <table class="ork-t">
+            <tr><th>Alan</th><th>Açıklama</th></tr>
+            <tr><td>1 · Kutu Adı</td><td>İş/ürün adı (zorunlu).</td></tr>
+            <tr><td>2 · Kutu Kodu</td><td>FEFCO kodu (zorunlu).</td></tr>
+            <tr><td>3–6 · H / B / L / T</td><td>Ölçüler (mm). Tasarımcıdan geliyorsa otomatik dolar.</td></tr>
+            <tr><td>7 · K Parametresi</td><td>Birden fazla değeri <code>#</code> ile ayırın → çıktıda <code>#50#50#</code> şeklinde yazılır.</td></tr>
+            <tr><td>8 · Yön</td><td>0 döndürme yok · 1/2/3 saat yönünde 1×/2×/3× döndürme.</td></tr>
+            <tr><td>9 · Konum</td><td>1 sağ · 2 paralel sağ · 3 sol · 4 paralel sol · 5 çift taraf.</td></tr>
+            <tr><td>10 · Üretim Tipi</td><td>0 alt-üst-alt-üst · 1 sadece altlar · 2 sadece üstler · 3 önce altlar sonra üstler.</td></tr>
+            <tr><td>11 · Kapak Farkı</td><td>mm cinsinden kapak farkı.</td></tr>
+            <tr><td>12 · Hedef Adet</td><td>Üretilecek kutu adedi.</td></tr>
+          </table>
+          </div>
+          <h4>Tasarımcıdan TXT üretmek</h4>
+          <p>Tasarımcıda bir kutu çizdikten (veya .cudbox açtıktan) sonra sol menüdeki <b>📝 TXT Seçeneklerini Aç</b> düğmesine basın:
+          H/B/L/T tasarımdan otomatik gelir (<b>⟲ Ölçüleri Tasarımdan Al</b> ile tazelenir),
+          <b>➕ Kesim Listesine Ekle</b> satırı listeye gönderir, <b>⬇ Hemen TXT İndir</b> tek satırlık dosya verir,
+          <b>★ Şablon Kaydet</b> ayarları şablon olarak saklar.</p>
+        </section>
+
+        <section id="g-dat" data-ico="📄" data-nav="DAT Oluşturucu">
+          <h2><span class="n">11</span> 📄 DAT Oluşturucu</h2>
+          <p>Makinenin not defteri formatındaki <code>.dat</code> dosyasını üretir.</p>
+          <div class="ork-tip"><b>En sağlıklı yol:</b> önce makineden çıkan <b>gerçek bir .dat dosyasını</b> yükleyin.
+          Program sütun sayısını, hangi sütunun ne olduğunu, sayı biçimini (ör. <code>960.000000</code>), kodlamayı ve satır sonunu öğrenir;
+          üretirken yalnızca <b>ölçü, isim ve tarih/saat</b> alanlarını günceller — kalan her şey birebir aynı kalır.</div>
+          <ol class="ork-steps">
+            <li><b>Şablon .dat yükleyin</b> (önerilir) veya hazır çıktı düzenlerinden birini seçin:
+              Makine (9 sütun) · Sade (7 sütun) · Kısa (5 sütun) · Özel.</li>
+            <li><b>Sütunları ayarlayın</b> Her sütun için rol, ondalık basamak ve sabit değer belirleyebilir, sırayı değiştirebilirsiniz. Örnek çıktı anında görünür.</li>
+            <li><b>Kodlama ve biçim</b> <b>UTF-16 LE</b> (makine — önerilen), ondalık ayracı nokta/virgül, tarih-saat ve başlık satırı seçenekleri.</li>
+            <li><b>① Kaynak seçin</b> <b>📊 Excel'den</b> veya <b>📦 .cudbox'tan</b> — her dosya .dat içinde bir satır olur.</li>
+            <li><b>② Önizleyip indirin</b> Ham .dat içeriğinin ilk 25 satırını kontrol edin (<code>→</code> sekme karakteridir),
+              sonra <b>📥 .dat İndir</b> veya <b>⚡ Üretim Sekmesine Gönder</b>.</li>
+          </ol>
+          <div class="ork-warn">Kodlamayı değiştirmeyin: makine genelde yalnızca <b>UTF-16 LE</b> dosyaları okur. Emin değilseniz şablon .dat yükleyip olduğu gibi bırakın.</div>
+        </section>
+
+        <section id="g-akis" data-ico="🔁" data-nav="Hangi iş için hangi sekme?">
+          <h2><span class="n">12</span> Hangi iş için hangi sekme?</h2>
+          <div class="ork-scroll">
+          <table class="ork-t">
+            <tr><th>İhtiyacınız</th><th>Gideceğiniz yer</th></tr>
+            <tr><td>Excel listesinden 50 kutu dosyası üretmek</td><td>⚡ Üretim</td></tr>
+            <tr><td>Makine not defterinden (.dat) dosya üretmek</td><td>⚡ Üretim → ALTERNATİF DAT bölümü</td></tr>
+            <tr><td>Şablon eklemek / silmek / içine bakmak</td><td>📐 Şablonlar</td></tr>
+            <tr><td>Sıfırdan kutu çizmek veya mevcut kutuyu düzenlemek</td><td>✏️ Kutu Tasarımcısı</td></tr>
+            <tr><td>İki kutuyu tek kalıpta yan yana kesmek</td><td>✏️ Kutu Tasarımcısı → 🔗 Birleştir</td></tr>
+            <tr><td>Dağınık Excel'i düzene sokmak</td><td>🔄 Excel Dönüştürücü</td></tr>
+            <tr><td>Elimdeki .cudbox'ların ölçü listesini çıkarmak</td><td>📦 CUDBOX → Excel</td></tr>
+            <tr><td>Makinede aralıklar tutmuyor, ayar gerekiyor</td><td>📏 Kaset Ofset</td></tr>
+            <tr><td>Makineye kesim listesi göndermek</td><td>📝 TXT Oluşturucu</td></tr>
+            <tr><td>Makine not defteri dosyası üretmek</td><td>📄 DAT Oluşturucu</td></tr>
+          </table>
+          </div>
+        </section>
+
+        <section id="g-sss" data-ico="❓" data-nav="SSS ve sorun giderme">
+          <h2><span class="n">13</span> SSS ve sorun giderme</h2>
+          <h4>“Hatalı” sayacı dolu — neden?</h4>
+          <p>O satırlarda genelde eksik ölçü, boş hücre, sayı yerine metin (“960 mm”) veya tanınmayan şablon adı vardır. Excel'i düzeltip tekrar deneyin.</p>
+          <h4>Şablonum listede görünmüyor.</h4>
+          <p>Şablonu yüklediğinizden emin olun (📐 Şablonlar sekmesindeki sayaç). Excel'deki şablon adı, yüklenen dosyanın adıyla <b>birebir</b> eşleşmelidir.</p>
+          <h4>ZIP indi ama içi boş / eksik.</h4>
+          <p>Tarayıcı indirmeyi engellemiş olabilir; adres çubuğundaki indirme uyarısını onaylayın. Çok büyük listelerde işlemi parçalara bölün.</p>
+          <h4>Üretilen dosyanın ölçüleri yanlış.</h4>
+          <p>Şablonun değişken adlarıyla Excel sütunlarınız eşleşmiyor olabilir. Şablon kartına tıklayıp içindeki argümanları (B, L, H, T, K1…) görün,
+          sütun eşleştirmeyi ona göre yapın.</p>
+          <h4>Kaset ofset tablosu “limit aşımı” diyor.</h4>
+          <p>İstenen kayma makinenin izin verdiği sınırı aşıyor. <b>Kayma limiti (mm)</b> değerini veya dağıtım modunu (Dengeli / Merkezi koru) değiştirin.</p>
+          <h4>Verilerim/şablonlarım kayboldu.</h4>
+          <p>Tarayıcı verileri temizlenmiştir. Orijinal .cudbox dosyalarınızı tekrar yükleyin — bu yüzden onları her zaman bir klasörde saklayın.</p>
+          <h4>Program başka bilgisayarda çalışır mı?</h4>
+          <p>Evet, HTML dosyasını kopyalamanız yeterli. Şablonları o bilgisayarda bir kez yeniden yüklersiniz.</p>
+          <div class="ork-tip">Bu kılavuzu her an <kbd>F1</kbd> ile açabilir, üstteki arama kutusuna anahtar kelime (“kaset”, “dat”, “şablon”) yazarak ilgili bölüme atlayabilirsiniz.
+          Sayfadaki <b>📖 Yardım</b> sekmesinde de teknik format notları bulunur.</div>
+        </section>
+
+        <div class="ork-empty" id="orkGuideEmpty" style="display:none">Aramanla eşleşen bölüm yok.</div>
+      </div>
+    </div>
+    <div class="ork-ft">
+      <label><input type="checkbox" id="orkGuideAuto"> Bu sayfayı her açtığımda kılavuzu göster</label>
+      <div class="ork-sp" style="flex:1"></div>
+      <span>ORİMAK MAKİNA · Kullanım Kılavuzu · <kbd>Esc</kbd> kapatır · <kbd>F1</kbd> açar</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var KEY='orimak_guide_cudbox_v1';
+  var root=document.getElementById('orkGuide'),
+      btn=document.getElementById('orkGuideBtn'),
+      toc=document.getElementById('orkGuideToc'),
+      ct=document.getElementById('orkGuideCt'),
+      search=document.getElementById('orkGuideSearch'),
+      empty=document.getElementById('orkGuideEmpty'),
+      auto=document.getElementById('orkGuideAuto');
+  var secs=[].slice.call(ct.querySelectorAll('section[id]'));
+
+  /* ---- butonu sayfanın sağ üst köşesine yerleştir ---- */
+  (function(){
+    var sels=['.header'], host=null, i;
+    for(i=0;i<sels.length;i++){ host=document.querySelector(sels[i]); if(host) break; }
+    if(host){ btn.classList.add('ork-mount'); host.appendChild(btn); }
+    else{ btn.classList.add('ork-fixed'); document.body.appendChild(btn); }
+  })();
+
+  /* ---- içindekiler ---- */
+  var html='<div class="ork-tochd">İçindekiler</div>';
+  secs.forEach(function(s){
+    html+='<a href="#'+s.id+'" data-t="'+s.id+'"><i>'+(s.getAttribute('data-ico')||'•')+'</i><span>'+
+          (s.getAttribute('data-nav')||s.querySelector('h2').textContent)+'</span></a>';
+  });
+  toc.innerHTML=html;
+  var links=[].slice.call(toc.querySelectorAll('a'));
+  links.forEach(function(a){
+    a.addEventListener('click',function(e){
+      e.preventDefault();
+      var s=document.getElementById(a.getAttribute('data-t'));
+      if(s) ct.scrollTo({top:s.offsetTop-ct.offsetTop-6,behavior:'smooth'});
+    });
+  });
+  function spy(){
+    var best=null,bd=1e9;
+    secs.forEach(function(s){
+      if(s.classList.contains('ork-hide')) return;
+      var d=Math.abs(s.getBoundingClientRect().top-ct.getBoundingClientRect().top-10);
+      if(d<bd){bd=d;best=s;}
+    });
+    links.forEach(function(a){a.classList.toggle('on',!!best&&a.getAttribute('data-t')===best.id);});
+  }
+  ct.addEventListener('scroll',function(){ clearTimeout(spy._t); spy._t=setTimeout(spy,60); });
+
+  /* ---- arama ---- */
+  search.addEventListener('input',function(){
+    var q=search.value.trim().toLowerCase(), n=0;
+    secs.forEach(function(s){
+      var hit=!q||s.textContent.toLowerCase().indexOf(q)>=0;
+      s.classList.toggle('ork-hide',!hit);
+      var a=toc.querySelector('a[data-t="'+s.id+'"]'); if(a) a.style.display=hit?'':'none';
+      if(hit) n++;
+    });
+    empty.style.display=n?'none':'block';
+  });
+
+  /* ---- aç / kapat ---- */
+  function open(){
+    root.classList.remove('ork-off');
+    document.documentElement.style.overflow='hidden';
+    setTimeout(function(){ spy(); },50);
+  }
+  function close(){ root.classList.add('ork-off'); document.documentElement.style.overflow=''; }
+  btn.addEventListener('click',open);
+  [].slice.call(root.querySelectorAll('[data-ork-close]')).forEach(function(el){ el.addEventListener('click',close); });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&!root.classList.contains('ork-off')){ close(); }
+    else if(e.key==='F1'){ e.preventDefault(); root.classList.contains('ork-off')?open():close(); }
+  });
+
+  /* ---- ilk açılışta otomatik göster ---- */
+  var seen=null;
+  try{ seen=localStorage.getItem(KEY); }catch(e){}
+  auto.checked = (seen==='always');
+  auto.addEventListener('change',function(){
+    try{ localStorage.setItem(KEY, auto.checked?'always':'seen'); }catch(e){}
+  });
+  if(seen===null||seen==='always'){
+    setTimeout(open,600);
+    if(seen===null){ try{ localStorage.setItem(KEY,'seen'); }catch(e){} }
+  }
+
+  /* ---- yazdır ---- */
+  document.getElementById('orkGuidePrint').addEventListener('click',function(){
+    var w=window.open('','_blank');
+    if(!w){ alert('Yazdırma penceresi engellendi. Tarayıcı ayarlarından açılır pencerelere izin verin.'); return; }
+    var css='body{font-family:Segoe UI,Arial,sans-serif;font-size:12px;color:#111;max-width:900px;margin:24px auto;padding:0 18px;line-height:1.6}'+
+      'h1{font-size:20px;border-bottom:3px solid #f59e0b;padding-bottom:8px}'+
+      'h2{font-size:16px;margin-top:26px;border-bottom:1px solid #ddd;padding-bottom:5px;page-break-after:avoid}'+
+      'h3{font-size:13.5px;margin-top:16px;color:#b45309}h4{font-size:12.5px;margin:12px 0 4px}'+
+      'table{width:100%;border-collapse:collapse;margin:10px 0;font-size:11px}'+
+      'th,td{border:1px solid #ccc;padding:5px 7px;text-align:left;vertical-align:top}th{background:#f3f4f6}'+
+      '.ork-note,.ork-tip,.ork-warn,.ork-bad{border-left:4px solid #f59e0b;background:#fafafa;padding:8px 12px;margin:10px 0}'+
+      '.ork-steps{padding-left:20px}.ork-steps>li{margin-bottom:8px}'+
+      'code,kbd{background:#f3f4f6;border:1px solid #ddd;border-radius:3px;padding:0 4px;font-size:11px}'+
+      'section{page-break-inside:auto}.ork-empty{display:none}.n{background:#f59e0b;padding:1px 6px;border-radius:4px;margin-right:6px}';
+    w.document.write('<!doctype html><meta charset="utf-8"><title>CUDBOX Üretici — Kullanım Kılavuzu</title><style>'+css+
+      '</style><h1>CUDBOX Üretici — Kullanım Kılavuzu</h1>'+ct.innerHTML);
+    w.document.close();
+    setTimeout(function(){ try{ w.print(); }catch(e){} },400);
+  });
+})();
+</script>
+<!-- ════════════════ /ORİMAK · KULLANIM KILAVUZU ════════════════ -->
+
 </body>
 </html>

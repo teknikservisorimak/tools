@@ -2266,5 +2266,550 @@ log(FSOK ? 'Klasöre doğrudan yazma DESTEKLENİYOR — "Kaydet" ile klasör se�
 
 })();
 </script>
+
+<!-- ══════════════════ ORİMAK · KULLANIM KILAVUZU (otonom modül) ══════════════════ -->
+<style id="orkGuideCss">
+#orkGuideBtn{
+  --ork-a:#f59e0b; --ork-a2:#f97316;
+  all:unset; box-sizing:border-box; display:inline-flex; align-items:center; gap:7px;
+  font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif; font-size:12.5px; font-weight:800;
+  letter-spacing:.2px; color:#1a1206; cursor:pointer; padding:8px 14px; border-radius:10px;
+  background:linear-gradient(135deg,#fbbf24,#f97316); white-space:nowrap;
+  box-shadow:0 4px 16px rgba(249,115,22,.35), inset 0 1px 0 rgba(255,255,255,.45);
+  transition:transform .15s ease, box-shadow .2s ease, filter .2s ease;
+  animation:orkGlow 3.4s ease-in-out infinite;
+}
+#orkGuideBtn:hover{transform:translateY(-1px) scale(1.03);box-shadow:0 8px 26px rgba(249,115,22,.55);filter:brightness(1.07)}
+#orkGuideBtn:active{transform:translateY(0) scale(.98)}
+#orkGuideBtn.ork-fixed{position:fixed;top:12px;right:14px;z-index:2147483000}
+#orkGuideBtn.ork-mount{margin-left:auto}
+@media(max-width:1500px){#orkGuideBtn .ork-bk{display:none}}
+@media(max-width:1320px){#orkGuideBtn .ork-lw{display:none}}
+#orkGuideBtn .ork-bk{
+  font-size:9.5px;font-weight:900;background:rgba(0,0,0,.22);color:#fff7ed;
+  padding:2px 5px;border-radius:5px;letter-spacing:.4px
+}
+@keyframes orkGlow{0%,100%{box-shadow:0 4px 16px rgba(249,115,22,.32), inset 0 1px 0 rgba(255,255,255,.45)}
+50%{box-shadow:0 6px 26px rgba(249,115,22,.62), inset 0 1px 0 rgba(255,255,255,.45)}}
+
+#orkGuide{
+  --b:#0b111c; --b2:#111a28; --b3:#16212f; --ln:#243244; --tx:#e6edf6; --tx2:#9fb0c4; --tx3:#6b7f96;
+  --a:#f59e0b; --a2:#fb923c; --ok:#34d399; --warn:#fbbf24; --bad:#f87171; --info:#60a5fa;
+  position:fixed; inset:0; z-index:2147483100; display:flex; align-items:center; justify-content:center;
+  font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif; font-size:14px; line-height:1.62;
+  color:var(--tx); -webkit-font-smoothing:antialiased;
+}
+#orkGuide[hidden],#orkGuide.ork-off{display:none!important}
+#orkGuide *{box-sizing:border-box}
+/* sayfanın kendi stillerinden korunma */
+#orkGuide h2,#orkGuide h3,#orkGuide h4,#orkGuide p,#orkGuide li,#orkGuide div,#orkGuide span,
+#orkGuide td,#orkGuide th,#orkGuide button,#orkGuide input,#orkGuide nav,#orkGuide section{
+  font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;text-transform:none;letter-spacing:normal;
+  text-align:left;text-shadow:none;float:none
+}
+#orkGuide h2,#orkGuide h3,#orkGuide h4{line-height:1.3}
+#orkGuide .ork-bd{position:absolute;inset:0;background:rgba(4,8,14,.78);backdrop-filter:blur(7px);animation:orkFade .22s ease}
+#orkGuide .ork-dlg{
+  position:relative;width:min(1200px,96vw);height:min(90vh,960px);background:var(--b);
+  border:1px solid var(--ln);border-radius:18px;display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 40px 100px rgba(0,0,0,.65), 0 0 0 1px rgba(245,158,11,.12);
+  animation:orkPop .32s cubic-bezier(.2,.9,.3,1.15)
+}
+@keyframes orkFade{from{opacity:0}to{opacity:1}}
+@keyframes orkPop{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+
+#orkGuide .ork-hd{
+  display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--ln);
+  background:linear-gradient(180deg,#141f2e,#0e1724);flex:0 0 auto;position:relative;overflow:hidden
+}
+#orkGuide .ork-hd::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;
+  background:linear-gradient(90deg,transparent,var(--a),var(--a2),transparent);opacity:.75;
+  animation:orkSweep 6s linear infinite;background-size:200% 100%}
+@keyframes orkSweep{0%{background-position:0% 0}100%{background-position:200% 0}}
+#orkGuide .ork-ttl{font-size:16px;font-weight:800;letter-spacing:-.2px;display:flex;align-items:center;gap:9px}
+#orkGuide .ork-ttl small{display:block;font-size:11.5px;font-weight:600;color:var(--tx3);letter-spacing:.3px}
+#orkGuide .ork-sp{flex:1}
+#orkGuide .ork-search{
+  background:var(--b3);border:1px solid var(--ln);border-radius:9px;padding:8px 12px;color:var(--tx);
+  font-size:13px;width:250px;outline:none;font-family:inherit;transition:.18s
+}
+#orkGuide .ork-search:focus{border-color:var(--a);box-shadow:0 0 0 3px rgba(245,158,11,.16);width:290px}
+#orkGuide .ork-search::placeholder{color:var(--tx3)}
+#orkGuide .ork-ib{
+  background:var(--b3);border:1px solid var(--ln);color:var(--tx2);border-radius:9px;padding:8px 12px;
+  font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:.16s;white-space:nowrap
+}
+#orkGuide .ork-ib:hover{background:#1d2a3b;color:var(--tx);border-color:#33445c}
+#orkGuide .ork-x{background:transparent;border:1px solid var(--ln);color:var(--tx2);width:34px;height:34px;
+  border-radius:9px;font-size:18px;cursor:pointer;line-height:1;transition:.16s}
+#orkGuide .ork-x:hover{background:#3a1717;border-color:#7f2d2d;color:#fca5a5;transform:rotate(90deg)}
+
+#orkGuide .ork-wrap{flex:1;display:flex;min-height:0}
+#orkGuide .ork-toc{
+  width:262px;flex:0 0 262px;border-right:1px solid var(--ln);background:var(--b2);overflow-y:auto;padding:12px 10px
+}
+#orkGuide .ork-toc a{
+  display:flex;gap:9px;align-items:flex-start;padding:9px 11px;border-radius:9px;color:var(--tx2);
+  text-decoration:none;font-size:13px;font-weight:600;margin-bottom:3px;border:1px solid transparent;transition:.16s
+}
+#orkGuide .ork-toc a:hover{background:#1a2534;color:var(--tx)}
+#orkGuide .ork-toc a.on{background:linear-gradient(90deg,rgba(245,158,11,.2),rgba(245,158,11,.05));
+  color:#fcd34d;border-color:rgba(245,158,11,.35)}
+#orkGuide .ork-toc a i{font-style:normal;font-size:14px;width:18px;text-align:center;flex:0 0 18px}
+#orkGuide .ork-toc .ork-tochd{font-size:10.5px;font-weight:800;letter-spacing:1px;color:var(--tx3);
+  text-transform:uppercase;padding:12px 11px 6px}
+
+#orkGuide .ork-ct{flex:1;overflow-y:auto;padding:26px 34px 80px;scroll-behavior:smooth}
+#orkGuide .ork-ct::-webkit-scrollbar,#orkGuide .ork-toc::-webkit-scrollbar{width:10px}
+#orkGuide .ork-ct::-webkit-scrollbar-thumb,#orkGuide .ork-toc::-webkit-scrollbar-thumb{
+  background:#2a3a4f;border-radius:9px;border:3px solid transparent;background-clip:padding-box}
+#orkGuide section{margin-bottom:40px;scroll-margin-top:14px;animation:orkIn .4s ease both}
+@keyframes orkIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+#orkGuide section.ork-hide{display:none}
+#orkGuide h2{
+  font-size:20px;font-weight:800;letter-spacing:-.3px;margin:0 0 14px;padding-bottom:11px;
+  border-bottom:1px solid var(--ln);display:flex;align-items:center;gap:11px;color:#fff
+}
+#orkGuide h2 .n{
+  flex:0 0 auto;font-size:12px;font-weight:900;background:linear-gradient(135deg,#fbbf24,#f97316);
+  color:#1a1206;border-radius:8px;padding:4px 9px;letter-spacing:.4px
+}
+#orkGuide h3{font-size:15.5px;font-weight:800;margin:24px 0 9px;color:#fcd34d;letter-spacing:-.1px}
+#orkGuide h4{font-size:13.5px;font-weight:800;margin:16px 0 6px;color:var(--tx)}
+#orkGuide p{margin:0 0 11px;color:var(--tx2)}
+#orkGuide b,#orkGuide strong{color:var(--tx);font-weight:750}
+#orkGuide ul,#orkGuide ol{margin:0 0 12px;padding-left:22px;color:var(--tx2)}
+#orkGuide li{margin-bottom:6px}
+#orkGuide code{font-family:ui-monospace,"SF Mono",Consolas,monospace;font-size:12.5px;background:#1b2635;
+  border:1px solid var(--ln);border-radius:5px;padding:1px 6px;color:#fcd34d}
+#orkGuide kbd{font-family:inherit;font-size:11.5px;font-weight:800;background:#1f2b3c;border:1px solid #33445c;
+  border-bottom-width:2px;border-radius:6px;padding:2px 7px;color:var(--tx)}
+#orkGuide a.ork-lnk{color:#fcd34d}
+
+#orkGuide .ork-lead{
+  background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(249,115,22,.04));
+  border:1px solid rgba(245,158,11,.28);border-left:4px solid var(--a);border-radius:12px;
+  padding:15px 18px;margin-bottom:18px;color:var(--tx)
+}
+#orkGuide .ork-lead p:last-child{margin-bottom:0}
+
+#orkGuide .ork-steps{counter-reset:orks;list-style:none;padding:0;margin:14px 0 16px}
+#orkGuide .ork-steps>li{
+  counter-increment:orks;position:relative;padding:13px 16px 13px 52px;margin-bottom:10px;
+  background:var(--b2);border:1px solid var(--ln);border-radius:12px;color:var(--tx2);transition:.18s
+}
+#orkGuide .ork-steps>li:hover{border-color:rgba(245,158,11,.4);transform:translateX(3px);background:#141f2d}
+#orkGuide .ork-steps>li::before{
+  content:counter(orks);position:absolute;left:13px;top:12px;width:26px;height:26px;border-radius:8px;
+  background:linear-gradient(135deg,#fbbf24,#f97316);color:#1a1206;font-weight:900;font-size:13px;
+  display:flex;align-items:center;justify-content:center
+}
+#orkGuide .ork-steps>li b:first-child{display:block;color:#fff;margin-bottom:3px;font-size:14px}
+
+#orkGuide .ork-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}
+#orkGuide .ork-card{background:var(--b2);border:1px solid var(--ln);border-radius:12px;padding:14px 16px;transition:.18s}
+#orkGuide .ork-card:hover{border-color:rgba(245,158,11,.45);transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.35)}
+#orkGuide .ork-card h4{margin:0 0 6px;color:#fcd34d;font-size:13.5px;display:flex;align-items:center;gap:7px}
+#orkGuide .ork-card p{margin:0;font-size:13px}
+
+#orkGuide table.ork-t{width:100%;border-collapse:collapse;margin:12px 0 16px;font-size:13px;
+  background:var(--b2);border:1px solid var(--ln);border-radius:12px;overflow:hidden}
+#orkGuide table.ork-t th{background:#1a2635;color:#fcd34d;font-weight:800;text-align:left;padding:10px 13px;
+  border-bottom:1px solid var(--ln);font-size:12px;letter-spacing:.3px;text-transform:uppercase}
+#orkGuide table.ork-t td{padding:9px 13px;border-bottom:1px solid #1d2836;color:var(--tx2);vertical-align:top}
+#orkGuide table.ork-t tr:last-child td{border-bottom:none}
+#orkGuide table.ork-t tr:hover td{background:#141f2d;color:var(--tx)}
+#orkGuide table.ork-t td:first-child{color:var(--tx);font-weight:700;white-space:nowrap}
+#orkGuide .ork-scroll{overflow-x:auto}
+
+#orkGuide .ork-note,#orkGuide .ork-tip,#orkGuide .ork-warn,#orkGuide .ork-bad{
+  border-radius:11px;padding:12px 15px;margin:12px 0;font-size:13.2px;border:1px solid;position:relative;padding-left:44px
+}
+#orkGuide .ork-note::before,#orkGuide .ork-tip::before,#orkGuide .ork-warn::before,#orkGuide .ork-bad::before{
+  position:absolute;left:14px;top:11px;font-size:15px}
+#orkGuide .ork-note{background:rgba(96,165,250,.08);border-color:rgba(96,165,250,.32);color:#c7dcff}
+#orkGuide .ork-note::before{content:"ℹ️"}
+#orkGuide .ork-tip{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.32);color:#bdf0dc}
+#orkGuide .ork-tip::before{content:"💡"}
+#orkGuide .ork-warn{background:rgba(251,191,36,.09);border-color:rgba(251,191,36,.34);color:#fde9b5}
+#orkGuide .ork-warn::before{content:"⚠️"}
+#orkGuide .ork-bad{background:rgba(248,113,113,.09);border-color:rgba(248,113,113,.32);color:#fecdd3}
+#orkGuide .ork-bad::before{content:"⛔"}
+#orkGuide .ork-note b,#orkGuide .ork-tip b,#orkGuide .ork-warn b,#orkGuide .ork-bad b{color:#fff}
+
+#orkGuide .ork-ft{
+  flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:11px 18px;border-top:1px solid var(--ln);
+  background:var(--b2);font-size:12px;color:var(--tx3)
+}
+#orkGuide .ork-ft label{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none}
+#orkGuide .ork-ft input[type=checkbox]{width:15px;height:15px;accent-color:var(--a);cursor:pointer}
+#orkGuide .ork-empty{text-align:center;color:var(--tx3);padding:60px 20px;font-size:14px}
+
+@media(max-width:900px){
+  #orkGuide .ork-dlg{width:100vw;height:100vh;border-radius:0}
+  #orkGuide .ork-wrap{flex-direction:column}
+  #orkGuide .ork-toc{width:100%;flex:0 0 auto;max-height:132px;border-right:none;border-bottom:1px solid var(--ln);
+    display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:9px}
+  #orkGuide .ork-toc .ork-tochd{display:none}
+  #orkGuide .ork-toc a{white-space:nowrap;margin:0}
+  #orkGuide .ork-ct{padding:18px 16px 60px}
+  #orkGuide .ork-search{width:130px}
+  #orkGuide .ork-search:focus{width:150px}
+  #orkGuide .ork-ttl small{display:none}
+}
+</style>
+
+<button id="orkGuideBtn" type="button" title="Kullanım kılavuzunu aç (F1)">📖 <span><span class="ork-lw">Kullanım </span>Kılavuzu</span> <span class="ork-bk">F1</span></button>
+
+<div id="orkGuide" class="ork-off" role="dialog" aria-modal="true" aria-label="Kullanım Kılavuzu">
+  <div class="ork-bd" data-ork-close></div>
+  <div class="ork-dlg">
+    <div class="ork-hd">
+      <div class="ork-ttl">📖 <div>Yazıcı Etiket Düzenleyici<small>SmartDate X40 · Markem-Imaje CoLOS etiket hazırlama</small></div></div>
+      <div class="ork-sp"></div>
+      <input class="ork-search" id="orkGuideSearch" type="search" placeholder="Kılavuzda ara…" autocomplete="off">
+      <button class="ork-ib" id="orkGuidePrint" type="button">🖨 Yazdır</button>
+      <button class="ork-x" type="button" data-ork-close aria-label="Kapat">×</button>
+    </div>
+    <div class="ork-wrap">
+      <nav class="ork-toc" id="orkGuideToc"></nav>
+      <div class="ork-ct" id="orkGuideCt">
+        <section id="g-intro" data-ico="🎯" data-nav="Bu program ne işe yarar?">
+          <h2><span class="n">01</span> Bu program ne işe yarar?</h2>
+          <div class="ork-lead">
+            <p><b>Yazıcı Etiket Düzenleyici</b>, ORİMAK'taki <b>Markem-Imaje SmartDate X40</b> termal transfer yazıcısının bastığı etiket şablonlarını
+            hazırlamak için kullanılır. Normalde bu işi <b>CoLOS Create</b> programı yapar; bu araç aynı dosyaları
+            (<code>.itf</code>, <code>.image</code>, <code>.job</code>, <code>.bmp</code>) <b>birebir aynı düzende</b> üretir — üstelik kurulum gerektirmez.</p>
+          </div>
+          <h3>Ne yapabilirsiniz?</h3>
+          <ul>
+            <li>Etikete <b>metin</b>, <b>logo/grafik</b>, tarih-saat, çizgi, dikdörtgen, barkod yerleştirmek.</li>
+            <li>Mevcut bir CoLOS dosyasını <b>açıp düzenlemek</b> (içe aktarım kayıpsızdır, bilinmeyen bloklar korunur).</li>
+            <li>Logoyu yazıcının anladığı <b>1-bit siyah-beyaz BMP</b> formatına çevirmek.</li>
+            <li>Tek tasarımdan <b>onlarca etiket</b> üretmek (seri üretim: her satır için ayrı .image + .job).</li>
+          </ul>
+          <div class="ork-tip"><b>Kurulum yok.</b> HTML dosyasına çift tıklayıp tarayıcıda (Chrome / Edge önerilir) açın.
+          İnternet gerekmez; hiçbir veri dışarı gitmez.</div>
+        </section>
+
+        <section id="g-dosya" data-ico="📁" data-nav="Dosya tipleri">
+          <h2><span class="n">02</span> Dosya tipleri — hangisi ne işe yarar?</h2>
+          <table class="ork-t">
+            <tr><th>Dosya</th><th>Ne işe yarar</th></tr>
+            <tr><td>.itf</td><td><b>Kaynak şablon.</b> CoLOS Create'in kendi dosyası — sonradan düzenlemek için saklanır.</td></tr>
+            <tr><td>.image</td><td><b>Yazıcıya giden baskı dosyası.</b> Etiketin basılacak hali.</td></tr>
+            <tr><td>.job</td><td>Tek satırlık dosya: <b>hangi .image'ın basılacağını</b> söyler.</td></tr>
+            <tr><td>.bmp</td><td>Logolar için 1-bit siyah-beyaz görsel. <b>.image ile aynı klasörde</b> olmalıdır.</td></tr>
+          </table>
+          <div class="ork-note">Yazıcıya genelde <b>.image + .job</b> (ve varsa <b>.bmp</b>) gönderilir. <b>.itf</b> sizde kalır —
+          etiketi ileride değiştirmek istediğinizde onu açarsınız.</div>
+          <div class="ork-warn">Logolu bir etiket gönderiyorsanız <b>.bmp dosyasını unutmayın</b>. Yazıcı logoyu dosya adından arar; bulamazsa o alan boş basar.</div>
+        </section>
+
+        <section id="g-hizli" data-ico="🚀" data-nav="İlk etiketiniz (5 dakika)">
+          <h2><span class="n">03</span> İlk etiketinizi 5 dakikada yapın</h2>
+          <ol class="ork-steps">
+            <li><b>✦ Yeni</b> Üst şeritten <b>✦ Yeni</b> deyin. Açılan pencereden <b>yazıcı modelini</b> seçin
+              (örn. “SmartDate X40 32mm Intermittent”). Etiket genişliği/yüksekliği otomatik ayarlanır.</li>
+            <li><b>Dosya adını yazın</b> Sağ üstteki <b>Dosya adı</b> kutusuna işin adını girin (örn. <code>URUN_A</code>). Üretilen tüm dosyalar bu adı alır.</li>
+            <li><b>Metin ekleyin</b> Sol paneldeki <b>Araçlar</b> listesinden <b>Metin</b>'i seçin, sonra tuval üzerinde metnin duracağı yere tıklayın.</li>
+            <li><b>Yazıyı girin</b> Sağ paneldeki <b>Veri</b> sekmesinde <b>Metin</b> kutusuna yazınızı yazın.
+              <b>Görünüm</b> sekmesinden yazı tipini ve puntoyu ayarlayın.</li>
+            <li><b>Yerini ayarlayın</b> Alanı fareyle sürükleyin; hassas ayar için <b>Alan</b> sekmesindeki X/Y kutularını veya ok tuşlarını kullanın.
+              Üstteki <b>Hizala</b> düğmeleriyle ortalayabilirsiniz.</li>
+            <li><b>Dışa aktarın</b> <b>⬇ .image + .job</b> (yazıcıya gidecek dosyalar) veya <b>📦 Tümünü indir (ZIP)</b> (her şey birden).
+              Şablonu ileride düzenlemek için <b>⬇ .itf</b>'i de alın.</li>
+          </ol>
+          <div class="ork-tip">Ölçüler <b>milimetre</b> cinsindendir. Cetveller ve kılavuz ızgara (<b>▦</b>) konumlandırmayı kolaylaştırır;
+          <b>🧲</b> ile ızgaraya yapışmayı açıp kapatabilirsiniz.</div>
+        </section>
+
+        <section id="g-ekran" data-ico="🖥" data-nav="Ekran turu">
+          <h2><span class="n">04</span> Ekran turu</h2>
+          <h3>Üst şerit — dosya işlemleri</h3>
+          <table class="ork-t">
+            <tr><th>Düğme</th><th>Ne yapar</th></tr>
+            <tr><td>✦ Yeni</td><td>Yeni etiket başlatır, yazıcı modelini sorar.</td></tr>
+            <tr><td>📂 Aç</td><td>.itf / .image / .job dosyası açar — sürükleyip bırakabilir veya çalışma klasörü seçebilirsiniz.</td></tr>
+            <tr><td>💾 Kaydet · Farklı kaydet</td><td>Seçtiğiniz klasöre doğrudan yazar (tarayıcı desteklemiyorsa ZIP indirir).</td></tr>
+            <tr><td>↺ ↻</td><td>Geri al / ileri al (<kbd>Ctrl+Z</kbd> · <kbd>Ctrl+Y</kbd>).</td></tr>
+            <tr><td>⧉ 🗑</td><td>Seçili alanı çoğaltır / siler (<kbd>Ctrl+D</kbd> · <kbd>Del</kbd>).</td></tr>
+            <tr><td>⬇ .itf</td><td>Kaynak şablonu indirir.</td></tr>
+            <tr><td>⬇ .image + .job</td><td>Yazıcıya gidecek dosyaları indirir.</td></tr>
+            <tr><td>📦 Tümünü indir (ZIP)</td><td>.itf + .image + .job + logoların .bmp'leri tek pakette.</td></tr>
+            <tr><td>⚡ Seri üretim</td><td>Bir listeden toplu etiket üretir (aşağıda anlatılıyor).</td></tr>
+            <tr><td>&lt;/&gt; XML</td><td>Üretilecek dosyanın ham içeriğini gösterir — teknik kontrol için.</td></tr>
+            <tr><td>?</td><td>Format ve birim notları (teknik ek).</td></tr>
+            <tr><td>📁 Kayıt yeri</td><td>Kaydedilecek klasörü seçer/gösterir.</td></tr>
+          </table>
+          <h3>İkinci şerit — biçim ve görünüm</h3>
+          <p>Yazı tipi ve punto, <b>B</b> kalın · <b>I</b> italik · <b>U</b> altı çizili · <b>◨</b> ters (siyah zemin);
+          <b>Hizala</b> düğmeleri (sola/ortala/sağa, üste/ortala/alta), <b>Döndür</b> (0° / 90° / 180° / 270°),
+          <b>Zoom</b>, <b>▦</b> ızgara ve <b>🧲</b> ızgaraya yapışma.</p>
+          <h3>Sol panel</h3>
+          <ul>
+            <li><b>Araçlar:</b> Seçim · Metin · Logo/Grafik · Tarih-Saat · Dikdörtgen · Çizgi · Barkod. (β işaretliler deneyseldir.)</li>
+            <li><b>Alan sırası:</b> etiketteki alanların listesi. Tıklayınca seçilir; <b>▲ ▼</b> ile üst/alt sırasını değiştirirsiniz.</li>
+          </ul>
+          <h3>Orta — tuval</h3>
+          <p>Etiketin gerçek boyutlu görüntüsü. Üstteki kutulardan <b>mm cinsinden</b> genişlik/yükseklik yazabilir,
+          etiketin sağ/alt/köşe mavi tutamaçlarından çekebilir veya <b>⤢</b> ile içeriğe sığdırabilirsiniz.</p>
+          <h3>Sağ panel — Gelişmiş Özellikler</h3>
+          <p>Seçili alanın tüm ayarları burada, dört sekmede toplanır: <b>Alan</b> · <b>Görünüm</b> · <b>Veri</b> · <b>Etiket</b>. (Sonraki bölüm.)</p>
+          <h3>Alt — Sistem Etkinliği</h3>
+          <p>Yapılan her işlemin kaydı (alan eklendi, dosya açıldı, hata vb.). Şeride tıklayarak gizleyip açabilirsiniz.
+          Bir şey ters giderse <b>önce buraya bakın</b>.</p>
+        </section>
+
+        <section id="g-panel" data-ico="⚙️" data-nav="Sağ panel sekmeleri">
+          <h2><span class="n">05</span> Sağ panel — dört sekme</h2>
+          <h3>Alan sekmesi (konum ve kimlik)</h3>
+          <table class="ork-t">
+            <tr><th>Ayar</th><th>Anlamı</th></tr>
+            <tr><td>Name</td><td>Alanın adı. Seri üretimde ve kullanıcı girişlerinde bu adla anılır — anlamlı isim verin (örn. <code>PARTI_NO</code>).</td></tr>
+            <tr><td>ID</td><td>Alanın numarası (genelde dokunmanıza gerek yoktur).</td></tr>
+            <tr><td>Field Colour</td><td>BLACK / WHITE / RED / BLUE. Termal yazıcıda baskı siyahtır; renk mantıksal anlam taşır.</td></tr>
+            <tr><td>X · Y</td><td>Alanın etiket üzerindeki konumu (mm).</td></tr>
+            <tr><td>Rotation</td><td>0 / 90 / 180 / 270 derece döndürme.</td></tr>
+            <tr><td>Width · Height</td><td>Logo, dikdörtgen ve barkodda elle girilir; metinde yazıdan hesaplanır.</td></tr>
+          </table>
+          <h3>Görünüm sekmesi</h3>
+          <ul>
+            <li><b>Metin için:</b> yazı tipi (Typeface), <b>Punto</b>, CharHeight/CharWidth (HM birimi), kalın/italik/altı çizili,
+              <b>Inverted</b> (siyah zemine beyaz yazı) ve OverlayMode.</li>
+            <li><b>Logo için:</b> BMP dosya adı ve <b>🖼 Görsel seç / değiştir</b> düğmesi; küçük önizleme gösterilir.</li>
+            <li><b>Barkod için:</b> Code128 / Code39 / EAN13 / ITF14 / QR ve metnin altta yazılıp yazılmayacağı.</li>
+            <li><b>Çizgi / dikdörtgen için:</b> kalınlık ve dolu-boş seçeneği.</li>
+          </ul>
+          <div class="ork-note"><b>HM birimi:</b> 1 HM = 1/100 mm. Yani 3200 HM = 32 mm. 20 punto ≈ 811 HM ≈ 8,11 mm.
+          Punto kutusunu kullanırsanız dönüşümü program yapar.</div>
+          <h3>Veri sekmesi — en önemli ayar</h3>
+          <p>Metin alanının değerinin <b>nereden geleceğini</b> belirler:</p>
+          <div class="ork-cards">
+            <div class="ork-card"><h4>Sabit (Static)</h4><p>Yazı her baskıda aynıdır — ürün adı, adres, uyarı metni gibi.</p></div>
+            <div class="ork-card"><h4>Kullanıcı girişi (User Input)</h4><p>Operatör yazıcının ekranında değeri girer.
+              <b>Prompt</b> = ekranda çıkacak soru, <b>DefaultValue</b> = varsayılan cevap. Parti no, tarih, vardiya için idealdir.</p></div>
+            <div class="ork-card"><h4>Tarih/Saat (β)</h4><p>Biçim seçilir (gg/aa/yyyy vb.) ve gün kaydırma verilebilir (örn. +180 gün = son kullanma).
+              Bu alanın şeması <b>doğrulanmamıştır</b>, üretimde test edin.</p></div>
+          </div>
+          <h3>Etiket sekmesi</h3>
+          <p>Belgenin tamamını ilgilendiren ayarlar: <b>yazıcı modeli</b>, cihaz adı/URI, etiket <b>genişlik-yükseklik</b> (mm),
+          yön (0/90/180/270), aynalama, açıklama ve kağıt/arka plan rengi. Ayrıca bir dosyayı içe aktardıysanız burada
+          “İçe aktarıldı” bilgisi görünür.</p>
+        </section>
+
+        <section id="g-logo" data-ico="🖼" data-nav="Logo / grafik ekleme">
+          <h2><span class="n">06</span> Logo veya grafik eklemek</h2>
+          <p>Yazıcı yalnızca <b>siyah-beyaz (1-bit)</b> görsel basar. Program renkli görselinizi bu formata çevirir.</p>
+          <ol class="ork-steps">
+            <li><b>Logo aracını seçin</b> Sol panelden <b>Logo/Grafik</b>, sonra tuvalde konumuna tıklayın — dönüştürme penceresi açılır.</li>
+            <li><b>🖼 Görsel seç</b> PNG · JPG · BMP · GIF dosyanızı seçin.</li>
+            <li><b>Eşiği ayarlayın</b> <b>Eşik</b> kaydıracı siyah/beyaz sınırıdır (varsayılan 128). Logo çok dolu görünüyorsa değeri artırın, soluksa azaltın.
+              Fotoğraflarda <b>Dither (yarım ton)</b> seçeneği daha iyi sonuç verir.</li>
+            <li><b>Boyut verin</b> Genişlik/yükseklik (mm) yazın; <b>Oranı koru</b> açıkken diğeri otomatik hesaplanır.
+              <b>Beyazı kırp</b> kenarlardaki boşluğu atar.</li>
+            <li><b>Çözünürlük</b> SmartDate X40 için <b>203 dpi</b> seçin (varsayılan).</li>
+            <li><b>Etikete ekle</b> Logo tuvale yerleşir; dışa aktarırken <code>.bmp</code> dosyası da üretilir.</li>
+          </ol>
+          <div class="ork-warn">Üretilen <b>.bmp</b> dosyasını <b>.image ile aynı klasöre</b> koyun. Yazıcı logoyu dosya adıyla arar.
+          En kolayı: <b>📦 Tümünü indir (ZIP)</b> ile hepsini birlikte almak.</div>
+        </section>
+
+        <section id="g-seri" data-ico="⚡" data-nav="Seri üretim">
+          <h2><span class="n">07</span> ⚡ Seri üretim — tek tasarımdan onlarca etiket</h2>
+          <p>Aynı etiketin yalnızca bir alanı değişiyorsa (ürün kodu, parti no, müşteri adı) hepsini tek seferde üretin.</p>
+          <ol class="ork-steps">
+            <li><b>Tasarımı hazırlayın</b> Etiketi normal şekilde yapın; değişecek metni de bir kez yazın.</li>
+            <li><b>⚡ Seri üretim</b> düğmesine basın.</li>
+            <li><b>Değişecek alanı seçin</b> Listeden hangi alanın değişeceğini seçin (alanlara anlamlı isim vermek burada işe yarar).</li>
+            <li><b>Dosya adı desenini yazın</b> <code>{deger}</code> o satırın metnini, <code>{n}</code> sıra numarasını temsil eder —
+              örn. <code>ETIKET_{n}_{deger}</code>.</li>
+            <li><b>Değerleri girin</b> Her satıra bir etiket değeri yazın (Excel'den kopyalayıp yapıştırabilirsiniz).</li>
+            <li><b>📦 ZIP olarak üret</b> Her satır için ayrı <b>.image + .job</b> çifti üretilir ve tek ZIP olarak iner.</li>
+          </ol>
+          <div class="ork-tip">Dosya adlarında Türkçe karakter ve boşluk kullanmayın — bazı yazıcı sürücüleri okuyamaz.
+          <code>URUN_A_01</code> gibi sade adlar en güvenlisidir.</div>
+        </section>
+
+        <section id="g-kaydet" data-ico="💾" data-nav="Açma, kaydetme, yazıcıya gönderme">
+          <h2><span class="n">08</span> Açma, kaydetme ve yazıcıya gönderme</h2>
+          <h3>Mevcut dosyayı açmak</h3>
+          <p><b>📂 Aç</b> ile <code>.itf</code>, <code>.image</code> veya <code>.job</code> dosyasını sürükleyip bırakın ya da tıklayıp seçin.
+          <b>📁 Çalışma klasörü seç</b> derseniz klasördeki dosyalar liste halinde görünür ve arasında hızlıca geçebilirsiniz.</p>
+          <div class="ork-note">İçe aktarım <b>kayıpsızdır</b>: programın tanımadığı bloklar (AppInfo, PropertyBag) olduğu gibi saklanır ve
+          dışa aktarırken <b>byte düzeyinde aynı</b> geri yazılır. Yani CoLOS'un dosyasını açıp kaydetmek dosyayı bozmaz.</div>
+          <h3>Kaydetmek</h3>
+          <ul>
+            <li><b>💾 Kaydet / Farklı kaydet:</b> seçtiğiniz klasöre doğrudan yazar (Chrome/Edge). Klasör bir kez seçilir, üstteki 📁 rozetinde görünür.</li>
+            <li>Tarayıcı bu özelliği desteklemiyorsa program otomatik olarak <b>ZIP indirmeye</b> döner — dosyaları kendiniz kopyalarsınız.</li>
+          </ul>
+          <h3>Yazıcıya göndermek</h3>
+          <ol class="ork-steps">
+            <li><b>Dosyaları üretin</b> <b>📦 Tümünü indir (ZIP)</b> en güvenlisidir.</li>
+            <li><b>Aynı klasöre koyun</b> <code>.image</code>, <code>.job</code> ve varsa <code>.bmp</code> <b>birlikte</b> durmalıdır.</li>
+            <li><b>Yazıcıya aktarın</b> İş yerinizde kullandığınız yolla (ağ klasörü / USB / CoLOS aktarımı) kopyalayın.</li>
+            <li><b>İlk baskıyı kontrol edin</b> Tek etiket basıp ölçü, konum ve logo netliğini gözle doğrulayın.</li>
+          </ol>
+        </section>
+
+        <section id="g-kisayol" data-ico="⌨️" data-nav="Kısayollar">
+          <h2><span class="n">09</span> Klavye kısayolları</h2>
+          <table class="ork-t">
+            <tr><th>Tuş</th><th>İşlev</th></tr>
+            <tr><td>Ctrl + Z · Ctrl + Y</td><td>Geri al · İleri al</td></tr>
+            <tr><td>Ctrl + D</td><td>Seçili alanı çoğalt</td></tr>
+            <tr><td>Ctrl + S</td><td>ZIP olarak dışa aktar</td></tr>
+            <tr><td>Ctrl + O</td><td>Dosya aç</td></tr>
+            <tr><td>Del</td><td>Seçili alanı sil</td></tr>
+            <tr><td>Tab</td><td>Sonraki alana geç</td></tr>
+            <tr><td>Ok tuşları</td><td>Alanı kaydır (<kbd>Shift</kbd> ile 1 mm adımla)</td></tr>
+            <tr><td>Ctrl + fare tekerleği</td><td>Yakınlaştır / uzaklaştır</td></tr>
+            <tr><td>F1 · Esc</td><td>Bu kılavuzu aç · kapat</td></tr>
+          </table>
+        </section>
+
+        <section id="g-sss" data-ico="❓" data-nav="SSS ve sorun giderme">
+          <h2><span class="n">10</span> SSS ve sorun giderme</h2>
+          <h4>Etiket yazıcıda kaymış / taşmış basılıyor.</h4>
+          <p><b>Etiket</b> sekmesindeki genişlik-yükseklik, kullandığınız yazıcı kafası ve etiket boyuyla aynı olmalı.
+          Yanlış model seçtiyseniz <b>✦ Yeni</b> ile doğru modeli seçip tasarımı yeniden ölçeklendirin.</p>
+          <h4>Logo basılmıyor / boş çıkıyor.</h4>
+          <p><code>.bmp</code> dosyası <code>.image</code> ile aynı klasörde değildir veya dosya adı değişmiştir.
+          ZIP çıktısını kullanın ve dosya adlarını değiştirmeyin.</p>
+          <h4>Logo karanlık / lekeli çıkıyor.</h4>
+          <p>Eşik değerini artırıp azaltarak deneyin; fotoğraf gibi görsellerde <b>Dither</b> seçeneğini açın.
+          Mümkünse logoyu vektörel/keskin kenarlı bir PNG olarak hazırlayın.</p>
+          <h4>Operatörün değer girmesini istiyorum.</h4>
+          <p>İlgili metin alanını seçip <b>Veri</b> sekmesinde kaynağı <b>Kullanıcı girişi (User Input)</b> yapın; <b>Prompt</b> alanına
+          operatöre sorulacak soruyu yazın.</p>
+          <h4>Kaydet düğmesi klasör sormuyor.</h4>
+          <p>Tarayıcınız doğrudan klasöre yazmayı desteklemiyordur (Firefox gibi). Program ZIP indirmeye döner — Chrome veya Edge kullanmanız önerilir.</p>
+          <h4>“β” işaretli alanlar nedir?</h4>
+          <p>Tarih/Saat, Dikdörtgen, Çizgi ve Barkod alanlarının dosya şeması henüz <b>birebir doğrulanmadı</b>.
+          Metin ve Logo alanları gerçek CoLOS dosyalarıyla doğrulanmıştır. β alanları kullanacaksanız üretimde bir kez test baskısı alın.</p>
+          <h4>Dosya adında hangi karakterler sorun çıkarır?</h4>
+          <p>Türkçe karakterler, boşluk ve <code>\ / : * ? " &lt; &gt; |</code> işaretleri. Sade harf, rakam ve alt çizgi kullanın.</p>
+          <div class="ork-tip">Bu kılavuzu her an <kbd>F1</kbd> ile açabilirsiniz. Teknik format detayları (XML yapısı, birimler, doğrulama durumu) için
+          üst şeritteki <b>?</b> düğmesine bakın.</div>
+        </section>
+
+        <div class="ork-empty" id="orkGuideEmpty" style="display:none">Aramanla eşleşen bölüm yok.</div>
+      </div>
+    </div>
+    <div class="ork-ft">
+      <label><input type="checkbox" id="orkGuideAuto"> Bu sayfayı her açtığımda kılavuzu göster</label>
+      <div class="ork-sp" style="flex:1"></div>
+      <span>ORİMAK MAKİNA · Kullanım Kılavuzu · <kbd>Esc</kbd> kapatır · <kbd>F1</kbd> açar</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var KEY='orimak_guide_yazici_v1';
+  var root=document.getElementById('orkGuide'),
+      btn=document.getElementById('orkGuideBtn'),
+      toc=document.getElementById('orkGuideToc'),
+      ct=document.getElementById('orkGuideCt'),
+      search=document.getElementById('orkGuideSearch'),
+      empty=document.getElementById('orkGuideEmpty'),
+      auto=document.getElementById('orkGuideAuto');
+  var secs=[].slice.call(ct.querySelectorAll('section[id]'));
+
+  /* ---- butonu sayfanın sağ üst köşesine yerleştir ---- */
+  (function(){
+    var sels=['.brandbar','#top'], host=null, i;
+    for(i=0;i<sels.length;i++){ host=document.querySelector(sels[i]); if(host) break; }
+    if(host){ btn.classList.add('ork-mount'); host.appendChild(btn); }
+    else{ btn.classList.add('ork-fixed'); document.body.appendChild(btn); }
+  })();
+
+  /* ---- içindekiler ---- */
+  var html='<div class="ork-tochd">İçindekiler</div>';
+  secs.forEach(function(s){
+    html+='<a href="#'+s.id+'" data-t="'+s.id+'"><i>'+(s.getAttribute('data-ico')||'•')+'</i><span>'+
+          (s.getAttribute('data-nav')||s.querySelector('h2').textContent)+'</span></a>';
+  });
+  toc.innerHTML=html;
+  var links=[].slice.call(toc.querySelectorAll('a'));
+  links.forEach(function(a){
+    a.addEventListener('click',function(e){
+      e.preventDefault();
+      var s=document.getElementById(a.getAttribute('data-t'));
+      if(s) ct.scrollTo({top:s.offsetTop-ct.offsetTop-6,behavior:'smooth'});
+    });
+  });
+  function spy(){
+    var best=null,bd=1e9;
+    secs.forEach(function(s){
+      if(s.classList.contains('ork-hide')) return;
+      var d=Math.abs(s.getBoundingClientRect().top-ct.getBoundingClientRect().top-10);
+      if(d<bd){bd=d;best=s;}
+    });
+    links.forEach(function(a){a.classList.toggle('on',!!best&&a.getAttribute('data-t')===best.id);});
+  }
+  ct.addEventListener('scroll',function(){ clearTimeout(spy._t); spy._t=setTimeout(spy,60); });
+
+  /* ---- arama ---- */
+  search.addEventListener('input',function(){
+    var q=search.value.trim().toLowerCase(), n=0;
+    secs.forEach(function(s){
+      var hit=!q||s.textContent.toLowerCase().indexOf(q)>=0;
+      s.classList.toggle('ork-hide',!hit);
+      var a=toc.querySelector('a[data-t="'+s.id+'"]'); if(a) a.style.display=hit?'':'none';
+      if(hit) n++;
+    });
+    empty.style.display=n?'none':'block';
+  });
+
+  /* ---- aç / kapat ---- */
+  function open(){
+    root.classList.remove('ork-off');
+    document.documentElement.style.overflow='hidden';
+    setTimeout(function(){ spy(); },50);
+  }
+  function close(){ root.classList.add('ork-off'); document.documentElement.style.overflow=''; }
+  btn.addEventListener('click',open);
+  [].slice.call(root.querySelectorAll('[data-ork-close]')).forEach(function(el){ el.addEventListener('click',close); });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&!root.classList.contains('ork-off')){ close(); }
+    else if(e.key==='F1'){ e.preventDefault(); root.classList.contains('ork-off')?open():close(); }
+  });
+
+  /* ---- ilk açılışta otomatik göster ---- */
+  var seen=null;
+  try{ seen=localStorage.getItem(KEY); }catch(e){}
+  auto.checked = (seen==='always');
+  auto.addEventListener('change',function(){
+    try{ localStorage.setItem(KEY, auto.checked?'always':'seen'); }catch(e){}
+  });
+  if(seen===null||seen==='always'){
+    setTimeout(open,600);
+    if(seen===null){ try{ localStorage.setItem(KEY,'seen'); }catch(e){} }
+  }
+
+  /* ---- yazdır ---- */
+  document.getElementById('orkGuidePrint').addEventListener('click',function(){
+    var w=window.open('','_blank');
+    if(!w){ alert('Yazdırma penceresi engellendi. Tarayıcı ayarlarından açılır pencerelere izin verin.'); return; }
+    var css='body{font-family:Segoe UI,Arial,sans-serif;font-size:12px;color:#111;max-width:900px;margin:24px auto;padding:0 18px;line-height:1.6}'+
+      'h1{font-size:20px;border-bottom:3px solid #f59e0b;padding-bottom:8px}'+
+      'h2{font-size:16px;margin-top:26px;border-bottom:1px solid #ddd;padding-bottom:5px;page-break-after:avoid}'+
+      'h3{font-size:13.5px;margin-top:16px;color:#b45309}h4{font-size:12.5px;margin:12px 0 4px}'+
+      'table{width:100%;border-collapse:collapse;margin:10px 0;font-size:11px}'+
+      'th,td{border:1px solid #ccc;padding:5px 7px;text-align:left;vertical-align:top}th{background:#f3f4f6}'+
+      '.ork-note,.ork-tip,.ork-warn,.ork-bad{border-left:4px solid #f59e0b;background:#fafafa;padding:8px 12px;margin:10px 0}'+
+      '.ork-steps{padding-left:20px}.ork-steps>li{margin-bottom:8px}'+
+      'code,kbd{background:#f3f4f6;border:1px solid #ddd;border-radius:3px;padding:0 4px;font-size:11px}'+
+      'section{page-break-inside:auto}.ork-empty{display:none}.n{background:#f59e0b;padding:1px 6px;border-radius:4px;margin-right:6px}';
+    w.document.write('<!doctype html><meta charset="utf-8"><title>Yazıcı Etiket Düzenleyici — Kullanım Kılavuzu</title><style>'+css+
+      '</style><h1>Yazıcı Etiket Düzenleyici — Kullanım Kılavuzu</h1>'+ct.innerHTML);
+    w.document.close();
+    setTimeout(function(){ try{ w.print(); }catch(e){} },400);
+  });
+})();
+</script>
+<!-- ════════════════ /ORİMAK · KULLANIM KILAVUZU ════════════════ -->
+
 </body>
 </html>

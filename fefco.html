@@ -6548,5 +6548,596 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 </script>
+
+<!-- ══════════════════ ORİMAK · KULLANIM KILAVUZU (otonom modül) ══════════════════ -->
+<style id="orkGuideCss">
+#orkGuideBtn{
+  --ork-a:#f59e0b; --ork-a2:#f97316;
+  all:unset; box-sizing:border-box; display:inline-flex; align-items:center; gap:7px;
+  font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif; font-size:12.5px; font-weight:800;
+  letter-spacing:.2px; color:#1a1206; cursor:pointer; padding:8px 14px; border-radius:10px;
+  background:linear-gradient(135deg,#fbbf24,#f97316); white-space:nowrap;
+  box-shadow:0 4px 16px rgba(249,115,22,.35), inset 0 1px 0 rgba(255,255,255,.45);
+  transition:transform .15s ease, box-shadow .2s ease, filter .2s ease;
+  animation:orkGlow 3.4s ease-in-out infinite;
+}
+#orkGuideBtn:hover{transform:translateY(-1px) scale(1.03);box-shadow:0 8px 26px rgba(249,115,22,.55);filter:brightness(1.07)}
+#orkGuideBtn:active{transform:translateY(0) scale(.98)}
+#orkGuideBtn.ork-fixed{position:fixed;top:12px;right:14px;z-index:2147483000}
+#orkGuideBtn.ork-mount{margin-left:auto}
+@media(max-width:1500px){#orkGuideBtn .ork-bk{display:none}}
+@media(max-width:1320px){#orkGuideBtn .ork-lw{display:none}}
+#orkGuideBtn .ork-bk{
+  font-size:9.5px;font-weight:900;background:rgba(0,0,0,.22);color:#fff7ed;
+  padding:2px 5px;border-radius:5px;letter-spacing:.4px
+}
+@keyframes orkGlow{0%,100%{box-shadow:0 4px 16px rgba(249,115,22,.32), inset 0 1px 0 rgba(255,255,255,.45)}
+50%{box-shadow:0 6px 26px rgba(249,115,22,.62), inset 0 1px 0 rgba(255,255,255,.45)}}
+
+#orkGuide{
+  --b:#0b111c; --b2:#111a28; --b3:#16212f; --ln:#243244; --tx:#e6edf6; --tx2:#9fb0c4; --tx3:#6b7f96;
+  --a:#f59e0b; --a2:#fb923c; --ok:#34d399; --warn:#fbbf24; --bad:#f87171; --info:#60a5fa;
+  position:fixed; inset:0; z-index:2147483100; display:flex; align-items:center; justify-content:center;
+  font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif; font-size:14px; line-height:1.62;
+  color:var(--tx); -webkit-font-smoothing:antialiased;
+}
+#orkGuide[hidden],#orkGuide.ork-off{display:none!important}
+#orkGuide *{box-sizing:border-box}
+/* sayfanın kendi stillerinden korunma */
+#orkGuide h2,#orkGuide h3,#orkGuide h4,#orkGuide p,#orkGuide li,#orkGuide div,#orkGuide span,
+#orkGuide td,#orkGuide th,#orkGuide button,#orkGuide input,#orkGuide nav,#orkGuide section{
+  font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;text-transform:none;letter-spacing:normal;
+  text-align:left;text-shadow:none;float:none
+}
+#orkGuide h2,#orkGuide h3,#orkGuide h4{line-height:1.3}
+#orkGuide .ork-bd{position:absolute;inset:0;background:rgba(4,8,14,.78);backdrop-filter:blur(7px);animation:orkFade .22s ease}
+#orkGuide .ork-dlg{
+  position:relative;width:min(1200px,96vw);height:min(90vh,960px);background:var(--b);
+  border:1px solid var(--ln);border-radius:18px;display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 40px 100px rgba(0,0,0,.65), 0 0 0 1px rgba(245,158,11,.12);
+  animation:orkPop .32s cubic-bezier(.2,.9,.3,1.15)
+}
+@keyframes orkFade{from{opacity:0}to{opacity:1}}
+@keyframes orkPop{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+
+#orkGuide .ork-hd{
+  display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--ln);
+  background:linear-gradient(180deg,#141f2e,#0e1724);flex:0 0 auto;position:relative;overflow:hidden
+}
+#orkGuide .ork-hd::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;
+  background:linear-gradient(90deg,transparent,var(--a),var(--a2),transparent);opacity:.75;
+  animation:orkSweep 6s linear infinite;background-size:200% 100%}
+@keyframes orkSweep{0%{background-position:0% 0}100%{background-position:200% 0}}
+#orkGuide .ork-ttl{font-size:16px;font-weight:800;letter-spacing:-.2px;display:flex;align-items:center;gap:9px}
+#orkGuide .ork-ttl small{display:block;font-size:11.5px;font-weight:600;color:var(--tx3);letter-spacing:.3px}
+#orkGuide .ork-sp{flex:1}
+#orkGuide .ork-search{
+  background:var(--b3);border:1px solid var(--ln);border-radius:9px;padding:8px 12px;color:var(--tx);
+  font-size:13px;width:250px;outline:none;font-family:inherit;transition:.18s
+}
+#orkGuide .ork-search:focus{border-color:var(--a);box-shadow:0 0 0 3px rgba(245,158,11,.16);width:290px}
+#orkGuide .ork-search::placeholder{color:var(--tx3)}
+#orkGuide .ork-ib{
+  background:var(--b3);border:1px solid var(--ln);color:var(--tx2);border-radius:9px;padding:8px 12px;
+  font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:.16s;white-space:nowrap
+}
+#orkGuide .ork-ib:hover{background:#1d2a3b;color:var(--tx);border-color:#33445c}
+#orkGuide .ork-x{background:transparent;border:1px solid var(--ln);color:var(--tx2);width:34px;height:34px;
+  border-radius:9px;font-size:18px;cursor:pointer;line-height:1;transition:.16s}
+#orkGuide .ork-x:hover{background:#3a1717;border-color:#7f2d2d;color:#fca5a5;transform:rotate(90deg)}
+
+#orkGuide .ork-wrap{flex:1;display:flex;min-height:0}
+#orkGuide .ork-toc{
+  width:262px;flex:0 0 262px;border-right:1px solid var(--ln);background:var(--b2);overflow-y:auto;padding:12px 10px
+}
+#orkGuide .ork-toc a{
+  display:flex;gap:9px;align-items:flex-start;padding:9px 11px;border-radius:9px;color:var(--tx2);
+  text-decoration:none;font-size:13px;font-weight:600;margin-bottom:3px;border:1px solid transparent;transition:.16s
+}
+#orkGuide .ork-toc a:hover{background:#1a2534;color:var(--tx)}
+#orkGuide .ork-toc a.on{background:linear-gradient(90deg,rgba(245,158,11,.2),rgba(245,158,11,.05));
+  color:#fcd34d;border-color:rgba(245,158,11,.35)}
+#orkGuide .ork-toc a i{font-style:normal;font-size:14px;width:18px;text-align:center;flex:0 0 18px}
+#orkGuide .ork-toc .ork-tochd{font-size:10.5px;font-weight:800;letter-spacing:1px;color:var(--tx3);
+  text-transform:uppercase;padding:12px 11px 6px}
+
+#orkGuide .ork-ct{flex:1;overflow-y:auto;padding:26px 34px 80px;scroll-behavior:smooth}
+#orkGuide .ork-ct::-webkit-scrollbar,#orkGuide .ork-toc::-webkit-scrollbar{width:10px}
+#orkGuide .ork-ct::-webkit-scrollbar-thumb,#orkGuide .ork-toc::-webkit-scrollbar-thumb{
+  background:#2a3a4f;border-radius:9px;border:3px solid transparent;background-clip:padding-box}
+#orkGuide section{margin-bottom:40px;scroll-margin-top:14px;animation:orkIn .4s ease both}
+@keyframes orkIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+#orkGuide section.ork-hide{display:none}
+#orkGuide h2{
+  font-size:20px;font-weight:800;letter-spacing:-.3px;margin:0 0 14px;padding-bottom:11px;
+  border-bottom:1px solid var(--ln);display:flex;align-items:center;gap:11px;color:#fff
+}
+#orkGuide h2 .n{
+  flex:0 0 auto;font-size:12px;font-weight:900;background:linear-gradient(135deg,#fbbf24,#f97316);
+  color:#1a1206;border-radius:8px;padding:4px 9px;letter-spacing:.4px
+}
+#orkGuide h3{font-size:15.5px;font-weight:800;margin:24px 0 9px;color:#fcd34d;letter-spacing:-.1px}
+#orkGuide h4{font-size:13.5px;font-weight:800;margin:16px 0 6px;color:var(--tx)}
+#orkGuide p{margin:0 0 11px;color:var(--tx2)}
+#orkGuide b,#orkGuide strong{color:var(--tx);font-weight:750}
+#orkGuide ul,#orkGuide ol{margin:0 0 12px;padding-left:22px;color:var(--tx2)}
+#orkGuide li{margin-bottom:6px}
+#orkGuide code{font-family:ui-monospace,"SF Mono",Consolas,monospace;font-size:12.5px;background:#1b2635;
+  border:1px solid var(--ln);border-radius:5px;padding:1px 6px;color:#fcd34d}
+#orkGuide kbd{font-family:inherit;font-size:11.5px;font-weight:800;background:#1f2b3c;border:1px solid #33445c;
+  border-bottom-width:2px;border-radius:6px;padding:2px 7px;color:var(--tx)}
+#orkGuide a.ork-lnk{color:#fcd34d}
+
+#orkGuide .ork-lead{
+  background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(249,115,22,.04));
+  border:1px solid rgba(245,158,11,.28);border-left:4px solid var(--a);border-radius:12px;
+  padding:15px 18px;margin-bottom:18px;color:var(--tx)
+}
+#orkGuide .ork-lead p:last-child{margin-bottom:0}
+
+#orkGuide .ork-steps{counter-reset:orks;list-style:none;padding:0;margin:14px 0 16px}
+#orkGuide .ork-steps>li{
+  counter-increment:orks;position:relative;padding:13px 16px 13px 52px;margin-bottom:10px;
+  background:var(--b2);border:1px solid var(--ln);border-radius:12px;color:var(--tx2);transition:.18s
+}
+#orkGuide .ork-steps>li:hover{border-color:rgba(245,158,11,.4);transform:translateX(3px);background:#141f2d}
+#orkGuide .ork-steps>li::before{
+  content:counter(orks);position:absolute;left:13px;top:12px;width:26px;height:26px;border-radius:8px;
+  background:linear-gradient(135deg,#fbbf24,#f97316);color:#1a1206;font-weight:900;font-size:13px;
+  display:flex;align-items:center;justify-content:center
+}
+#orkGuide .ork-steps>li b:first-child{display:block;color:#fff;margin-bottom:3px;font-size:14px}
+
+#orkGuide .ork-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}
+#orkGuide .ork-card{background:var(--b2);border:1px solid var(--ln);border-radius:12px;padding:14px 16px;transition:.18s}
+#orkGuide .ork-card:hover{border-color:rgba(245,158,11,.45);transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.35)}
+#orkGuide .ork-card h4{margin:0 0 6px;color:#fcd34d;font-size:13.5px;display:flex;align-items:center;gap:7px}
+#orkGuide .ork-card p{margin:0;font-size:13px}
+
+#orkGuide table.ork-t{width:100%;border-collapse:collapse;margin:12px 0 16px;font-size:13px;
+  background:var(--b2);border:1px solid var(--ln);border-radius:12px;overflow:hidden}
+#orkGuide table.ork-t th{background:#1a2635;color:#fcd34d;font-weight:800;text-align:left;padding:10px 13px;
+  border-bottom:1px solid var(--ln);font-size:12px;letter-spacing:.3px;text-transform:uppercase}
+#orkGuide table.ork-t td{padding:9px 13px;border-bottom:1px solid #1d2836;color:var(--tx2);vertical-align:top}
+#orkGuide table.ork-t tr:last-child td{border-bottom:none}
+#orkGuide table.ork-t tr:hover td{background:#141f2d;color:var(--tx)}
+#orkGuide table.ork-t td:first-child{color:var(--tx);font-weight:700;white-space:nowrap}
+#orkGuide .ork-scroll{overflow-x:auto}
+
+#orkGuide .ork-note,#orkGuide .ork-tip,#orkGuide .ork-warn,#orkGuide .ork-bad{
+  border-radius:11px;padding:12px 15px;margin:12px 0;font-size:13.2px;border:1px solid;position:relative;padding-left:44px
+}
+#orkGuide .ork-note::before,#orkGuide .ork-tip::before,#orkGuide .ork-warn::before,#orkGuide .ork-bad::before{
+  position:absolute;left:14px;top:11px;font-size:15px}
+#orkGuide .ork-note{background:rgba(96,165,250,.08);border-color:rgba(96,165,250,.32);color:#c7dcff}
+#orkGuide .ork-note::before{content:"ℹ️"}
+#orkGuide .ork-tip{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.32);color:#bdf0dc}
+#orkGuide .ork-tip::before{content:"💡"}
+#orkGuide .ork-warn{background:rgba(251,191,36,.09);border-color:rgba(251,191,36,.34);color:#fde9b5}
+#orkGuide .ork-warn::before{content:"⚠️"}
+#orkGuide .ork-bad{background:rgba(248,113,113,.09);border-color:rgba(248,113,113,.32);color:#fecdd3}
+#orkGuide .ork-bad::before{content:"⛔"}
+#orkGuide .ork-note b,#orkGuide .ork-tip b,#orkGuide .ork-warn b,#orkGuide .ork-bad b{color:#fff}
+
+#orkGuide .ork-ft{
+  flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:11px 18px;border-top:1px solid var(--ln);
+  background:var(--b2);font-size:12px;color:var(--tx3)
+}
+#orkGuide .ork-ft label{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none}
+#orkGuide .ork-ft input[type=checkbox]{width:15px;height:15px;accent-color:var(--a);cursor:pointer}
+#orkGuide .ork-empty{text-align:center;color:var(--tx3);padding:60px 20px;font-size:14px}
+
+@media(max-width:900px){
+  #orkGuide .ork-dlg{width:100vw;height:100vh;border-radius:0}
+  #orkGuide .ork-wrap{flex-direction:column}
+  #orkGuide .ork-toc{width:100%;flex:0 0 auto;max-height:132px;border-right:none;border-bottom:1px solid var(--ln);
+    display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:9px}
+  #orkGuide .ork-toc .ork-tochd{display:none}
+  #orkGuide .ork-toc a{white-space:nowrap;margin:0}
+  #orkGuide .ork-ct{padding:18px 16px 60px}
+  #orkGuide .ork-search{width:130px}
+  #orkGuide .ork-search:focus{width:150px}
+  #orkGuide .ork-ttl small{display:none}
+}
+</style>
+
+<button id="orkGuideBtn" type="button" title="Kullanım kılavuzunu aç (F1)">📖 <span><span class="ork-lw">Kullanım </span>Kılavuzu</span> <span class="ork-bk">F1</span></button>
+
+<div id="orkGuide" class="ork-off" role="dialog" aria-modal="true" aria-label="Kullanım Kılavuzu">
+  <div class="ork-bd" data-ork-close></div>
+  <div class="ork-dlg">
+    <div class="ork-hd">
+      <div class="ork-ttl">📖 <div>FEFCO Karton Eni Hesaplama<small>Kutu ölçüsünden karton eni, fire ve maliyet hesabı</small></div></div>
+      <div class="ork-sp"></div>
+      <input class="ork-search" id="orkGuideSearch" type="search" placeholder="Kılavuzda ara…" autocomplete="off">
+      <button class="ork-ib" id="orkGuidePrint" type="button">🖨 Yazdır</button>
+      <button class="ork-x" type="button" data-ork-close aria-label="Kapat">×</button>
+    </div>
+    <div class="ork-wrap">
+      <nav class="ork-toc" id="orkGuideToc"></nav>
+      <div class="ork-ct" id="orkGuideCt">
+        <section id="g-intro" data-ico="🎯" data-nav="Bu program ne işe yarar?">
+          <h2><span class="n">01</span> Bu program ne işe yarar?</h2>
+          <div class="ork-lead">
+            <p><b>FEFCO Karton Eni Hesaplama Sistemi</b>, bir oluklu mukavva kutunun <b>iç ölçülerinden</b> (uzunluk, genişlik, yükseklik) yola çıkarak
+            o kutuyu üretmek için gereken <b>karton eni</b> ve <b>karton boyunu</b> hesaplar; ardından piyasada satılan rulo enlerine yuvarlar,
+            <b>fire (israf) oranını</b> ve <b>maliyeti</b> otomatik çıkarır.</p>
+            <p style="margin-top:8px">Kısaca: <b>“Bu kutuyu kaç cm'lik kartondan keseceğim, kaç TL'ye mal olacak, ne kadarı çöpe gidecek?”</b> sorusunun cevabını verir.</p>
+          </div>
+          <h3>Kimler kullanır?</h3>
+          <ul>
+            <li><b>Satış / teklif hazırlayan:</b> müşteriye fiyat verirken kartonun gerçek maliyetini görür.</li>
+            <li><b>Üretim planlama:</b> hangi rulo eninden kaç kutu çıkacağını, kaç metre rulo gerektiğini görür.</li>
+            <li><b>Satın alma:</b> hangi karton enlerinin stokta bulunmasının fireyi düşüreceğini görür.</li>
+          </ul>
+          <div class="ork-tip"><b>Kurulum yok.</b> Program tek bir HTML dosyasıdır. Çift tıklayıp tarayıcıda (Chrome / Edge önerilir) açmanız yeterlidir.
+          İnternet bağlantısı gerekmez; her şey kendi bilgisayarınızda çalışır ve veriler dışarı çıkmaz.</div>
+        </section>
+
+        <section id="g-terim" data-ico="📖" data-nav="Terimler sözlüğü">
+          <h2><span class="n">02</span> Önce terimler — bunları bilmeden devam etmeyin</h2>
+          <p>Program boyunca hep aynı kısaltmalar kullanılır. Bir kere okuyun, gerisi kolay:</p>
+          <div class="ork-scroll">
+          <table class="ork-t">
+            <tr><th>Kısaltma</th><th>Anlamı</th><th>Açıklama</th></tr>
+            <tr><td>L</td><td>Uzunluk (Length)</td><td>Kutunun uzun kenarı — mm cinsinden <b>iç ölçü</b>.</td></tr>
+            <tr><td>B</td><td>Genişlik (Breadth)</td><td>Kutunun kısa kenarı — mm.</td></tr>
+            <tr><td>H</td><td>Yükseklik (Height)</td><td>Kutunun derinliği — mm.</td></tr>
+            <tr><td>T</td><td>Karton kalınlığı</td><td>Oluklu mukavvanın kalınlığı (örn. B dalga ≈ 3 mm, C dalga ≈ 4 mm, E dalga ≈ 1,5 mm).</td></tr>
+            <tr><td>K</td><td>Kulak / yapıştırma payı</td><td>Kutunun birleşim yerine bırakılan şerit (genelde 30–40 mm).</td></tr>
+            <tr><td>K1 · K2</td><td>Ek kapak ölçüleri</td><td>Bazı FEFCO tiplerinde ayrı ayrı kapak payları gerekir.</td></tr>
+            <tr><td>P</td><td>Pay / tolerans</td><td>Kesim toleransı için formüle eklenen sabit pay (mm).</td></tr>
+            <tr><td>Kalıp</td><td>Açılmış kutu</td><td>Kutu düz açıldığında ortaya çıkan dikdörtgen: <b>Hesaplanan En × Karton Boyu</b>.</td></tr>
+            <tr><td>Hesaplanan En</td><td>Gereken en</td><td>Formülün verdiği gerçek ölçü (örn. 1043 mm).</td></tr>
+            <tr><td>Piyasa Eni</td><td>Satın alınabilen en</td><td>Rulolar 100'ün katları halinde satılır; 1043 mm → <b>1100 mm</b> rulo alınır.</td></tr>
+            <tr><td>Fire</td><td>İsraf</td><td>Satın alınan kartonun ürüne gitmeyen kısmı. İki parçadan oluşur (bkz. Fire bölümü).</td></tr>
+            <tr><td>BRÜT</td><td>Fiilen satın alınan</td><td>Rulo eni payı × kalıp boyu. <b>Karton faturasının karşılığı budur</b> — teklif bu sayıyla verilir.</td></tr>
+            <tr><td>Rulo (m)</td><td>Rulo metresi</td><td>Bu işi yapmak için rulodan kaç metre çekileceği.</td></tr>
+            <tr><td>Kesim Yönü</td><td>DİKEY / YATAY</td><td>Kalıbın rulo üzerine hangi yönde yerleştirileceği. Yön değişince en ve boy yer değiştirir, fire değişir.</td></tr>
+          </table>
+          </div>
+          <div class="ork-note"><b>Oluk yönü uyarısı:</b> “⟳ 90° Döndürme” seçeneği kutuyu 90° çevirerek fireyi düşürebilir,
+          ancak <b>oluk yönü de döner</b> — kutunun dikey dayanımı değişir. Ağır ürünlerde bunu üretimle teyit edin.</div>
+        </section>
+
+        <section id="g-hizli" data-ico="🚀" data-nav="5 dakikada ilk hesap">
+          <h2><span class="n">03</span> 5 dakikada ilk hesabınızı yapın</h2>
+          <p>Hiç bilmeyen biri için en kısa yol. Örnek: <b>400 × 300 × 250 mm standart koli, 5.000 adet</b>.</p>
+          <ol class="ork-steps">
+            <li><b>Kutu tipini seçin</b> Sayfanın ortasındaki sekmelerden kutunuzun FEFCO tipini tıklayın — standart koli için <code>FEFCO 0201</code>.
+              Hangi tip olduğunu bilmiyorsanız: kapakları ortada birleşen klasik koli = 0201.</li>
+            <li><b>Satır ekleyin</b> Tablonun altındaki <b>＋</b> düğmesiyle boş bir satır açın. Her satır = bir kutu ölçüsü.</li>
+            <li><b>Ölçüleri yazın</b> <b>Kutu Adı</b> (örn. “Elma Kasası”), sonra <b>L = 400</b>, <b>B = 300</b>, <b>H = 250</b>, <b>T = 4</b>, <b>K = 35</b> yazın.
+              Yazar yazmaz sağdaki gri sütunlar kendiliğinden dolar — hesap otomatiktir, buton yoktur.</li>
+            <li><b>Adet ve fiyat girin</b> <b>Adet</b> sütununa 5000, <b>Birim TL</b> sütununa kartonun m² fiyatını (örn. 28) yazın.
+              Birim fiyatı bir kez yazarsanız o sekmedeki diğer satırlara da uygulanır.</li>
+            <li><b>Sonucu okuyun</b> Aynı satırda: <b>K.Eni</b> (gereken en), <b>Piyasa Eni</b> (satın alacağınız rulo), <b>K.Boy</b>, <b>BRÜT m²</b>,
+              <b>BRÜT TL</b>, <b>Fire %</b> ve <b>Rulo m</b> görünür. Sayfanın en üstündeki büyük kutucuklar da tüm işin toplamını gösterir.</li>
+            <li><b>Kaydedin</b> Üstteki <b>💾 JSON Olarak Kaydet</b> ile çalışmanızı dosya olarak saklayın. (Detay: “Kaydetme ve yedekleme” bölümü.)</li>
+          </ol>
+          <div class="ork-tip">Ölçüler daima <b>milimetre</b> ve <b>iç ölçüdür</b>. 40 cm yazacaksanız <code>400</code> yazın, <code>40</code> değil.</div>
+        </section>
+
+        <section id="g-ekran" data-ico="🖥" data-nav="Ekran turu">
+          <h2><span class="n">04</span> Ekran turu — hangi düğme ne yapar?</h2>
+
+          <h3>Üst şerit (koyu başlık)</h3>
+          <table class="ork-t">
+            <tr><th>Öğe</th><th>Ne yapar</th></tr>
+            <tr><td>Son Yedek</td><td>En son ne zaman JSON yedeği aldığınızı gösterir. <b>Tıklayınca anında yedek indirir.</b></td></tr>
+            <tr><td>Brüt m²</td><td>Girilen tüm kutular için fiilen satın alınacak toplam karton (m²).</td></tr>
+            <tr><td>Brüt Maliyet TL</td><td>O kartonun toplam parası — yani karton faturası.</td></tr>
+            <tr><td>Rulo (m)</td><td>Toplam kaç metre rulo çekileceği.</td></tr>
+            <tr><td>🇹🇷 Dil</td><td>Arayüz dili (TR/EN/DE/FR/ES/AR). <b>🌐 Dil Yönetimi</b> ile her metni kendiniz düzenleyebilirsiniz.</td></tr>
+            <tr><td>🏠 ANA SAYFA</td><td>ORİMAK Dijital Araçlar merkezine döner (aynı klasörde <code>index.html</code> varsa).</td></tr>
+          </table>
+
+          <h3>Global bar (arama ve toplu işlemler)</h3>
+          <table class="ork-t">
+            <tr><th>Öğe</th><th>Ne yapar</th></tr>
+            <tr><td>Kutu Adı Ara</td><td>Yazdıkça tüm tablolarda kutu adı ve notlarda filtreleme yapar.</td></tr>
+            <tr><td>⟲ Kesim Yönü (Komple)</td><td>Seçtiğiniz yönü <b>bütün tiplerdeki bütün satırlara</b> tek seferde uygular. Toplu deneme için birebir.</td></tr>
+            <tr><td>📏 Piyasa Eni Toleransı</td><td>Hesaplanan en, bir alt piyasa enine bu kadar mm yakınsa aşağı yuvarlanır.
+              Örn. tolerans 5 mm iken 1103 mm → 1100 mm kabul edilir. <b>Üretimle teyit etmeden büyük tolerans vermeyin.</b></td></tr>
+            <tr><td>🔄 Excel Dönüştür</td><td>Elinizdeki herhangi bir Excel'i, sütunlarını eşleştirerek programın tablosuna aktarır.</td></tr>
+            <tr><td>📊 Excel'e Aktar</td><td>Tüm hesapları Excel dosyası olarak indirir.</td></tr>
+            <tr><td>📂 Excel'den Al</td><td>Programın kendi formatındaki Excel'i geri yükler.</td></tr>
+            <tr><td>💾 JSON Olarak Kaydet</td><td><b>Asıl yedekleme yöntemi.</b> Tüm sekmeler, ölçüler, fiyatlar, kalibrasyonlar tek dosyada.</td></tr>
+            <tr><td>📂 JSON'dan Aç</td><td>Kaydedilmiş çalışmayı geri yükler (mevcut verinin üzerine yazar).</td></tr>
+            <tr><td>📄 PDF Rapor</td><td>Yazdırılabilir / müşteriye gönderilebilir rapor üretir.</td></tr>
+            <tr><td>🗑️ Temizle</td><td><b>Dikkat:</b> girilen verileri siler. Önce JSON yedeği alın.</td></tr>
+          </table>
+
+          <h3>📦 Elimdeki Karton Enleri paneli</h3>
+          <p>Deponuzda gerçekten bulunan rulo enlerini buraya yazarsanız program <b>piyasadaki her eni değil, yalnızca sizdeki enleri</b> kullanır.</p>
+          <ul>
+            <li><b>＋ Ekle:</b> en (mm) yazıp ekleyin — örn. 1000, 1200, 1400. Eklediğiniz enler altta rozet olarak listelenir, tıklayarak silebilirsiniz.</li>
+            <li><b>Hesap Modu:</b> hiç en girmezseniz <b>PİYASA ENLERİ</b> (100'ün katları) kullanılır; en girdiğinizde otomatik olarak <b>stok modu</b>na geçer.</li>
+            <li><b>⟳ 90° Döndürme denensin:</b> kutuyu çevirince daha dar bir ene sığıyorsa program bunu dener (oluk yönü döner!).</li>
+            <li><b>⚡ OPTİMİZE ET:</b> tüm satırlar için en düşük fireyi veren kesim yönünü otomatik seçer.</li>
+          </ul>
+          <div class="ork-warn">Stok modunda bir kutu hiçbir enine sığmıyorsa satır <b>“SIĞMAZ”</b> olarak işaretlenir ve <b>maliyet toplamlarına dahil edilmez</b>.
+          Genel Özet'te “Stoğa Sığmayan” sayısını mutlaka kontrol edin.</div>
+        </section>
+
+        <section id="g-tablo" data-ico="📋" data-nav="Tablo sütunları">
+          <h2><span class="n">05</span> Tablo sütunları — tek tek ne anlama geliyor?</h2>
+          <p>Beyaz/açık renkli sütunlar <b>sizin girdiğiniz</b>, gri sütunlar <b>programın hesapladığı</b> değerlerdir.</p>
+          <div class="ork-scroll">
+          <table class="ork-t">
+            <tr><th>Sütun</th><th>Giren</th><th>Anlamı</th></tr>
+            <tr><td>Kutu Adı</td><td>Siz</td><td>İş/müşteri adı. Başlıktaki turuncu tutamaçtan sürükleyerek sütunu genişletebilir, çift tıklayınca içeriğe sığdırabilirsiniz.</td></tr>
+            <tr><td>L · B · H (mm)</td><td>Siz</td><td>Kutunun iç ölçüleri.</td></tr>
+            <tr><td>T · K · K1 · K2 · P</td><td>Siz</td><td>Kalınlık, kulak ve pay değerleri. Boş bırakılırsa varsayılan değerler kullanılır.</td></tr>
+            <tr><td>Yön</td><td>Siz</td><td>Kesim yönü: DİKEY / YATAY / İKİLİ / 90° seçenekleri. “İKİLİ”, yan yana iki kalıp demektir.</td></tr>
+            <tr><td>K.Eni</td><td>Program</td><td><b>Hesaplanan en</b> — formülün verdiği gerçek ölçü (mm).</td></tr>
+            <tr><td>Piyasa Eni</td><td>Program</td><td>Fiilen satın alınacak rulo eni (yukarı yuvarlanmış).</td></tr>
+            <tr><td>K.Boy</td><td>Program</td><td>Kalıbın boyu (mm) — rulodan çekilecek uzunluk.</td></tr>
+            <tr><td>Kalıp m²/Ad</td><td>Program</td><td>Tek kutunun açılmış kalıp alanı. <b>Yalnızca tasarım kıyaslaması içindir.</b></td></tr>
+            <tr><td>Adet</td><td>Siz</td><td>Üretilecek kutu sayısı.</td></tr>
+            <tr><td>Kalıp m²</td><td>Program</td><td>Kalıp alanı × adet.</td></tr>
+            <tr><td>Birim TL</td><td>Siz</td><td>Kartonun m² fiyatı. Bir satırda değiştirince elle değiştirilmemiş diğer satırlara da yayılır.</td></tr>
+            <tr><td>TL</td><td>Program</td><td>Kalıp alanının parasal karşılığı (bilgi amaçlı).</td></tr>
+            <tr><td>BRÜT m²</td><td>Program</td><td><b>Satın alınan karton</b> = piyasa eni × kalıp boyu × adet. Turuncu vurgulu sütun.</td></tr>
+            <tr><td>BRÜT TL</td><td>Program</td><td>Satın alınan kartonun parası — <b>teklifte kullanacağınız rakam</b>.</td></tr>
+            <tr><td>Fire %</td><td>Program</td><td>Brüte göre israf oranı. ≤%5 iyi · %5–12 dikkat · &gt;%12 yüksek.</td></tr>
+            <tr><td>Fire m² · Fire TL</td><td>Program</td><td>İsrafın alan ve para karşılığı.</td></tr>
+            <tr><td>Rulo m</td><td>Program</td><td>Bu satır için rulodan çekilecek metre.</td></tr>
+            <tr><td>Notlar</td><td>Siz</td><td>Serbest not — aramada da taranır.</td></tr>
+            <tr><td>🗑</td><td>—</td><td>Satırı siler.</td></tr>
+          </table>
+          </div>
+          <div class="ork-note"><b>Altın kural:</b> <code>ÜRÜNE GİDEN + FİRE = BRÜT</code>. Bu iki kalem birbirine <b>eklenmez</b>, brütü paylaşır.
+          Kalıp alanı (en × boy) satın alınandan küçüktür ve maliyet olarak kullanılmaz.</div>
+        </section>
+
+        <section id="g-sekme" data-ico="🗂" data-nav="Rapor sekmeleri">
+          <h2><span class="n">06</span> Rapor sekmeleri</h2>
+          <div class="ork-cards">
+            <div class="ork-card"><h4>📊 Genel Özet</h4><p>Tüm kutu tiplerinin toplamı: satın alınan karton, brüt maliyet, ürüne giden, fire maliyeti, rulo metresi.
+              Ayrıca kutu tipi bazında döküm. Patrona/müşteriye gösterilecek ekran budur.</p></div>
+            <div class="ork-card"><h4>📦 Piyasa Özet</h4><p>Kutuları <b>rulo enine göre</b> gruplar: “1100'lük ruloyla şu 6 kutu kesilir, toplam şu kadar m²”.
+              Satın alma listesi çıkarmak için kullanın. Üst kısımdan piyasa eni filtresi seçebilir, bu sekmeyi ayrı PDF alabilirsiniz.</p></div>
+            <div class="ork-card"><h4>🔥 Fire Analizi</h4><p>Hesaplanan en ile satın alınan rulo eni arasındaki farkın fireyi nasıl büyüttüğünü renk kodlarıyla gösterir:
+              <b>yeşil ≤%5</b>, <b>sarı %5–12</b>, <b>kırmızı &gt;%12</b>. Kırmızı satırlarda ölçüyü 1–2 mm değiştirmek büyük tasarruf sağlayabilir.</p></div>
+            <div class="ork-card"><h4>🎯 Fire Kalibrasyon</h4><p>Programın tahminini <b>kendi gerçek üretim verinizle</b> eğitir. Ayrıntı aşağıda.</p></div>
+            <div class="ork-card"><h4>＋ Sekme Ekle</h4><p>Listede olmayan bir kutu tipi için kendi formülünüzü tanımlar. Ayrıntı aşağıda.</p></div>
+            <div class="ork-card"><h4>🌐 Dil Yönetimi</h4><p>Arayüzdeki her metni seçili dil için düzenleyip kaydedebilir, dışa/içe aktarabilirsiniz.</p></div>
+          </div>
+        </section>
+
+        <section id="g-fire" data-ico="🔥" data-nav="Fire nasıl hesaplanıyor?">
+          <h2><span class="n">07</span> Fire nasıl hesaplanıyor?</h2>
+          <p>Fire iki ayrı kalemden oluşur ve ikisi de <b>satın alınan (brüt) kartona</b> göre yüzdelenir:</p>
+          <table class="ork-t">
+            <tr><th>Fire türü</th><th>Nereden doğar</th></tr>
+            <tr><td>İşleme firesi</td><td>Kesim, slot ağzı, kırpma kayıpları — kalıbın kendi içindeki kayıp.</td></tr>
+            <tr><td>Piyasa eni firesi</td><td>Hesaplanan en 1043 mm ama rulo 1100 mm → kenarda kalan 57 mm'lik şerit.</td></tr>
+          </table>
+          <p><code>İşleme % + Piyasa eni % = Toplam fire %</code> eşitliği her satırda sağlanır; bu yüzden çift sayım olmaz.</p>
+          <h3>Fireyi düşürmenin pratik yolları</h3>
+          <ul>
+            <li>Kesim yönünü değiştirin (<b>⚡ OPTİMİZE ET</b> bunu otomatik dener).</li>
+            <li>Kulak (K) veya pay (P) değerini gözden geçirin — birkaç mm bir alt rulo enine düşürebilir.</li>
+            <li>Stokta olmayan bir en fireyi çok düşürüyorsa, o eni tedarikçiden istemeyi değerlendirin.</li>
+            <li>“İKİLİ” yönlerle yan yana iki kalıp yerleştirerek geniş ruloyu daha iyi doldurabilirsiniz.</li>
+          </ul>
+        </section>
+
+        <section id="g-kalib" data-ico="🎯" data-nav="Fire Kalibrasyon">
+          <h2><span class="n">08</span> Fire Kalibrasyon — programı kendi verinizle eğitin</h2>
+          <p>Varsayılan katsayılar genel geçerdir. Kendi makinenizin gerçek fire oranlarını girerseniz program <b>size özel</b> katsayı öğrenir.</p>
+          <ol class="ork-steps">
+            <li><b>Sekmeyi açın</b> Üstten <b>🎯 Fire Kalibrasyon</b> sekmesine geçin.</li>
+            <li><b>FEFCO tipini ve yönü seçin</b> Kalibrasyon <b>her tip için ayrı</b> yapılır ve ayrı saklanır.</li>
+            <li><b>Gerçek örnekleri girin</b> <b>＋ Örnek Ekle</b> ile daha önce ürettiğiniz kutuların ölçülerini ve o işte <b>ölçtüğünüz gerçek toplam fire yüzdesini</b> yazın.
+              En az <b>2 örnek</b> gerekir; 4–5 örnek çok daha isabetli olur.</li>
+            <li><b>🎯 KALİBRE ET</b> Program verinize en uygun katsayıları bulur ve “Öğrenilen Formül” kutusunda gösterir.</li>
+            <li><b>Test edin</b> Sağdaki <b>Tahmin</b> kutusuna yeni bir ölçü yazıp <b>📐 Hesapla</b> deyin; öğrenilmiş formülle tahmin üretir.</li>
+          </ol>
+          <div class="ork-note">Girdiğiniz yüzde <b>üretimde gördüğünüz gerçek toplam fire</b> olmalıdır (piyasa eni firesi dahil).
+          Program piyasa eni payını otomatik ayırıp yalnızca işleme firesini öğrenir, tahmin ederken tekrar ekler — bu sayede çift sayım olmaz.</div>
+          <div class="ork-warn">Yanlış/uyduruk örnek girerseniz tüm tahminler bozulur. Emin olmadığınız veriyi girmeyin; <b>🗑 Temizle</b> ile kalibrasyonu sıfırlayabilirsiniz.</div>
+        </section>
+
+        <section id="g-yenitip" data-ico="➕" data-nav="Yeni kutu tipi ekleme">
+          <h2><span class="n">09</span> Listede olmayan kutu tipi eklemek</h2>
+          <ol class="ork-steps">
+            <li><b>＋ Sekme Ekle</b> düğmesine basın.</li>
+            <li><b>Kod ve ad yazın</b> Örn. kod <code>FEFCO 0500</code>, ad “Özel Tepsi”.</li>
+            <li><b>Dört formülü girin</b> DİKEY En, DİKEY Boy, YATAY En, YATAY Boy. Formüllerde <code>L B H T K K1 K2 P</code> değişkenlerini,
+              <code>+ - * /</code> işlemlerini ve parantez kullanabilirsiniz.<br>Örnek: <code>2*L+2*B+K+K+P</code> · <code>2*H+(L+B)/2+K+K+P</code></li>
+            <li><b>Özel mod (isteğe bağlı)</b> İşaretlerseniz o sekmede en ve boyu formülle değil <b>elle</b> yazarsınız — standart dışı işler için.</li>
+            <li><b>Ekle</b> Yeni sekme açılır; formülde geçen her değişken için tabloda otomatik bir sütun oluşur.</li>
+          </ol>
+          <h4>Hazır gelen tipler ve formülleri</h4>
+          <div class="ork-scroll">
+          <table class="ork-t">
+            <tr><th>Tip</th><th>Ad</th><th>DİKEY En</th><th>DİKEY Boy</th></tr>
+            <tr><td>0201</td><td>Standart Koli (RSC)</td><td>2*L+2*B+K+K+P</td><td>2*H+(L+B)/2+K+K+P</td></tr>
+            <tr><td>0202</td><td>Bindirmeli Kapaklı</td><td>2*L+2*B+K+K+P</td><td>2*H+(3*B)/2+K+K+P</td></tr>
+            <tr><td>0203</td><td>Tam Kapaklı</td><td>2*L+2*B+K+K+P</td><td>2*H+L+K+K+P</td></tr>
+            <tr><td>0204</td><td>Kilitli Geçme Tabanlı</td><td>2*L+2*B+K+K+P</td><td>2*H+(L+B)/2+K+K+P+T</td></tr>
+            <tr><td>0300</td><td>Teleskopik Gövde</td><td>2*L+2*B+K+K+P</td><td>H+T+K+K+P</td></tr>
+            <tr><td>0301</td><td>Teleskopik Tava</td><td>2*L+2*B+K+K+P</td><td>H+K+K+P</td></tr>
+            <tr><td>0410</td><td>Wrap-Around / Sarma</td><td>2*H+B+4*T</td><td>3*H+6*T+2*L</td></tr>
+            <tr><td>0411</td><td>Katlanır / Sarma</td><td>2*B+2*H+4*T</td><td>2*H+L+3*T</td></tr>
+            <tr><td>0420</td><td>Kilitli Tava</td><td>2*L+2*B+K+K+P</td><td>H+L/2+B/2+K+K+P</td></tr>
+          </table>
+          </div>
+          <div class="ork-tip">Bir sekmenin adına çift tıklayarak yeniden adlandırabilir, sekmeyi düzenleyip formülünü sonradan değiştirebilirsiniz.</div>
+        </section>
+
+        <section id="g-excel" data-ico="📊" data-nav="Excel ile çalışma">
+          <h2><span class="n">10</span> Excel'den veri alma ve Excel'e aktarma</h2>
+          <h3>Kendi Excel'inizi içeri almak (🔄 Excel Dönüştür)</h3>
+          <ol class="ork-steps">
+            <li><b>Aktaracağınız sekmeyi açın</b> Veri hangi FEFCO tipine gidecekse önce o sekmede olun.</li>
+            <li><b>🔄 Excel Dönüştür</b> düğmesine basıp dosyanızı seçin (.xlsx / .xls / .csv).</li>
+            <li><b>Sütunları eşleştirin</b> “Sizin başlığınız → programın alanı” şeklinde seçin (örn. <code>UZUNLUK → L</code>, <code>MÜŞTERİ → Kutu Adı</code>).
+              Kullanmak istemediklerinizi boş bırakın.</li>
+            <li><b>Önizlemeyi kontrol edin</b> İlk satırlar doğru geldiyse aktarın; satırlar mevcut sekmeye eklenir.</li>
+          </ol>
+          <div class="ork-note">Excel'in <b>ilk satırı başlık</b> olmalıdır. Ölçüler mm ve sayı olmalı — “40 cm”, “400mm” gibi metinler okunmaz.</div>
+          <h3>Dışarı aktarma</h3>
+          <ul>
+            <li><b>📊 Excel'e Aktar:</b> hesaplanmış tüm sütunlarla birlikte tam tablo indirir — muhasebeye/satın almaya göndermek için.</li>
+            <li><b>📄 PDF Rapor:</b> biçimlendirilmiş rapor; “Piyasa Özet” sekmesinden yalnızca o sekmenin PDF'ini de alabilirsiniz.</li>
+          </ul>
+        </section>
+
+        <section id="g-kaydet" data-ico="💾" data-nav="Kaydetme ve yedekleme">
+          <h2><span class="n">11</span> Kaydetme, yedekleme, veri güvenliği</h2>
+          <div class="ork-lead"><p><b>En önemli bölüm burasıdır.</b> Program verilerinizi tarayıcının hafızasında tutar —
+          yani <b>o bilgisayarda, o tarayıcıda</b>. Tarayıcı geçmişi/site verileri temizlenirse veri gider.</p></div>
+          <table class="ork-t">
+            <tr><th>Yöntem</th><th>Ne yapar</th><th>Ne zaman</th></tr>
+            <tr><td>Otomatik kayıt</td><td>Her değişiklik tarayıcı hafızasına yazılır; sayfayı kapatıp açınca veriler yerindedir.</td><td>Kendiliğinden</td></tr>
+            <tr><td>💾 JSON Olarak Kaydet</td><td>Her şeyi tek dosyaya yazar — <b>gerçek yedek budur</b>.</td><td>Her önemli çalışmadan sonra</td></tr>
+            <tr><td>📂 JSON'dan Aç</td><td>Yedeği geri yükler, başka bilgisayara taşır.</td><td>Devralırken / taşırken</td></tr>
+            <tr><td>“Son Yedek” rozeti</td><td>Son yedeğin zamanı; tıklayınca hemen yedek indirir.</td><td>Günde en az bir kez bakın</td></tr>
+          </table>
+          <div class="ork-warn">Sayfayı kapatırken “Yaptığınız değişiklikler kaybolabilir” uyarısı çıkarsa, <b>önce JSON kaydedin</b>.</div>
+          <div class="ork-bad"><b>🗑️ Temizle</b> geri alınamaz. Basmadan önce mutlaka JSON yedeği alın.</div>
+          <div class="ork-tip">Dosyayı bir ağ klasörüne koyup JSON yedeklerini oraya kaydederseniz, ekipteki herkes aynı veriyle çalışabilir.</div>
+        </section>
+
+        <section id="g-sss" data-ico="❓" data-nav="SSS ve sorun giderme">
+          <h2><span class="n">12</span> Sık sorulan sorular ve sorun giderme</h2>
+          <h4>Ölçüleri yazdım ama sütunlar boş / “0” görünüyor.</h4>
+          <p>Genelde eksik bir değişken vardır: formül <code>K</code> istiyorsa <b>K</b> sütunu boş kalmamalıdır. Ayrıca ondalık için virgül yerine nokta kullanın.</p>
+          <h4>Satırda “SIĞMAZ” yazıyor.</h4>
+          <p>Stok modundasınız ve kutu elinizdeki hiçbir ene sığmıyor. Ya uygun bir en ekleyin, ya kesim yönünü değiştirin, ya da stok listesini boşaltıp piyasa enleri moduna dönün.</p>
+          <h4>Fire çok yüksek çıkıyor.</h4>
+          <p>Hesaplanan en, bir üst rulo enine az farkla taşıyor olabilir. <b>🔥 Fire Analizi</b> sekmesinde farkı görün; ölçüyü birkaç mm kısmak veya yön değiştirmek çoğu zaman yeterlidir.</p>
+          <h4>Maliyet beklediğimden yüksek.</h4>
+          <p>Program <b>BRÜT</b> (fiilen satın alınan) kartonu esas alır; kalıp alanı üzerinden hesap yapan eski yöntemden daha yüksek ama <b>gerçeğe daha yakın</b> çıkar. Fatura ile karşılaştırın.</p>
+          <h4>Verilerim kayboldu.</h4>
+          <p>Tarayıcı verisi silinmiş olabilir. En son <b>JSON yedeğinizden</b> geri yükleyin. Yedeğiniz yoksa veri kurtarılamaz — bu yüzden düzenli yedek alın.</p>
+          <h4>Başka bilgisayarda açabilir miyim?</h4>
+          <p>Evet. HTML dosyasını kopyalayın, orada açın ve <b>📂 JSON'dan Aç</b> ile verinizi yükleyin. Veriler dosyanın içinde taşınmaz, ayrı taşınır.</p>
+          <h4>Dili değiştirdim, bazı metinler Türkçe kaldı.</h4>
+          <p><b>🌐 Dil Yönetimi</b> ekranından eksik metinleri kendiniz çevirip <b>💾 Kaydet</b> diyebilirsiniz.</p>
+          <div class="ork-tip">Takıldığınız yerde bu kılavuzu <kbd>F1</kbd> ile her an açabilir, üstteki arama kutusuna anahtar kelime (“fire”, “tolerans”, “JSON”) yazarak ilgili bölüme atlayabilirsiniz.</div>
+        </section>
+
+        <div class="ork-empty" id="orkGuideEmpty" style="display:none">Aramanla eşleşen bölüm yok.</div>
+      </div>
+    </div>
+    <div class="ork-ft">
+      <label><input type="checkbox" id="orkGuideAuto"> Bu sayfayı her açtığımda kılavuzu göster</label>
+      <div class="ork-sp" style="flex:1"></div>
+      <span>ORİMAK MAKİNA · Kullanım Kılavuzu · <kbd>Esc</kbd> kapatır · <kbd>F1</kbd> açar</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var KEY='orimak_guide_fefco_v1';
+  var root=document.getElementById('orkGuide'),
+      btn=document.getElementById('orkGuideBtn'),
+      toc=document.getElementById('orkGuideToc'),
+      ct=document.getElementById('orkGuideCt'),
+      search=document.getElementById('orkGuideSearch'),
+      empty=document.getElementById('orkGuideEmpty'),
+      auto=document.getElementById('orkGuideAuto');
+  var secs=[].slice.call(ct.querySelectorAll('section[id]'));
+
+  /* ---- butonu sayfanın sağ üst köşesine yerleştir ---- */
+  (function(){
+    var sels=['.hdr-right','.page-header'], host=null, i;
+    for(i=0;i<sels.length;i++){ host=document.querySelector(sels[i]); if(host) break; }
+    if(host){ btn.classList.add('ork-mount'); host.appendChild(btn); }
+    else{ btn.classList.add('ork-fixed'); document.body.appendChild(btn); }
+  })();
+
+  /* ---- içindekiler ---- */
+  var html='<div class="ork-tochd">İçindekiler</div>';
+  secs.forEach(function(s){
+    html+='<a href="#'+s.id+'" data-t="'+s.id+'"><i>'+(s.getAttribute('data-ico')||'•')+'</i><span>'+
+          (s.getAttribute('data-nav')||s.querySelector('h2').textContent)+'</span></a>';
+  });
+  toc.innerHTML=html;
+  var links=[].slice.call(toc.querySelectorAll('a'));
+  links.forEach(function(a){
+    a.addEventListener('click',function(e){
+      e.preventDefault();
+      var s=document.getElementById(a.getAttribute('data-t'));
+      if(s) ct.scrollTo({top:s.offsetTop-ct.offsetTop-6,behavior:'smooth'});
+    });
+  });
+  function spy(){
+    var best=null,bd=1e9;
+    secs.forEach(function(s){
+      if(s.classList.contains('ork-hide')) return;
+      var d=Math.abs(s.getBoundingClientRect().top-ct.getBoundingClientRect().top-10);
+      if(d<bd){bd=d;best=s;}
+    });
+    links.forEach(function(a){a.classList.toggle('on',!!best&&a.getAttribute('data-t')===best.id);});
+  }
+  ct.addEventListener('scroll',function(){ clearTimeout(spy._t); spy._t=setTimeout(spy,60); });
+
+  /* ---- arama ---- */
+  search.addEventListener('input',function(){
+    var q=search.value.trim().toLowerCase(), n=0;
+    secs.forEach(function(s){
+      var hit=!q||s.textContent.toLowerCase().indexOf(q)>=0;
+      s.classList.toggle('ork-hide',!hit);
+      var a=toc.querySelector('a[data-t="'+s.id+'"]'); if(a) a.style.display=hit?'':'none';
+      if(hit) n++;
+    });
+    empty.style.display=n?'none':'block';
+  });
+
+  /* ---- aç / kapat ---- */
+  function open(){
+    root.classList.remove('ork-off');
+    document.documentElement.style.overflow='hidden';
+    setTimeout(function(){ spy(); },50);
+  }
+  function close(){ root.classList.add('ork-off'); document.documentElement.style.overflow=''; }
+  btn.addEventListener('click',open);
+  [].slice.call(root.querySelectorAll('[data-ork-close]')).forEach(function(el){ el.addEventListener('click',close); });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&!root.classList.contains('ork-off')){ close(); }
+    else if(e.key==='F1'){ e.preventDefault(); root.classList.contains('ork-off')?open():close(); }
+  });
+
+  /* ---- ilk açılışta otomatik göster ---- */
+  var seen=null;
+  try{ seen=localStorage.getItem(KEY); }catch(e){}
+  auto.checked = (seen==='always');
+  auto.addEventListener('change',function(){
+    try{ localStorage.setItem(KEY, auto.checked?'always':'seen'); }catch(e){}
+  });
+  if(seen===null||seen==='always'){
+    setTimeout(open,600);
+    if(seen===null){ try{ localStorage.setItem(KEY,'seen'); }catch(e){} }
+  }
+
+  /* ---- yazdır ---- */
+  document.getElementById('orkGuidePrint').addEventListener('click',function(){
+    var w=window.open('','_blank');
+    if(!w){ alert('Yazdırma penceresi engellendi. Tarayıcı ayarlarından açılır pencerelere izin verin.'); return; }
+    var css='body{font-family:Segoe UI,Arial,sans-serif;font-size:12px;color:#111;max-width:900px;margin:24px auto;padding:0 18px;line-height:1.6}'+
+      'h1{font-size:20px;border-bottom:3px solid #f59e0b;padding-bottom:8px}'+
+      'h2{font-size:16px;margin-top:26px;border-bottom:1px solid #ddd;padding-bottom:5px;page-break-after:avoid}'+
+      'h3{font-size:13.5px;margin-top:16px;color:#b45309}h4{font-size:12.5px;margin:12px 0 4px}'+
+      'table{width:100%;border-collapse:collapse;margin:10px 0;font-size:11px}'+
+      'th,td{border:1px solid #ccc;padding:5px 7px;text-align:left;vertical-align:top}th{background:#f3f4f6}'+
+      '.ork-note,.ork-tip,.ork-warn,.ork-bad{border-left:4px solid #f59e0b;background:#fafafa;padding:8px 12px;margin:10px 0}'+
+      '.ork-steps{padding-left:20px}.ork-steps>li{margin-bottom:8px}'+
+      'code,kbd{background:#f3f4f6;border:1px solid #ddd;border-radius:3px;padding:0 4px;font-size:11px}'+
+      'section{page-break-inside:auto}.ork-empty{display:none}.n{background:#f59e0b;padding:1px 6px;border-radius:4px;margin-right:6px}';
+    w.document.write('<!doctype html><meta charset="utf-8"><title>FEFCO Karton Eni Hesaplama — Kullanım Kılavuzu</title><style>'+css+
+      '</style><h1>FEFCO Karton Eni Hesaplama — Kullanım Kılavuzu</h1>'+ct.innerHTML);
+    w.document.close();
+    setTimeout(function(){ try{ w.print(); }catch(e){} },400);
+  });
+})();
+</script>
+<!-- ════════════════ /ORİMAK · KULLANIM KILAVUZU ════════════════ -->
+
 </body>
 </html>
