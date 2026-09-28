@@ -263,6 +263,7 @@ body {
 .card-4 .card-preview { background: linear-gradient(135deg, #0a1a2e 0%, #0d2a1a 50%, #1a3320 100%); }
 .card-5 .card-preview { background: linear-gradient(135deg, #2d1500 0%, #1a0a00 50%, #331a00 100%); }
 .card-6 .card-preview { background: linear-gradient(135deg, #0d1f33 0%, #241a00 50%, #1a1a1a 100%); }
+.card-7 .card-preview { background: linear-gradient(135deg, #353230 0%, #2a1a00 55%, #1a1a1a 100%); }
 
 /* NEW BADGE */
 .new-badge {
@@ -434,7 +435,7 @@ body[dir="rtl"] .card-arrow{ transform:scaleX(-1) translateX(-8px); }
 <!-- HERO -->
 <div class="hero">
   <h2 data-i18n="idx_hero_h2">ORİMAK DİJİTAL ARAÇLAR</h2>
-  <p data-i18n="idx_hero_p">Koli üretim süreçlerinizi dijitalleştirin. FEFCO hesaplama, 3D koli görüntüleme, CUDBOX üretim araçları, Cargo 3D yük hesaplama, yazıcı etiket düzenleme ve parametrik kutu kataloğuna tek noktadan erişin.</p>
+  <p data-i18n="idx_hero_p">Koli üretim süreçlerinizi dijitalleştirin. FEFCO hesaplama, 3D koli görüntüleme, CUDBOX üretim araçları, Cargo 3D yük hesaplama, yazıcı etiket düzenleme, ORİTEQ hat hesabı ve parametrik kutu kataloğuna tek noktadan erişin.</p>
 </div>
 
 <!-- TOOLS GRID -->
@@ -604,6 +605,27 @@ body[dir="rtl"] .card-arrow{ transform:scaleX(-1) translateX(-8px); }
     </div>
   </a>
 
+  <!-- ORİTEQ HAT HESAPLAYICI -->
+  <a href="oriteq_hat.html" class="tool-card card-7">
+    <div class="new-badge" data-i18n="idx_yeni">YENİ</div>
+    <div class="card-preview">
+      <div class="card-icon">🏭</div>
+    </div>
+    <div class="card-body">
+      <div class="card-tag" data-i18n="idx_c9_tag">HAT KAPASİTESİ</div>
+      <div class="card-title" data-i18n="idx_c9_title">ORİTEQ Hat Hesaplayıcı</div>
+      <div class="card-desc" data-i18n="idx_c9_desc">Q-BOX + BC410 Pro paketleme hattının hızını, dolum konveyörü boyunu ve gereken personel sayısını kutu ölçüsü ve içeriğine göre hesaplayın. Darboğaz analizi ve animasyonlu hat yerleşimi.</div>
+    </div>
+    <div class="card-footer">
+      <div class="card-features">
+        <span class="card-feature"><span class="dot"></span><span data-i18n="idx_c9_f1">Hat Hızı</span></span>
+        <span class="card-feature"><span class="dot"></span><span data-i18n="idx_c9_f2">Personel</span></span>
+        <span class="card-feature"><span class="dot"></span><span data-i18n="idx_c9_f3">Konveyör</span></span>
+      </div>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
 </div>
 <div class="footer">
   <div class="footer-left">
@@ -653,6 +675,12 @@ body[dir="rtl"] .card-arrow{ transform:scaleX(-1) translateX(-8px); }
 // ============================================================
 const I18N_DEFAULTS = {
   "tr": {
+    "idx_c9_tag": "HAT KAPASİTESİ",
+    "idx_c9_title": "ORİTEQ Hat Hesaplayıcı",
+    "idx_c9_desc": "Q-BOX + BC410 Pro paketleme hattının hızını, dolum konveyörü boyunu ve gereken personel sayısını kutu ölçüsü ve içeriğine göre hesaplayın. Darboğaz analizi ve animasyonlu hat yerleşimi.",
+    "idx_c9_f1": "Hat Hızı",
+    "idx_c9_f2": "Personel",
+    "idx_c9_f3": "Konveyör",
     "idx_c8_tag": "KODLAMA & ETİKET",
     "idx_c8_title": "Yazıcı Etiket Düzenleyici",
     "idx_c8_desc": "SmartDate X40 termal transfer yazıcı şablonlarını tarayıcıda tasarlayın. CoLOS .itf / .image / .job dosyalarını açın, düzenleyin ve birebir aynı biçimde geri üretin.",
@@ -718,6 +746,12 @@ const I18N_DEFAULTS = {
     "idx_lm_import": "📥 İçe Aktar"
   },
   "en": {
+    "idx_c9_tag": "LINE CAPACITY",
+    "idx_c9_title": "ORİTEQ Line Calculator",
+    "idx_c9_desc": "Calculate line speed, filling conveyor length and required staff for a Q-BOX + BC410 Pro packing line from box size and contents. Bottleneck analysis and animated line layout.",
+    "idx_c9_f1": "Line Speed",
+    "idx_c9_f2": "Staffing",
+    "idx_c9_f3": "Conveyor",
     "idx_c8_tag": "CODING & LABELLING",
     "idx_c8_title": "Printer Label Editor",
     "idx_c8_desc": "Design SmartDate X40 thermal transfer printer templates in your browser. Open, edit and regenerate CoLOS .itf / .image / .job files byte-for-byte.",
@@ -783,6 +817,12 @@ const I18N_DEFAULTS = {
     "idx_lm_import": "📥 Import"
   },
   "de": {
+    "idx_c9_tag": "LINIENKAPAZITÄT",
+    "idx_c9_title": "ORİTEQ Linienrechner",
+    "idx_c9_desc": "Berechnen Sie Liniengeschwindigkeit, Länge des Befüllförderers und Personalbedarf einer Q-BOX + BC410 Pro Verpackungslinie aus Kartonmaß und Inhalt. Engpassanalyse und animiertes Linienlayout.",
+    "idx_c9_f1": "Liniengeschw.",
+    "idx_c9_f2": "Personal",
+    "idx_c9_f3": "Förderer",
     "idx_c8_tag": "CODIERUNG & ETIKETT",
     "idx_c8_title": "Drucker-Etiketteneditor",
     "idx_c8_desc": "SmartDate X40 Thermotransfer-Vorlagen im Browser gestalten. CoLOS .itf / .image / .job Dateien öffnen, bearbeiten und byte-genau zurückschreiben.",
@@ -842,6 +882,12 @@ const I18N_DEFAULTS = {
     "idx_lm_import": "📥 Importieren"
   },
   "fr": {
+    "idx_c9_tag": "CAPACITÉ DE LIGNE",
+    "idx_c9_title": "Calculateur de ligne ORİTEQ",
+    "idx_c9_desc": "Calculez la cadence, la longueur du convoyeur de remplissage et l'effectif d'une ligne Q-BOX + BC410 Pro selon les dimensions et le contenu du carton. Analyse du goulot et implantation animée.",
+    "idx_c9_f1": "Cadence",
+    "idx_c9_f2": "Effectif",
+    "idx_c9_f3": "Convoyeur",
     "idx_c8_tag": "CODAGE & ÉTIQUETTE",
     "idx_c8_title": "Éditeur d'étiquettes imprimante",
     "idx_c8_desc": "Concevez les modèles de l'imprimante à transfert thermique SmartDate X40 dans le navigateur. Ouvrez, modifiez et régénérez les fichiers CoLOS .itf / .image / .job à l'octet près.",
@@ -901,6 +947,12 @@ const I18N_DEFAULTS = {
     "idx_lm_import": "📥 Importer"
   },
   "es": {
+    "idx_c9_tag": "CAPACIDAD DE LÍNEA",
+    "idx_c9_title": "Calculadora de línea ORİTEQ",
+    "idx_c9_desc": "Calcule la velocidad de línea, la longitud del transportador de llenado y el personal necesario para una línea Q-BOX + BC410 Pro según medidas y contenido de la caja. Análisis de cuello de botella y línea animada.",
+    "idx_c9_f1": "Velocidad",
+    "idx_c9_f2": "Personal",
+    "idx_c9_f3": "Transportador",
     "idx_c8_tag": "CODIFICACIÓN Y ETIQUETA",
     "idx_c8_title": "Editor de etiquetas de impresora",
     "idx_c8_desc": "Diseñe plantillas de la impresora de transferencia térmica SmartDate X40 en el navegador. Abra, edite y regenere archivos CoLOS .itf / .image / .job byte a byte.",
@@ -960,6 +1012,12 @@ const I18N_DEFAULTS = {
     "idx_lm_import": "📥 Importar"
   },
   "ar": {
+    "idx_c9_tag": "سعة الخط",
+    "idx_c9_title": "حاسبة خط ORİTEQ",
+    "idx_c9_desc": "احسب سرعة الخط وطول ناقل التعبئة وعدد العمال اللازمين لخط تغليف Q-BOX + BC410 Pro حسب أبعاد الصندوق ومحتواه. تحليل نقطة الاختناق ومخطط خط متحرك.",
+    "idx_c9_f1": "سرعة الخط",
+    "idx_c9_f2": "العمالة",
+    "idx_c9_f3": "الناقل",
     "idx_c8_tag": "الترميز والملصقات",
     "idx_c8_title": "محرر ملصقات الطابعة",
     "idx_c8_desc": "صمّم قوالب طابعة النقل الحراري SmartDate X40 داخل المتصفح. افتح ملفات CoLOS ‏.itf / .image / .job وعدّلها وأعد إنتاجها مطابقة بايت ببايت.",
@@ -1020,6 +1078,12 @@ const I18N_DEFAULTS = {
   }
 };
 const I18N_LABELS = {
+  "idx_c9_tag": "Kart 9: Etiket",
+  "idx_c9_title": "Kart 9: Başlık",
+  "idx_c9_desc": "Kart 9: Açıklama",
+  "idx_c9_f1": "Kart 9: Özellik 1",
+  "idx_c9_f2": "Kart 9: Özellik 2",
+  "idx_c9_f3": "Kart 9: Özellik 3",
   "idx_h1": "Başlık",
   "idx_sub": "Alt Başlık",
   "idx_langmgr": "Dil Yönetimi Butonu",
