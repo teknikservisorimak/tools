@@ -707,6 +707,20 @@ footer{
 .save-btn.del:hover{background:rgba(192,0,0,.12);border-color:#f87171;}
 .pdf-opt{text-align:left;padding:12px 14px;display:flex;flex-direction:column;gap:3px;line-height:1.3;}
 .pdf-opt span{color:var(--muted);font-size:11px;font-weight:400;}
+.pdf-scope{background:var(--bg);border:1px solid var(--orange-border);border-radius:8px;padding:10px 12px;margin-bottom:14px;}
+.pdf-scope-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--orange);text-transform:uppercase;}
+.pdf-scope-head button{margin-left:4px;background:none;border:1px solid var(--dim);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:4px;cursor:pointer;}
+.pdf-scope-head button:first-of-type{margin-left:auto;}
+.pdf-scope-head button:hover{border-color:var(--orange);color:var(--orange);}
+.pdf-scope-list{display:flex;flex-wrap:wrap;gap:6px;max-height:150px;overflow-y:auto;}
+.pdf-scope-item{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:4px 11px 4px 8px;font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--text);cursor:pointer;user-select:none;transition:all .12s;}
+.pdf-scope-item:hover{border-color:var(--orange-border);}
+.pdf-scope-item:has(input:checked){background:var(--orange-dim);border-color:var(--orange);color:var(--orange);}
+.pdf-scope-item input{accent-color:var(--orange);width:14px;height:14px;cursor:pointer;}
+.pdf-scope-item span{color:var(--muted);font-size:11px;}
+.pdf-scope-item.off{opacity:.35;cursor:not-allowed;}
+.tip-pdf-btn{background:rgba(245,166,35,.14);border:1px solid var(--orange-border);color:var(--orange);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;padding:5px 12px;border-radius:5px;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.tip-pdf-btn:hover{background:var(--orange);color:#1a1a1a;box-shadow:0 3px 12px rgba(245,166,35,.35);}
 .pdf-opt:hover span{color:var(--text);}
 /* Yedek pill renk durumları */
 #yedekPill.fresh  {border-color:rgba(146,208,80,.4);}
@@ -2032,6 +2046,7 @@ function renderTable(ftId){
     <span class="fefco-tag">${ft.kod}</span>
     <span class="fefco-name">${ft.ad}</span>
     <span class="fefco-formula">${t('badge_legend')} ${varsDisplay}</span>
+    <button class="tip-pdf-btn" onclick="openPdfMenu(['${ftId}'])" title="${esc(t('btn_tippdf_title'))}">${t('btn_tippdf')}</button>
   </div>
   ${formulaHtml}
   <div class="price-row">
@@ -4123,9 +4138,18 @@ function _piyasaUsage(types){
   return Object.values(map).sort((a,b)=>a.piyasa-b.piyasa);
 }
 
-function _typesWithData(){
-  return FEFCO_TYPES.filter(ft=>(DATA[ft.id]||[]).some(r=>{const h=hesapla(ft,r);return h&&h.en>0;}));
+function _typesWithData(ids){
+  return FEFCO_TYPES.filter(ft=>(!ids||!ids.length||ids.includes(ft.id))
+    && (DATA[ft.id]||[]).some(r=>{const h=hesapla(ft,r);return h&&h.en>0;}));
 }
+// Rapor kapsamı: seçim tüm dolu tipleri kapsamıyorsa seçilen kodları döndürür
+function _scopeTxt(ids){
+  if(!ids||!ids.length) return '';
+  const all=_typesWithData();
+  if(all.every(f=>ids.includes(f.id))) return '';
+  return FEFCO_TYPES.filter(f=>ids.includes(f.id)).map(f=>f.kod).join(', ');
+}
+function _withScope(txt,ids){ const sc=_scopeTxt(ids); return sc?(txt+' · '+sc):txt; }
 
 // Rapor başlık bloğu
 function _docHeader(title,subtitle){
@@ -4197,11 +4221,11 @@ function _openReport(title, bodyHTML, landscape){
 }
 
 // ---------- 1) KUTU TİPİ DETAY RAPORU ----------
-function pdfKutuDetay(){
-  const types=_typesWithData();
+function pdfKutuDetay(ids){
+  const types=_typesWithData(ids);
   if(!types.length){ alert(t('p_onceolcu')); return; }
 
-  let body=_docHeader(t('p_t_kutudetay'),t('p_st_kutudetay'));
+  let body=_docHeader(t('p_t_kutudetay'),_withScope(t('p_st_kutudetay'),ids));
 
   types.forEach((ft,idx)=>{
     const st=_typeStats(ft);
@@ -4278,12 +4302,12 @@ function pdfKutuDetay(){
     body+='</div>';
   });
 
-  _openReport(t('p_ttl_kutudetay'), body, true);
+  _openReport(_withScope(t('p_ttl_kutudetay'),ids), body, true);
 }
 
 // ---------- 2) FİRE ANALİZİ RAPORU ----------
-function pdfFire(){
-  const types=_typesWithData();
+function pdfFire(ids){
+  const types=_typesWithData(ids);
   if(!types.length){ alert(t('p_onceolcu')); return; }
 
   let gBrutM2=0,gBrutTL=0,gNetTL=0,gFireM2=0,gFireTL=0;
@@ -4292,7 +4316,7 @@ function pdfFire(){
     return {ft,st}; });
   const gFirePct = gBrutM2>0 ? gFireM2/gBrutM2*100 : 0;
 
-  let body=_docHeader(t('p_t_fire'),t('p_st_fire'));
+  let body=_docHeader(t('p_t_fire'),_withScope(t('p_st_fire'),ids));
 
   body+='<div class="kpi-row">'
     + _kpi(_n(gBrutM2,2)+' m²',t('p_satinalinan'),'blue')
@@ -4339,12 +4363,12 @@ function pdfFire(){
 
   body+='<p class="note">'+t('p_firenote')+'</p>';
 
-  _openReport(t('p_ttl_fire'), body, false);
+  _openReport(_withScope(t('p_ttl_fire'),ids), body, false);
 }
 
 // ---------- 3) KURUMSAL GENEL RAPOR ----------
-function pdfKurumsal(){
-  const types=_typesWithData();
+function pdfKurumsal(ids){
+  const types=_typesWithData(ids);
   if(!types.length){ alert(t('p_onceolcu')); return; }
 
   let gM2=0,gBrutM2=0,gBrutTL=0,gNetTL=0,gRulo=0,gFireM2=0,gFireTL=0,gAdet=0,gSigmaz=0;
@@ -4356,7 +4380,7 @@ function pdfKurumsal(){
   });
   const gFirePct=gBrutM2>0?gFireM2/gBrutM2*100:0;
 
-  let body=_docHeader(t('p_t_kurumsal'),t('p_st_kurumsal'));
+  let body=_docHeader(t('p_t_kurumsal'),_withScope(t('p_st_kurumsal'),ids));
 
   body+='<div class="kpi-row">'
     + _kpi(_n(gAdet,0),t('p_toplamadet'),'blue')
@@ -4407,15 +4431,16 @@ function pdfKurumsal(){
   body+='<p class="note">'+t('p_kurumsalnote')
     +(gSigmaz?' <b>'+t('p_uyari_pre')+' '+_n(gSigmaz,0)+' '+t('p_uyari_post')+'</b>':'')+'</p>';
 
-  _openReport(t('p_ttl_kurumsal'), body, false);
+  _openReport(_withScope(t('p_ttl_kurumsal'),ids), body, false);
 }
 
 // ---------- 4) PİYASA KARTON ENİ ÖZETİ RAPORU ----------
 // Sadece "Piyasa Özet" sekmesini PDF olarak üretir. Ekrandaki filtre
 // uygulanmışsa rapor da o piyasa enine göre filtrelenir.
-function pdfPiyasa(){
+function pdfPiyasa(ids){
   const items=[];
   FEFCO_TYPES.forEach(ft=>{
+    if(ids&&ids.length&&!ids.includes(ft.id)) return;
     (DATA[ft.id]||[]).forEach(r=>{ const h=hesapla(ft,r); if(!h) return; items.push({ft,r,h}); });
   });
   if(!items.length){ alert(t('p_onceolcu')); return; }
@@ -4427,7 +4452,7 @@ function pdfPiyasa(){
   const subt = filtered ? (t('p_filtre')+' '+_piyasaFilter+' mm '+((STOK_MODU&&STOK_ENLERI.length)?t('p_stok'):t('p_piyasa'))+' '+t('p_eni'))
                         : t('p_piyasaesle');
 
-  let body=_docHeader(t('p_t_piyasa'), subt);
+  let body=_docHeader(t('p_t_piyasa'), _withScope(subt,ids));
 
   // KPI
   let gKutu=0,gBrutM2=0,gBrutTL=0,gSig=0,shownW=0;
@@ -4480,32 +4505,61 @@ function pdfPiyasa(){
     + (filtered?' <b>'+esc(_piyasaFilter)+' mm</b>':'')
     + '</p>';
 
-  _openReport(t('p_ttl_piyasa'), body, true);
+  _openReport(_withScope(t('p_ttl_piyasa'),ids), body, true);
 }
 
 // ---------- PDF MENÜSÜ ----------
-function openPdfMenu(){
+function openPdfMenu(preIds){
+  const withData=_typesWithData();
+  if(!withData.length){ alert(t('p_onceolcu')); return; }
+  // Varsayılan kapsam: parametre > açık olan FEFCO sekmesi > tüm dolu tipler
+  let sel;
+  if(Array.isArray(preIds)&&preIds.length) sel=preIds;
+  else if(FEFCO_TYPES.find(f=>f.id===activeTabId)) sel=[activeTabId];
+  else sel=withData.map(f=>f.id);
+  const items=FEFCO_TYPES.map(ft=>{
+    const has=withData.includes(ft);
+    const ad=(ft.ad||'').split('(')[0].trim();
+    return '<label class="pdf-scope-item'+(has?'':' off')+'" title="'+esc(has?ft.ad:t('pm_veriyok'))+'">'
+      +'<input type="checkbox" class="pdf-scope-cb" value="'+ft.id+'"'+(has&&sel.includes(ft.id)?' checked':'')+(has?'':' disabled')+'>'
+      +'<b>'+esc(ft.kod)+'</b><span>'+esc(ad)+'</span></label>';
+  }).join('');
   const bg=document.createElement('div');
   bg.className='modal-bg';
   bg.innerHTML=
-    '<div class="modal-box" style="min-width:440px;max-width:520px;">'
+    '<div class="modal-box" style="min-width:440px;max-width:600px;">'
     + '<h3>'+t('pm_baslik')+'</h3>'
-    + '<p style="font-family:\'Barlow Condensed\',sans-serif;font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6;">'
+    + '<p style="font-family:\'Barlow Condensed\',sans-serif;font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;">'
     + t('pm_aciklama')+'</p>'
+    + '<div class="pdf-scope"><div class="pdf-scope-head">'+t('pm_kapsam')
+    + '<button type="button" onclick="_pdfScopeAll(this,true)">'+t('pm_tumu')+'</button>'
+    + '<button type="button" onclick="_pdfScopeAll(this,false)">'+t('pm_hicbiri')+'</button></div>'
+    + '<div class="pdf-scope-list">'+items+'</div></div>'
     + '<div style="display:flex;flex-direction:column;gap:10px;">'
-    + '<button class="save-btn pdf-opt" onclick="this.closest(\'.modal-bg\').remove();pdfKutuDetay();">'+t('pm_kutudetay')
+    + '<button class="save-btn pdf-opt" onclick="_pdfMenuRun(this,\'pdfKutuDetay\')">'+t('pm_kutudetay')
     + '<span>'+t('pm_kutudetay_sub')+'</span></button>'
-    + '<button class="save-btn pdf-opt" onclick="this.closest(\'.modal-bg\').remove();pdfFire();">'+t('pm_fire')
+    + '<button class="save-btn pdf-opt" onclick="_pdfMenuRun(this,\'pdfFire\')">'+t('pm_fire')
     + '<span>'+t('pm_fire_sub')+'</span></button>'
-    + '<button class="save-btn pdf-opt" onclick="this.closest(\'.modal-bg\').remove();pdfKurumsal();">'+t('pm_kurumsal')
+    + '<button class="save-btn pdf-opt" onclick="_pdfMenuRun(this,\'pdfKurumsal\')">'+t('pm_kurumsal')
     + '<span>'+t('pm_kurumsal_sub')+'</span></button>'
-    + '<button class="save-btn pdf-opt" onclick="this.closest(\'.modal-bg\').remove();pdfPiyasa();">'+t('pm_piyasa')
+    + '<button class="save-btn pdf-opt" onclick="_pdfMenuRun(this,\'pdfPiyasa\')">'+t('pm_piyasa')
     + '<span>'+t('pm_piyasa_sub')+'</span></button>'
     + '</div>'
     + '<div class="modal-btns"><button class="modal-btn cancel" onclick="this.closest(\'.modal-bg\').remove();">'+t('p_kapat')+'</button></div>'
     + '</div>';
   bg.addEventListener('click',e=>{ if(e.target===bg) bg.remove(); });
   document.body.appendChild(bg);
+}
+function _pdfScopeAll(btn,on){
+  btn.closest('.modal-bg').querySelectorAll('.pdf-scope-cb:not(:disabled)').forEach(c=>{c.checked=on;});
+}
+function _pdfMenuRun(btn,fn){
+  const bg=btn.closest('.modal-bg');
+  const ids=[...bg.querySelectorAll('.pdf-scope-cb:checked')].map(c=>c.value);
+  if(!ids.length){ alert(t('pm_secimyok')); return; }
+  bg.remove();
+  const f={pdfKutuDetay,pdfFire,pdfKurumsal,pdfPiyasa}[fn];
+  if(f) f(ids);
 }
 
 
@@ -4648,6 +4702,13 @@ const I18N_DEFAULTS = {
     pm_kurumsal_sub:       'Kapsamlı: üretim, maliyet, fire, fire maliyeti ve karton eni kullanım dağılımı',
     pm_piyasa:             '📦 Piyasa Karton Eni Özeti',
     pm_piyasa_sub:         'Hangi kutu hangi piyasa enini kullanıyor · piyasa enine göre gruplu eşleşme listesi',
+    btn_tippdf:            '📄 Bu Tipin Raporu',
+    btn_tippdf_title:      'Sadece bu FEFCO tipinin PDF raporunu al',
+    pm_kapsam:             '📦 Rapor Kapsamı — hangi kutu tipleri?',
+    pm_tumu:               'Tümü',
+    pm_hicbiri:            'Hiçbiri',
+    pm_veriyok:            'Bu tipte henüz ölçü yok',
+    pm_secimyok:           'Lütfen en az bir kutu tipi seçin.',
     md_yenisekme:          'Yeni Sekme Ekle',
     md_sekmeduzenle:       'Sekme Düzenle',
     md_kod:                'Kod (örn: FEFCO 0500 veya ÖZEL-2)',
@@ -4913,6 +4974,13 @@ const I18N_DEFAULTS = {
     pm_kurumsal_sub:       'Comprehensive: production, cost, waste, waste cost and board width usage',
     pm_piyasa:             '📦 Market Board Width Summary',
     pm_piyasa_sub:         'Which box uses which market width · match list grouped by width',
+    btn_tippdf:            '📄 Report This Type',
+    btn_tippdf_title:      'Get a PDF report for this FEFCO type only',
+    pm_kapsam:             '📦 Report Scope — which box types?',
+    pm_tumu:               'All',
+    pm_hicbiri:            'None',
+    pm_veriyok:            'No entries in this type yet',
+    pm_secimyok:           'Please select at least one box type.',
     md_yenisekme:          'Add New Tab',
     md_sekmeduzenle:       'Edit Tab',
     md_kod:                'Code (e.g. FEFCO 0500 or CUSTOM-2)',
@@ -5178,6 +5246,13 @@ const I18N_DEFAULTS = {
     pm_kurumsal_sub:       'Umfassend: Produktion, Kosten, Verschnitt und Breitennutzung',
     pm_piyasa:             '📦 Marktkartonbreiten-Übersicht',
     pm_piyasa_sub:         'Welcher Karton welche Marktbreite nutzt · nach Breite gruppiert',
+    btn_tippdf:            '📄 Bericht dieses Typs',
+    btn_tippdf_title:      'PDF-Bericht nur für diesen FEFCO-Typ',
+    pm_kapsam:             '📦 Berichtsumfang — welche Kartontypen?',
+    pm_tumu:               'Alle',
+    pm_hicbiri:            'Keine',
+    pm_veriyok:            'Noch keine Maße in diesem Typ',
+    pm_secimyok:           'Bitte mindestens einen Kartontyp wählen.',
     md_yenisekme:          'Neuen Tab hinzufügen',
     md_sekmeduzenle:       'Tab bearbeiten',
     md_kod:                'Code (z.B. FEFCO 0500 oder SPEZIAL-2)',
@@ -5443,6 +5518,13 @@ const I18N_DEFAULTS = {
     pm_kurumsal_sub:       'Complet : production, coût, perte et usage largeur',
     pm_piyasa:             '📦 Résumé largeur marché',
     pm_piyasa_sub:         'Quelle boîte utilise quelle largeur · liste groupée par largeur',
+    btn_tippdf:            '📄 Rapport de ce type',
+    btn_tippdf_title:      'Rapport PDF pour ce type FEFCO uniquement',
+    pm_kapsam:             '📦 Portée du rapport — quels types ?',
+    pm_tumu:               'Tous',
+    pm_hicbiri:            'Aucun',
+    pm_veriyok:            'Aucune mesure pour ce type',
+    pm_secimyok:           'Sélectionnez au moins un type.',
     md_yenisekme:          'Ajouter un onglet',
     md_sekmeduzenle:       'Modifier l\'onglet',
     md_kod:                'Code (ex : FEFCO 0500 ou PERSO-2)',
@@ -5708,6 +5790,13 @@ const I18N_DEFAULTS = {
     pm_kurumsal_sub:       'Completo: producción, costo, merma y uso de ancho',
     pm_piyasa:             '📦 Resumen ancho de mercado',
     pm_piyasa_sub:         'Qué caja usa qué ancho · lista agrupada por ancho',
+    btn_tippdf:            '📄 Informe de este tipo',
+    btn_tippdf_title:      'Informe PDF solo de este tipo FEFCO',
+    pm_kapsam:             '📦 Alcance del informe — ¿qué tipos?',
+    pm_tumu:               'Todos',
+    pm_hicbiri:            'Ninguno',
+    pm_veriyok:            'Aún no hay medidas en este tipo',
+    pm_secimyok:           'Seleccione al menos un tipo.',
     md_yenisekme:          'Añadir pestaña',
     md_sekmeduzenle:       'Editar pestaña',
     md_kod:                'Código (ej: FEFCO 0500 o PERS-2)',
@@ -5973,6 +6062,13 @@ const I18N_DEFAULTS = {
     pm_kurumsal_sub:       'شامل: الإنتاج والتكلفة والهدر واستخدام العرض',
     pm_piyasa:             '📦 ملخص عرض كرتون السوق',
     pm_piyasa_sub:         'أي صندوق يستخدم أي عرض · قائمة مجمّعة حسب العرض',
+    btn_tippdf:            '📄 تقرير هذا النوع',
+    btn_tippdf_title:      'تقرير PDF لهذا النوع من FEFCO فقط',
+    pm_kapsam:             '📦 نطاق التقرير — أي أنواع الصناديق؟',
+    pm_tumu:               'الكل',
+    pm_hicbiri:            'لا شيء',
+    pm_veriyok:            'لا توجد قياسات لهذا النوع بعد',
+    pm_secimyok:           'يرجى اختيار نوع واحد على الأقل.',
     md_yenisekme:          'إضافة تبويب جديد',
     md_sekmeduzenle:       'تحرير التبويب',
     md_kod:                'الرمز (مثال: FEFCO 0500 أو خاص-2)',
@@ -6240,6 +6336,13 @@ const I18N_LABELS = {
   pm_kurumsal_sub:       'PDF/Modal: pm_kurumsal_sub',
   pm_piyasa:             'PDF/Modal: pm_piyasa',
   pm_piyasa_sub:         'PDF/Modal: pm_piyasa_sub',
+  btn_tippdf:            'PDF/Modal: btn_tippdf',
+  btn_tippdf_title:      'PDF/Modal: btn_tippdf_title',
+  pm_kapsam:             'PDF/Modal: pm_kapsam',
+  pm_tumu:               'PDF/Modal: pm_tumu',
+  pm_hicbiri:            'PDF/Modal: pm_hicbiri',
+  pm_veriyok:            'PDF/Modal: pm_veriyok',
+  pm_secimyok:           'PDF/Modal: pm_secimyok',
   md_yenisekme:          'PDF/Modal: md_yenisekme',
   md_sekmeduzenle:       'PDF/Modal: md_sekmeduzenle',
   md_kod:                'PDF/Modal: md_kod',
