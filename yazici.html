@@ -429,7 +429,7 @@ kbd{background:var(--bg4);border:1px solid var(--line2);border-bottom-width:2px;
     <button class="btn" id="bDirUp" style="flex:0 0 auto" title="Üst klasör" disabled>↑</button>
   </div>
   <div id="dirList" style="margin-top:10px"></div>
-  <div class="note">Dosyalar <b>UTF-16LE</b> XML olarak okunur. İçe aktarılan dosya tekrar dışa aktarıldığında <b>byte düzeyinde aynı</b> çıkar — bilinmeyen bloklar (AppInfo, PropertyBag) korunur.</div>
+  <div class="note">Kodlama otomatik algılanır (CoLOS'un yazdığı <b>ASCII</b> veya eski araç çıktısı <b>UTF-16LE</b>). İçe aktarılan dosya tekrar dışa aktarıldığında <b>byte düzeyinde aynı</b> çıkar — bilinmeyen bloklar (AppInfo, PropertyBag) korunur.</div>
   <div class="note i" id="fsNote" style="display:none"></div>
 </div></div></div>
 
@@ -437,7 +437,7 @@ kbd{background:var(--bg4);border:1px solid var(--line2);border-bottom-width:2px;
   <div class="seg" style="width:190px" id="xmlSeg"><button class="on" data-f="itf">.itf</button><button data-f="image">.image</button><button data-f="job">.job</button></div>
   <button class="x" data-close>×</button></header>
 <div class="body"><textarea id="xmlOut" style="height:400px;font-size:11px" readonly></textarea>
-<div class="note i">Bu metin dosyaya yazılırken başına <b>FF FE</b> (UTF-16LE BOM) eklenir, satır sonu <b>eklenmez</b>. CoLOS Create'in yazdığı düzenin birebir aynısıdır.</div></div>
+<div class="note i">Tüm dosyalar CoLOS Create gibi <b>düz ASCII</b> yazılır — BOM yok, satır sonu yok. ASCII dışı karakterler <b>&amp;#N;</b> olarak kodlanır.</div></div>
 <footer><button class="btn" id="xmlCopy">⧉ Kopyala</button><button class="btn p" data-close>Kapat</button></footer></div></div>
 
 <div class="ov" id="ovBatch"><div class="dlg wide"><header><span>⚡ Seri Üretim</span><div class="grow"></div><button class="x" data-close>×</button></header>
@@ -490,7 +490,7 @@ kbd{background:var(--bg4);border:1px solid var(--line2);border-bottom-width:2px;
    CoLOS .itf / .image / .job  —  parser + serializer
    Markem-Imaje CoLOS Create V2.0.0.0  /  SmartDate X40
    Birim: HM = 1/100 mm   (3200 HM = 32.00 mm)
-   Kodlama: UTF-16LE + BOM (FF FE), tek satir, sonda newline YOK
+   Kodlama: duz ASCII, BOM YOK, tek satir, sonda newline YOK (FY1/FY2 CoLOS ciktisi)
    Bilinmeyen bloklar (AppInfo vb.) "raw" olarak saklanip birebir
    geri yazilir -> ice aktar/disa aktar kayipsizdir.
    ============================================================ */
@@ -541,7 +541,7 @@ function ttfName(face, bold, italic) {
 }
 function ttfToStyle(fn) {
   fn = (fn || '').toLowerCase();
-  return { bold: /bd\.ttf$|bi\.ttf$|nb\.ttf$|b\.ttf$|z\.ttf$/.test(fn), italic: /i\.ttf$|bi\.ttf$|ni\.ttf$/.test(fn) && !/bd\.ttf$/.test(fn) };
+  return { bold: /bold|bd\.ttf$|bi\.ttf$|nb\.ttf$|b\.ttf$|z\.ttf$/.test(fn), italic: /i\.ttf$|bi\.ttf$|ni\.ttf$/.test(fn) && !/bd\.ttf$/.test(fn) };
 }
 
 /* CoLOS CharHeight (HM) <-> punto donusumu.
@@ -595,6 +595,7 @@ function parseImage(xml) {
     bgFirst: /<Legend[^>]*BackgroundColor[^>]*PaperColor/.test(xml),
     emptyDescLong: /<Description><\/Description>/.test(xml),
     legendAppInfo: null,
+    native: /<AlphaNumeric type=['"]AlphaNumeric['"]/.test(xml) && !/<!--Written by CoLOS Create/.test(xml),
     fields: []
   };
 
@@ -646,6 +647,8 @@ function parseField(tagName, body, whole) {
     f.overlay = tag(body, 'OverlayMode') || 'MERGE';
     f.logged = (tag(body, 'Logged') || 'false') === 'true';
     f.typeface = tag(fontXml, 'Typeface') || 'Arial';
+    var boldFace = /^(.*?)\s*bold$/i.exec(f.typeface);   // yazıcı-yerel 'ArialBold'
+    if (boldFace && boldFace[1]) f.typeface = boldFace[1];
 
     var ps = tag(fontXml, 'PointSizeInHM');
     if (ps !== null) {
@@ -653,7 +656,7 @@ function parseField(tagName, body, whole) {
       f.size = num(ps, 1270);
       f.fontFile = tag(fontXml, 'Filename') || '';
       var st = ttfToStyle(f.fontFile);
-      f.bold = st.bold; f.italic = st.italic; f.underline = false;
+      f.bold = st.bold || !!boldFace; f.italic = st.italic; f.underline = false;
       f.charH = Math.round(f.size * BOX_EM);
       f.charW = defaultCharWidth(f.charH);
     } else {
@@ -679,6 +682,7 @@ function parseField(tagName, body, whole) {
       f.useDefault = (tag(ui[1], 'UseDefault') || 'false') === 'true';
       f.rememberLast = (tag(ui[1], 'RememberLast') || 'false') === 'true';
       f.srcAppInfo = rawBlock(ui[1], 'AppInfo');
+      f.validationMask = tag(ui[1], 'ValidationMask') || '';
     } else if (dt) {
       f.src = 'datetime';
       f.dtFormat = tag(dt[1], 'Format') || 'dd/MM/yyyy';
@@ -796,14 +800,14 @@ function buildField(f, q, A, flavor, keep) {
   }
 
   var src;
-  var wantUser = keep ? (f.src === 'userinput') : (flavor === 'itf' && f.src === 'userinput');
+  var wantUser = f.src === 'userinput';   // CoLOS .image de UserInput'u korur (FY2.image)
   if (f.src === 'datetime') {
     src = (keep && f.srcRaw) ? f.srcRaw :
       '<DateTime' + A('type', 'DateTimeSrc.V1') + '><Format>' + esc(f.dtFormat) + '</Format>' +
       '<OffsetDays>' + (f.dtOffset | 0) + '</OffsetDays></DateTime>';
   } else if (wantUser) {
     src = '<UserInput' + A('type', 'UserInputSrc.V1') + '>' +
-      (keep ? (f.srcAppInfo || '') : SRC_APPINFO_TPL(q, A)) +
+      (keep ? (f.srcAppInfo || '') : (flavor === 'itf' ? SRC_APPINFO_TPL(q, A) : '')) +
       (f.prompt ? '<Prompt>' + esc(f.prompt) + '</Prompt>' : '<Prompt />') +
       '<CurrentValue>' + esc(f.text) + '</CurrentValue>' +
       '<DefaultValue>' + esc(f.defaultValue == null ? f.text : f.defaultValue) + '</DefaultValue>' +
@@ -824,6 +828,73 @@ function buildField(f, q, A, flavor, keep) {
 
 function buildJob(imageFileName) {
   return '<Job><ImageFileName>' + esc(imageFileName) + '</ImageFileName></Job>';
+}
+
+
+/* ============================================================
+   YAZICI-YEREL .image  (yazıcının kendi default.image düzeni)
+   - UTF-8 / ASCII, BOM YOK, tek satır, sonda newline yok
+   - tek tırnak, Legend: BackgroundColor -> PaperColor
+   - AlphaNumeric type='AlphaNumeric', AppInfo YOK
+   - UserInput korunur (+ ValidationMask), Static'e çevrilmez
+   - Font: Typeface/PointSizeInHM/Filename  (ArialBold / ARIALBOLD.TTF)
+   ============================================================ */
+function nativeFont(f) {
+  var face = f.typeface || 'Arial';
+  if (/^arial$/i.test(face)) {
+    return f.bold ? { face: 'ArialBold', file: 'ARIALBOLD.TTF', ok: true }
+                  : { face: 'Arial', file: 'ARIAL.TTF', ok: false };
+  }
+  return { face: face.replace(/\s+/g, '') + (f.bold ? 'Bold' : ''), file: ttfName(face, f.bold, f.italic).toUpperCase(), ok: false };
+}
+function buildNativeImage(doc) {
+  var q = "'";
+  function A(k, v) { return ' ' + k + '=' + q + esc(v) + q; }
+  function T(n, v) { return '<' + n + '>' + esc(v == null ? '' : v) + '</' + n + '>'; }
+  var bg = doc.native ? doc.backgroundColor : 'LightGray';
+  var pc = doc.native ? doc.paperColor : 'AntiqueWhite';
+  var s = '<Legend' + A('type', 'Image.V1') + A('BackgroundColor', bg) + A('PaperColor', pc) + '>';
+  s += '<DeviceInfo' + A('DeviceURI', doc.deviceUri) + '>' + T('DeviceName', doc.deviceName) + '</DeviceInfo>';
+  s += T('Description', doc.description) + T('Mirrored', doc.mirrored ? 'true' : 'false') +
+       T('Orientation', doc.orientation) + T('Width', doc.width | 0) + T('Height', doc.height | 0);
+  s += '<FieldList>';
+  doc.fields.forEach(function (f) {
+    var head = T('Name', f.name) + T('ID', f.fid | 0) +
+      '<Geometry>' + T('X', f.x | 0) + T('Y', f.y | 0) + T('Rotation', f.rot | 0) + '</Geometry>' + T('FieldColor', f.color);
+    if (f.raw) { s += f.raw; return; }
+    if (f.kind === 'logo') {
+      s += '<Logo' + A('type', 'Logo.V1') + '>' + head + T('FileName', f.file) + T('Width', f.w | 0) + T('Height', f.h | 0) + '</Logo>';
+      return;
+    }
+    if (f.kind !== 'text') return;            // β çizim tipleri yazıcı dosyasına yazılmaz
+    var nf = nativeFont(f);
+    var size = f.fontMode === 'points' ? f.size : Math.round(f.charH / BOX_EM);
+    var src;
+    if (f.src === 'userinput') {
+      src = '<UserInput' + A('type', 'UserInputSrc.V1') + '>' + T('Prompt', f.prompt || f.name) + T('CurrentValue', f.text) +
+        T('ValidationMask', f.validationMask || '') + T('DefaultValue', f.defaultValue == null ? f.text : f.defaultValue) +
+        T('UseDefault', f.useDefault ? 'true' : 'false') + T('RememberLast', f.rememberLast ? 'true' : 'false') + '</UserInput>';
+    } else if (f.src === 'datetime') {
+      src = f.srcRaw || ('<DateTime' + A('type', 'DateTimeSrc.V1') + '>' + T('Format', f.dtFormat) + T('OffsetDays', f.dtOffset | 0) + '</DateTime>');
+    } else {
+      src = '<Static' + A('type', 'StaticSrc.V1') + '>' + T('Text', f.text) + '</Static>';
+    }
+    s += '<AlphaNumeric' + A('type', 'AlphaNumeric') + '>' + head + T('Logged', f.logged ? 'true' : 'false') +
+      '<Text' + A('type', 'TextBased.V1') + '>' + T('Inverted', f.inverted ? 'true' : 'false') + T('OverlayMode', f.overlay) +
+      '<Font' + A('type', 'Font.V1') + '>' + T('Typeface', nf.face) + T('PointSizeInHM', size | 0) + T('Filename', nf.file) + '</Font></Text>' +
+      src + '</AlphaNumeric>';
+  });
+  s += '</FieldList></Legend>';
+  return s;
+}
+function toAscii(str) {        // CoLOS çıktısı: düz ASCII, BOM yok; ASCII dışı -> &#N;
+  var o = '';
+  for (var i = 0; i < str.length; i++) {
+    var c = str.codePointAt(i);
+    if (c > 0xFFFF) i++;
+    o += c < 128 ? str[i] : '&#' + c + ';';
+  }
+  return new TextEncoder().encode(o);
 }
 
 /* ---------- UTF-16LE + BOM ---------- */
@@ -1005,6 +1076,8 @@ var f2 = function (v) { return (Math.round(v * 100) / 100).toFixed(2); };
 
 /* ---------------- durum ---------------- */
 var S = {
+  outFmt: (function () { try { return localStorage.getItem('orimak_yazici_fmt2') || 'colos'; } catch (e) { return 'colos'; } })(),
+  fonts: {},
   doc: null, sel: -1, tool: 'select', zoom: 2, grid: true, snap: true,
   tab: 'field', undo: [], redo: [], imported: null, logos: {}, dirty: false
 };
@@ -1049,7 +1122,7 @@ function newDoc(dev) {
   };
 }
 function nextId() {
-  var m = -1; S.doc.fields.forEach(function (f) { if (f.fid > m) m = f.fid; }); return m + 1;
+  var m = -1; S.doc.fields.forEach(function (f) { if (f.fid > m) m = f.fid; }); return m + 1;   // CoLOS: ID 0'dan başlar
 }
 function uniqName(base) {
   var n = 1, names = S.doc.fields.map(function (f) { return f.name; });
@@ -1113,6 +1186,7 @@ function textHmm(f) {
 function displayText(f) {
   if (f.kind !== 'text') return '';
   if (f.src === 'datetime') return fmtDate(new Date(Date.now() + (f.dtOffset || 0) * 864e5), f.dtFormat || 'dd/MM/yyyy');
+  if (f.src === 'userinput' && !f.text) return f.defaultValue || '';
   return f.text == null ? '' : f.text;
 }
 function fmtDate(d, fmt) {
@@ -1363,7 +1437,18 @@ function renderProps() {
     h += grp('Kağıt',
       rowS('PaperColor', 'dPaper', ['White', 'Yellow', 'Silver'], d.paperColor) +
       rowS('BackgroundColor', 'dBg', ['DarkGray', 'Gray', 'White'], d.backgroundColor));
-    var st = S.imported ? '<div class="readout">İçe aktarıldı: <b>' + S.imported + '</b><br>Bilinmeyen bloklar korunuyor — dışa aktarım byte-byte aynı.</div>' : '<div class="hint">Yeni belge. Dışa aktarımda CoLOS Create düzeni kullanılır.</div>';
+    var st = S.imported ? '<div class="readout">İçe aktarıldı: <b>' + S.imported + '</b><br>Bilinmeyen bloklar korunuyor — dışa aktarım byte-byte aynı.</div>' : '<div class="hint">Yeni belge. Çıktı, yukarıda seçilen düzende yazılır.</div>';
+    h += grp('Yazıcı çıktı biçimi',
+      rowS('Biçim', 'dFmt', [{v:'colos',n:'CoLOS Create (FY2.image düzeni) — önerilen'},{v:'sd3',n:'SmartDate3 eski düzen (default.image)'}], S.outFmt) +
+      '<div class="hint">' + (S.outFmt === 'sd3'
+        ? 'Yazıcının kendi default.image düzeni: tek tırnak, AlphaNumeric tipi, ArialBold / ARIALBOLD.TTF.'
+        : 'Çalışan CoLOS dosyalarıyla birebir: <b>düz ASCII, BOM yok</b>, AlphaNum.V1, UserInput korunur, <b>arial.ttf</b>, ID 0\'dan başlar. Türkçe karakterler &amp;#304; gibi yazılır.') + '</div>');
+    var fk = Object.keys(S.fonts);
+    h += grp('Font dosyaları (.ttf)',
+      (fk.length ? fk.map(function (k) { return '<div class="fitem"><span class="k">Ⓕ</span><span class="n">' + S.fonts[k].name + '</span><span class="v">' + Math.round(S.fonts[k].data.length / 1024) + ' KB</span></div>'; }).join('')
+                 : '<div class="hint">Eklenmedi. arial.ttf yazıcıda zaten varsa gerek yok.</div>') +
+      '<div class="row" style="margin-top:6px"><div class="ctl"><button class="btn" id="dFontAdd" style="flex:1">＋ .ttf ekle</button></div></div>' +
+      '<div class="hint">Eklenen fontlar, etikette kullanılıyorsa ZIP / klasöre <b>.image ile birlikte</b> yazılır.</div>');
     h += grp('Durum', st);
     el.innerHTML = h; bindDoc(); return;
   }
@@ -1472,6 +1557,16 @@ function bindDoc() {
   on('dDesc', 'change', function () { snap(); d.description = this.value; render(); });
   on('dPaper', 'change', function () { snap(); d.paperColor = this.value; render(); });
   on('dBg', 'change', function () { snap(); d.backgroundColor = this.value; render(); });
+  on('dFmt', 'change', function () { S.outFmt = this.value; try { localStorage.setItem('orimak_yazici_fmt2', S.outFmt); } catch (e) {} renderProps(); log('Çıktı biçimi: ' + (S.outFmt === 'sd3' ? 'SmartDate3 eski düzen' : 'CoLOS Create'), 'ok'); });
+  on('dFontAdd', 'click', function () {
+    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.ttf,.otf'; inp.multiple = true;
+    inp.onchange = function () {
+      Array.prototype.forEach.call(inp.files, function (file) {
+        file.arrayBuffer().then(function (ab) { S.fonts[file.name.toLowerCase()] = { name: file.name, data: new Uint8Array(ab) }; log('Font eklendi: ' + file.name, 'ok'); renderProps(); });
+      });
+    };
+    inp.click();
+  });
   $$('.grp>h4').forEach(function (x) { x.onclick = function () { x.parentNode.classList.toggle('cl'); }; });
 }
 
@@ -1662,11 +1757,32 @@ function dl(name, bytes, mime) {
 }
 function docName() { return ($('#docName').value || 'YENI1').trim().replace(/[\\/:*?"<>|]/g, '_'); }
 
-function xmlItf() { return buildImage(S.doc, S.imported ? { keepVariant: true } : { flavor: 'itf' }); }
+function xmlItf() { return buildImage(S.doc, (S.imported && !S.doc.native) ? { keepVariant: true } : { flavor: 'itf' }); }
+function isSD3() { return S.outFmt === 'sd3'; }
+function encOut(str) { return toAscii(str); }
+function fontFileOf(f) { return isSD3() ? nativeFont(f).file : (f.fontFile || ttfName(f.typeface, f.bold, f.italic)); }
+function checkNative() {
+  S.doc.fields.forEach(function (f) {
+    if (f.kind === 'text') {
+      var ff = fontFileOf(f);
+      if (!/^arial\.ttf$/i.test(ff) && !S.fonts[ff.toLowerCase()])
+        log('Uyarı: ' + f.name + ' → ' + ff + ' kullanıyor. Çalışan CoLOS örneği sadece arial.ttf kullanıyor; bu font yazıcıda yoksa arıza verir. Etiket sekmesinden font dosyasını ekle ya da kalın/italik/fontu kapat.', 'warn');
+    }
+    if (/^(rect|line|barcode)$/.test(f.kind)) log('Uyarı: ' + f.name + ' (' + f.tagName + ', β) yazıcı dosyasına yazılmadı.', 'warn');
+    if (f.kind === 'text' && f.src === 'datetime') log('Uyarı: ' + f.name + ' Tarih/Saat şeması doğrulanmadı — test baskısı al.', 'warn');
+  });
+  var W = S.doc.width, dn = S.doc.deviceName || '';
+  if (/32mm/.test(dn) && W > 3200) log('Uyarı: etiket genişliği ' + f2(hm2mm(W)) + ' mm — 32 mm kafa için fazla.', 'warn');
+}
 function xmlImage() {
+  if (isSD3()) return buildNativeImage(S.doc);
   var d = JSON.parse(JSON.stringify(S.doc));
   d.fields.forEach(function (f) {
-    if (f.kind === 'text') { f.fontMode = 'points'; if (!f.fontFile) f.fontFile = ttfName(f.typeface, f.bold, f.italic); if (f.src === 'userinput') f.src = 'static'; f.appInfo = null; f.srcAppInfo = null; }
+    if (f.kind === 'text') {
+      if (f.fontMode !== 'points') f.size = Math.floor(f.charH / BOX_EM + 1e-6);   // 811 -> 705 (CoLOS ile aynı)
+      f.fontMode = 'points'; if (!f.fontFile) f.fontFile = ttfName(f.typeface, f.bold, f.italic);
+      f.appInfo = null; f.srcAppInfo = null;
+    }
     else f.appInfo = null;
   });
   d.legendAppInfo = null;
@@ -1677,6 +1793,12 @@ function xmlJob(n) { return buildJob((n || docName()) + '.image'); }
 function bmpFor(f) {
   var L = LOGO(f); if (!L) return null;
   return makeMonoBMP(L.gray, L.gw, L.gh, { threshold: f.thr == null ? 128 : f.thr, invert: !!f.binv, dither: !!f.dith });
+}
+function extraFiles() {
+  var out = logoFiles(), used = {};
+  S.doc.fields.forEach(function (f) { if (f.kind === 'text') used[fontFileOf(f).toLowerCase()] = 1; });
+  Object.keys(S.fonts).forEach(function (k) { if (used[k]) out.push({ name: S.fonts[k].name, data: S.fonts[k].data }); });
+  return out;
 }
 function logoFiles() {
   var out = [], seen = {};
@@ -1689,8 +1811,11 @@ function logoFiles() {
 
 /* ---------------- içe aktarma ---------------- */
 function importBytes(name, bytes) {
-  var txt = fromUtf16le(bytes);
-  if (!/[<]/.test(txt)) txt = new TextDecoder('utf-8').decode(bytes);
+  var enc, txt;
+  if ((bytes[0] === 0xFF && bytes[1] === 0xFE) || (bytes[0] === 0xFE && bytes[1] === 0xFF) || (bytes[1] === 0 && bytes[0] === 0x3C)) {
+    enc = 'UTF-16'; txt = fromUtf16le(bytes);
+  } else { enc = 'UTF-8'; txt = new TextDecoder('utf-8').decode(bytes).replace(/^\uFEFF/, ''); }
+  log(name + ' kodlaması: ' + enc + (enc === 'UTF-8' ? ' (ASCII/UTF-8 — yazıcının beklediği)' : ' (UTF-16 — eski araç çıktısı)'), 'info');
   if (/<Job>/.test(txt)) {
     var n = (txt.match(/<ImageFileName>([\s\S]*?)<\/ImageFileName>/) || [])[1] || '';
     log('.job okundu → ' + n, 'info');
@@ -1704,7 +1829,9 @@ function importBytes(name, bytes) {
   S.sel = S.doc.fields.length ? 0 : -1;
   $('#docName').value = name.replace(/\.(itf|image|xml)$/i, '');
   render();
-  var chk = buildImage(S.doc, { keepVariant: true }) === txt;
+  S.outFmt = S.doc.native ? 'sd3' : 'colos';
+  log('Algılanan düzen: ' + (S.doc.native ? 'SmartDate3 (default.image)' : 'CoLOS Create') + ' → çıktı aynı düzende yazılacak', 'info');
+  var chk = (S.doc.native ? buildNativeImage(S.doc) : buildImage(S.doc, { keepVariant: true })) === txt;
   log('Açıldı: ' + name + ' — ' + S.doc.fields.length + ' alan, ' + f2(hm2mm(S.doc.width)) + '×' + f2(hm2mm(S.doc.height)) + ' mm', 'ok');
   log('Geri-yazım doğrulaması: ' + (chk ? 'BYTE-BYTE AYNI ✔' : 'FARK VAR ✘'), chk ? 'ok' : 'err');
   toast(chk ? 'Açıldı — geri yazım birebir doğrulandı' : 'Açıldı (geri yazımda fark var)', chk ? 'ok' : 'err');
@@ -1834,11 +1961,11 @@ function runBatch() {
   var files = [];
   L.forEach(function (it) {
     S.doc.fields[idx].text = it.v;
-    files.push({ name: it.n + '.image', data: toUtf16le(xmlImage()) });
-    files.push({ name: it.n + '.job', data: toUtf16le(buildJob(it.n + '.image')) });
+    files.push({ name: it.n + '.image', data: encOut(xmlImage()) });
+    files.push({ name: it.n + '.job', data: encOut(buildJob(it.n + '.image')) });
   });
   S.doc = JSON.parse(backup);
-  logoFiles().forEach(function (l) { files.push(l); });
+  extraFiles().forEach(function (l) { files.push(l); });
   dl(docName() + '_seri.zip', makeZip(files), 'application/zip');
   render(); closeAll();
   log('Seri üretim: ' + L.length + ' etiket, ' + files.length + ' dosya', 'ok');
@@ -1891,23 +2018,23 @@ $('#bCopy').onclick = function () {
 $('#fUp').onclick = function () { if (S.sel < 1) return; snap(); var a = S.doc.fields; var t = a[S.sel]; a[S.sel] = a[S.sel - 1]; a[S.sel - 1] = t; S.sel--; render(); };
 $('#fDn').onclick = function () { var a = S.doc.fields; if (S.sel < 0 || S.sel >= a.length - 1) return; snap(); var t = a[S.sel]; a[S.sel] = a[S.sel + 1]; a[S.sel + 1] = t; S.sel++; render(); };
 
-$('#bItf').onclick = function () { dl(docName() + '.itf', toUtf16le(xmlItf())); log('Kaydedildi: ' + docName() + '.itf', 'ok'); toast('.itf indirildi'); };
+$('#bItf').onclick = function () { dl(docName() + '.itf', encOut(xmlItf())); log('Kaydedildi: ' + docName() + '.itf', 'ok'); toast('.itf indirildi'); };
 $('#bImg').onclick = function () {
-  var n = docName();
-  dl(n + '.image', toUtf16le(xmlImage()));
-  setTimeout(function () { dl(n + '.job', toUtf16le(xmlJob(n))); }, 260);
+  checkNative(); var n = docName();
+  dl(n + '.image', encOut(xmlImage()));
+  setTimeout(function () { dl(n + '.job', encOut(xmlJob(n))); }, 260);
   var lf = logoFiles();
   lf.forEach(function (l, i) { setTimeout(function () { dl(l.name, l.data, 'image/bmp'); }, 520 + i * 260); });
   log('Kaydedildi: ' + n + '.image + .job' + (lf.length ? ' + ' + lf.length + ' bmp' : ''), 'ok');
   toast('.image + .job indirildi');
 };
 $('#bZip').onclick = function () {
-  var n = docName(), files = [
-    { name: n + '.itf', data: toUtf16le(xmlItf()) },
-    { name: n + '.image', data: toUtf16le(xmlImage()) },
-    { name: n + '.job', data: toUtf16le(xmlJob(n)) }
+  checkNative(); var n = docName(), files = [
+    { name: n + '.itf', data: encOut(xmlItf()) },
+    { name: n + '.image', data: encOut(xmlImage()) },
+    { name: n + '.job', data: encOut(xmlJob(n)) }
   ];
-  logoFiles().forEach(function (l) { files.push(l); });
+  extraFiles().forEach(function (l) { files.push(l); });
   dl(n + '.zip', makeZip(files), 'application/zip');
   log('ZIP: ' + files.length + ' dosya', 'ok'); toast('ZIP indirildi');
 };
@@ -2011,7 +2138,7 @@ var HELP = [
 '<tr><td>.image</td><td>Yazıcıya giden yalın baskı dosyası — PointSizeInHM font, Static metin</td></tr>',
 '<tr><td>.job</td><td>Tek satır: hangi .image basılacak</td></tr>',
 '<tr><td>.bmp</td><td>Logo alanları için 1-bit monokrom görsel, .image ile aynı klasörde</td></tr></table>',
-'<div class="note i"><b>Kodlama:</b> UTF-16LE + BOM (FF FE), tek satır XML, sonda satır sonu yok. Bu araç birebir aynı düzeni üretir.</div>',
+'<div class="note i"><b>Kodlama:</b> düz ASCII, BOM yok, tek satır XML, sonda satır sonu yok — çalışan CoLOS dosyalarıyla (FY2) birebir.</div>',
 '<h3 style="margin:14px 0 8px">Birimler</h3>',
 '<table class="t"><tr><th>Alan</th><th>Birim</th><th>Örnek</th></tr>',
 '<tr><td>Width / Height / X / Y</td><td>HM = 1/100 mm</td><td>3200 = 32,00 mm</td></tr>',
@@ -2154,12 +2281,13 @@ function explainFS() {
 
 /* dosya listesi -> [{name, data}] */
 function outFiles(n) {
+  checkNative();
   var files = [
-    { name: n + '.itf', data: toUtf16le(xmlItf()) },
-    { name: n + '.image', data: toUtf16le(xmlImage()) },
-    { name: n + '.job', data: toUtf16le(xmlJob(n)) }
+    { name: n + '.itf', data: encOut(xmlItf()) },
+    { name: n + '.image', data: encOut(xmlImage()) },
+    { name: n + '.job', data: encOut(xmlJob(n)) }
   ];
-  logoFiles().forEach(function (l) { files.push(l); });
+  extraFiles().forEach(function (l) { files.push(l); });
   return files;
 }
 
@@ -2256,11 +2384,11 @@ updWhere();
 /* ---------------- açılış ---------------- */
 FONTS.forEach(function (f) { var o = document.createElement('option'); o.value = f.face; o.textContent = f.face; $('#pFace').appendChild(o); });
 S.doc = newDoc(DEVICES[0]);
-S.doc.fields.push((function () { var f = newText(1040, 320); f.text = 'ORİMAK'; f.charH = ptToCharHeight(28); f.charW = defaultCharWidth(f.charH); f.bold = true; f.name = 'text1'; return f; })());
+S.doc.fields.push((function () { var f = newText(0, 0); f.text = 'ORIMAK'; f.charH = ptToCharHeight(20); f.charW = defaultCharWidth(f.charH); f.bold = false; f.name = 'text1'; return f; })());
 S.sel = 0;
 drawTools(); render();
 log('ORİMAK CoLOS Studio hazır — CoLOS Create V2.0.0.0 / SmartDate X40 uyumlu', 'ok');
-log('Format: UTF-16LE XML · HM = 1/100 mm · .itf/.image/.job/.bmp', 'info');
+log('Format: ASCII XML (BOM yok) · HM = 1/100 mm · .itf/.image/.job/.bmp', 'info');
 log('Dosya açmak için üstteki "Aç" düğmesi ya da sürükle-bırak.', 'info');
 log(FSOK ? 'Klasöre doğrudan yazma DESTEKLENİYOR — "Kaydet" ile klasör seç.' : 'Klasöre doğrudan yazma yok (file:// kısıtı) — dosyalar İndirilenler klasörüne iner.', FSOK ? 'ok' : 'warn');
 
