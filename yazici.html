@@ -437,7 +437,7 @@ kbd{background:var(--bg4);border:1px solid var(--line2);border-bottom-width:2px;
   <div class="seg" style="width:190px" id="xmlSeg"><button class="on" data-f="itf">.itf</button><button data-f="image">.image</button><button data-f="job">.job</button></div>
   <button class="x" data-close>×</button></header>
 <div class="body"><textarea id="xmlOut" style="height:400px;font-size:11px" readonly></textarea>
-<div class="note i">Tüm dosyalar CoLOS Create gibi <b>düz ASCII</b> yazılır — BOM yok, satır sonu yok. ASCII dışı karakterler <b>&amp;#N;</b> olarak kodlanır.</div></div>
+<div class="note i">Tüm dosyalar CoLOS Create gibi <b>UTF-16LE + BOM (FF FE)</b> yazılır, satır sonu eklenmez. Yazıcı UTF-8/ASCII dosyaları açmıyor.</div></div>
 <footer><button class="btn" id="xmlCopy">⧉ Kopyala</button><button class="btn p" data-close>Kapat</button></footer></div></div>
 
 <div class="ov" id="ovBatch"><div class="dlg wide"><header><span>⚡ Seri Üretim</span><div class="grow"></div><button class="x" data-close>×</button></header>
@@ -490,7 +490,7 @@ kbd{background:var(--bg4);border:1px solid var(--line2);border-bottom-width:2px;
    CoLOS .itf / .image / .job  —  parser + serializer
    Markem-Imaje CoLOS Create V2.0.0.0  /  SmartDate X40
    Birim: HM = 1/100 mm   (3200 HM = 32.00 mm)
-   Kodlama: duz ASCII, BOM YOK, tek satir, sonda newline YOK (FY1/FY2 CoLOS ciktisi)
+   Kodlama: UTF-16LE + BOM (FF FE), tek satir, sonda newline YOK (yazicida test edildi: UTF-8/ASCII acilmiyor)
    Bilinmeyen bloklar (AppInfo vb.) "raw" olarak saklanip birebir
    geri yazilir -> ice aktar/disa aktar kayipsizdir.
    ============================================================ */
@@ -1078,6 +1078,7 @@ var f2 = function (v) { return (Math.round(v * 100) / 100).toFixed(2); };
 var S = {
   outFmt: (function () { try { return localStorage.getItem('orimak_yazici_fmt2') || 'colos'; } catch (e) { return 'colos'; } })(),
   fonts: {},
+  charEnc: (function () { try { return localStorage.getItem('orimak_yazici_enc2') || 'utf16'; } catch (e) { return 'utf16'; } })(),
   doc: null, sel: -1, tool: 'select', zoom: 2, grid: true, snap: true,
   tab: 'field', undo: [], redo: [], imported: null, logos: {}, dirty: false
 };
@@ -1137,7 +1138,7 @@ function newText(x, y) {
     inverted: false, overlay: 'MERGE', logged: false,
     typeface: 'Arial', fontMode: 'charbox', charH: ch, charW: defaultCharWidth(ch),
     size: Math.round(ch / BOX_EM), fontFile: '', bold: false, italic: false, underline: false,
-    src: 'static', text: 'METİN', defaultValue: 'METİN', prompt: '', useDefault: false, rememberLast: false,
+    src: 'userinput', text: 'METIN', defaultValue: 'METIN', prompt: '', useDefault: false, rememberLast: false,
     dtFormat: 'dd/MM/yyyy', dtOffset: 0
   };
 }
@@ -1442,7 +1443,11 @@ function renderProps() {
       rowS('Biçim', 'dFmt', [{v:'colos',n:'CoLOS Create (FY2.image düzeni) — önerilen'},{v:'sd3',n:'SmartDate3 eski düzen (default.image)'}], S.outFmt) +
       '<div class="hint">' + (S.outFmt === 'sd3'
         ? 'Yazıcının kendi default.image düzeni: tek tırnak, AlphaNumeric tipi, ArialBold / ARIALBOLD.TTF.'
-        : 'Çalışan CoLOS dosyalarıyla birebir: <b>düz ASCII, BOM yok</b>, AlphaNum.V1, UserInput korunur, <b>arial.ttf</b>, ID 0\'dan başlar. Türkçe karakterler &amp;#304; gibi yazılır.') + '</div>');
+        : 'Çalışan CoLOS dosyalarıyla birebir: <b>UTF-16LE + BOM</b>, AlphaNum.V1, UserInput korunur, <b>arial.ttf</b>, ID 0\'dan başlar. Kalın/italik font yazıcıda yok (test T7 ✘).') + '</div>');
+    h += grp('Türkçe karakter kodlaması',
+      rowS('Yöntem', 'dEnc', [{v:'utf16',n:'UTF-16LE + BOM — yazıcıda çalışan'},{v:'utf8',n:'UTF-8 (BOM yok) — hata verdi'},{v:'ncr',n:'ASCII &#N; — hata verdi'}], S.charEnc) +
+      '<div class="hint">Yazıcı testinde yalnızca <b>UTF-16LE + BOM</b> dosyalar açıldı; UTF-8 ve ASCII dosyalar "Failed to parse job file" verdi. Diğer seçenekler yalnızca karşılaştırma içindir.</div>' +
+      '<div class="hint"><b>Kullanıcı girişi</b> = yazıcı ekranından değiştirilebilir (test T8 ✔). <b>Sabit</b> = yazıcıda kilitli, değiştirilemez (test T6 ✔).</div>');
     var fk = Object.keys(S.fonts);
     h += grp('Font dosyaları (.ttf)',
       (fk.length ? fk.map(function (k) { return '<div class="fitem"><span class="k">Ⓕ</span><span class="n">' + S.fonts[k].name + '</span><span class="v">' + Math.round(S.fonts[k].data.length / 1024) + ' KB</span></div>'; }).join('')
@@ -1558,6 +1563,7 @@ function bindDoc() {
   on('dPaper', 'change', function () { snap(); d.paperColor = this.value; render(); });
   on('dBg', 'change', function () { snap(); d.backgroundColor = this.value; render(); });
   on('dFmt', 'change', function () { S.outFmt = this.value; try { localStorage.setItem('orimak_yazici_fmt2', S.outFmt); } catch (e) {} renderProps(); log('Çıktı biçimi: ' + (S.outFmt === 'sd3' ? 'SmartDate3 eski düzen' : 'CoLOS Create'), 'ok'); });
+  on('dEnc', 'change', function () { S.charEnc = this.value; try { localStorage.setItem('orimak_yazici_enc2', S.charEnc); } catch (e) {} renderProps(); log('Türkçe karakter kodlaması: ' + this.options[this.selectedIndex].text, 'ok'); });
   on('dFontAdd', 'click', function () {
     var inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.ttf,.otf'; inp.multiple = true;
     inp.onchange = function () {
@@ -1611,6 +1617,7 @@ function bindField() {
   if (tx) {
     var tmr = null;
     tx.addEventListener('input', function () {
+      if (f.defaultValue == null || f.defaultValue === f.text) f.defaultValue = tx.value;   // FY2/T8: Current = Default
       f.text = tx.value; clearTimeout(tmr);
       var lab = $('#label'); var e = $$('.fld', lab)[S.sel];
       if (e) { var t = $('.tx', e); if (t) { t.textContent = f.text; var b = fieldBox(f); e.style.width = Math.max(2, b.w * sc()) + 'px'; e.style.height = Math.max(2, b.h * sc()) + 'px'; } }
@@ -1759,18 +1766,27 @@ function docName() { return ($('#docName').value || 'YENI1').trim().replace(/[\\
 
 function xmlItf() { return buildImage(S.doc, (S.imported && !S.doc.native) ? { keepVariant: true } : { flavor: 'itf' }); }
 function isSD3() { return S.outFmt === 'sd3'; }
-function encOut(str) { return toAscii(str); }
+function hasNonAscii(str) { return /[^\x00-\x7f]/.test(str); }
+function encOut(str) {
+  if (S.charEnc === 'ncr') return toAscii(str);
+  if (S.charEnc === 'utf8') return new TextEncoder().encode(str);
+  return toUtf16le(str);                          // yazıcı testi: SADECE UTF-16LE + BOM açıldı (T5)
+}
 function fontFileOf(f) { return isSD3() ? nativeFont(f).file : (f.fontFile || ttfName(f.typeface, f.bold, f.italic)); }
 function checkNative() {
   S.doc.fields.forEach(function (f) {
     if (f.kind === 'text') {
       var ff = fontFileOf(f);
-      if (!/^arial\.ttf$/i.test(ff) && !S.fonts[ff.toLowerCase()])
-        log('Uyarı: ' + f.name + ' → ' + ff + ' kullanıyor. Çalışan CoLOS örneği sadece arial.ttf kullanıyor; bu font yazıcıda yoksa arıza verir. Etiket sekmesinden font dosyasını ekle ya da kalın/italik/fontu kapat.', 'warn');
+      if (!/^arial\.ttf$/i.test(ff) && !S.fonts[ff.toLowerCase()]) {
+        log('HATA: ' + f.name + ' → ' + ff + ' yazıcıda YOK (test T7: kalın Arial açılmadı). Bu dosya yazıcıda "Failed to parse" verir. Kalın/italik kapat, fontu Arial yap.', 'err');
+        toast(f.name + ': ' + ff + ' yazıcıda yok — kalın/italik kapat', 'err');
+      }
     }
     if (/^(rect|line|barcode)$/.test(f.kind)) log('Uyarı: ' + f.name + ' (' + f.tagName + ', β) yazıcı dosyasına yazılmadı.', 'warn');
     if (f.kind === 'text' && f.src === 'datetime') log('Uyarı: ' + f.name + ' Tarih/Saat şeması doğrulanmadı — test baskısı al.', 'warn');
   });
+  if (S.charEnc !== 'utf16')
+    log('UYARI: kodlama UTF-16LE değil — yazıcı testinde UTF-8/ASCII dosyalar "Failed to parse job file" verdi. Etiket sekmesinden UTF-16LE + BOM seç.', 'err');
   var W = S.doc.width, dn = S.doc.deviceName || '';
   if (/32mm/.test(dn) && W > 3200) log('Uyarı: etiket genişliği ' + f2(hm2mm(W)) + ' mm — 32 mm kafa için fazla.', 'warn');
 }
@@ -1960,7 +1976,7 @@ function runBatch() {
   var backup = JSON.stringify(S.doc);
   var files = [];
   L.forEach(function (it) {
-    S.doc.fields[idx].text = it.v;
+    S.doc.fields[idx].text = it.v; S.doc.fields[idx].defaultValue = it.v;
     files.push({ name: it.n + '.image', data: encOut(xmlImage()) });
     files.push({ name: it.n + '.job', data: encOut(buildJob(it.n + '.image')) });
   });
@@ -2138,7 +2154,7 @@ var HELP = [
 '<tr><td>.image</td><td>Yazıcıya giden yalın baskı dosyası — PointSizeInHM font, Static metin</td></tr>',
 '<tr><td>.job</td><td>Tek satır: hangi .image basılacak</td></tr>',
 '<tr><td>.bmp</td><td>Logo alanları için 1-bit monokrom görsel, .image ile aynı klasörde</td></tr></table>',
-'<div class="note i"><b>Kodlama:</b> düz ASCII, BOM yok, tek satır XML, sonda satır sonu yok — çalışan CoLOS dosyalarıyla (FY2) birebir.</div>',
+'<div class="note i"><b>Kodlama:</b> UTF-16LE + BOM (FF FE), tek satır XML, sonda satır sonu yok. Yazıcıda test edildi: UTF-8/ASCII dosyalar açılmıyor.</div>',
 '<h3 style="margin:14px 0 8px">Birimler</h3>',
 '<table class="t"><tr><th>Alan</th><th>Birim</th><th>Örnek</th></tr>',
 '<tr><td>Width / Height / X / Y</td><td>HM = 1/100 mm</td><td>3200 = 32,00 mm</td></tr>',
@@ -2384,11 +2400,11 @@ updWhere();
 /* ---------------- açılış ---------------- */
 FONTS.forEach(function (f) { var o = document.createElement('option'); o.value = f.face; o.textContent = f.face; $('#pFace').appendChild(o); });
 S.doc = newDoc(DEVICES[0]);
-S.doc.fields.push((function () { var f = newText(0, 0); f.text = 'ORIMAK'; f.charH = ptToCharHeight(20); f.charW = defaultCharWidth(f.charH); f.bold = false; f.name = 'text1'; return f; })());
+S.doc.fields.push((function () { var f = newText(0, 0); f.text = 'ORIMAK'; f.defaultValue = 'ORIMAK'; f.charH = ptToCharHeight(20); f.charW = defaultCharWidth(f.charH); f.bold = false; f.name = 'text1'; return f; })());
 S.sel = 0;
 drawTools(); render();
 log('ORİMAK CoLOS Studio hazır — CoLOS Create V2.0.0.0 / SmartDate X40 uyumlu', 'ok');
-log('Format: ASCII XML (BOM yok) · HM = 1/100 mm · .itf/.image/.job/.bmp', 'info');
+log('Format: UTF-16LE + BOM XML · HM = 1/100 mm · .itf/.image/.job/.bmp', 'info');
 log('Dosya açmak için üstteki "Aç" düğmesi ya da sürükle-bırak.', 'info');
 log(FSOK ? 'Klasöre doğrudan yazma DESTEKLENİYOR — "Kaydet" ile klasör seç.' : 'Klasöre doğrudan yazma yok (file:// kısıtı) — dosyalar İndirilenler klasörüne iner.', FSOK ? 'ok' : 'warn');
 
