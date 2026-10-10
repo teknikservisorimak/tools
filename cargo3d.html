@@ -778,7 +778,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     color:var(--o-acc-tx); display: none; z-index: 100;
     white-space: nowrap; pointer-events: none;
   }
-  .edit-hint.visible { display: block; }
+  .edit-hint.visible { display: flex; align-items: center; gap: 10px; pointer-events: auto; }
+  .edit-hint .eh-btn { pointer-events: auto; border: 1px solid var(--accent); background: transparent; color: inherit; border-radius: 8px; padding: 4px 10px; font: inherit; cursor: pointer; }
+  .edit-hint .eh-btn:hover { background: rgba(243,146,0,.18); }
+  @media (max-width: 768px) { .edit-hint { white-space: normal; width: calc(100% - 24px); justify-content: center; flex-wrap: wrap; font-size: 11px; padding: 8px 10px; } .edit-hint span { display: none; } }
 
   .action-toolbar { display: flex; gap: 8px; align-items: center; }
   .btn-toolbar {
@@ -1130,7 +1133,7 @@ header{border-bottom:2px solid var(--o-head-bar)!important}
       <div class="tt-symbols"></div>
     </div>
     <div class="edit-hint" id="editHint">
-      Sürükle: Taşı (X/Z) &nbsp;│&nbsp; Shift+Sürükle: Yukarı/Aşağı &nbsp;│&nbsp; R: Döndür &nbsp;│&nbsp; Esc: Bırak
+<span>Sürükle: taşı — kutu altındakinin üstüne oturur &nbsp;│&nbsp; R: döndür &nbsp;│&nbsp; Esc: bırak</span><button type="button" class="eh-btn" onclick="rotateSelectedBox()">⟳ Döndür</button><button type="button" class="eh-btn" onclick="deselectBox()">✓ Bırak</button>
     </div>
     <div class="dim-toggle">
       <button class="dim-toggle-btn active" onclick="toggleDimLabels(this)">📏 Ölçüler</button>
@@ -1290,10 +1293,12 @@ let dragPlane = new THREE.Plane();
 let dragOffset = new THREE.Vector3();
 let shiftHeld = false;
 
-canvas.addEventListener('mousedown', onCanvasMouseDown);
+canvas.style.touchAction = 'none';
+canvas.addEventListener('pointerdown', onPtrDown);
+canvas.addEventListener('pointermove', onPtrMove);
+window.addEventListener('pointerup', onPtrUp);
+window.addEventListener('pointercancel', onPtrUp);
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-window.addEventListener('mouseup', onCanvasMouseUp);
-window.addEventListener('mousemove', onCanvasMouseMove);
 canvas.addEventListener('wheel', (e) => {
   e.preventDefault();
   spherical.radius = Math.max(4, Math.min(50, spherical.radius + e.deltaY * 0.01));
@@ -1301,81 +1306,73 @@ canvas.addEventListener('wheel', (e) => {
 }, { passive: false });
 
 window.addEventListener('keydown', (e) => {
-  if (e.key === 'Shift') shiftHeld = true;
+  if (e.target && e.target.matches && e.target.matches('input,textarea,select')) return;
   if ((e.key === 'r' || e.key === 'R') && selectedMesh) rotateSelectedBox();
-  if (e.key === 'Escape') deselectBox();
-});
-window.addEventListener('keyup', (e) => {
-  if (e.key === 'Shift') shiftHeld = false;
+  if (e.key === 'Escape') { if (isDraggingBox) cancelDrag(); deselectBox(); }
 });
 
-function onCanvasMouseDown(e) {
+const activePtrs = new Map();
+let pinch = null, dragState = null, downInfo = null;
+function ptrNDC(e) {
   const rect = canvas.getBoundingClientRect();
-  const mx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-  const my = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-  if (e.button === 0) {
-    raycaster.setFromCamera(new THREE.Vector2(mx, my), camera);
-    const hits = raycaster.intersectObjects(boxMeshes);
-    if (hits.length > 0) {
-      const mesh = hits[0].object;
-      selectBox(mesh);
-      isDraggingBox = true;
-      if (shiftHeld) {
-        const camDir = new THREE.Vector3();
-        camera.getWorldDirection(camDir);
-        camDir.y = 0; camDir.normalize();
-        dragPlane.setFromNormalAndCoplanarPoint(camDir, mesh.position);
-      } else {
-        dragPlane.setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), mesh.position);
-      }
-      const intersection = new THREE.Vector3();
-      raycaster.ray.intersectPlane(dragPlane, intersection);
-      dragOffset.subVectors(mesh.position, intersection);
-      prevMouse = { x: e.clientX, y: e.clientY };
-      return;
-    }
-    isOrbiting = true;
-    prevMouse = { x: e.clientX, y: e.clientY };
-  }
-  if (e.button === 2) {
-    isPanning = true;
-    prevMouse = { x: e.clientX, y: e.clientY };
-  }
+  return new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
 }
-
-function onCanvasMouseUp(e) {
-  if (isDraggingBox) {
-    isDraggingBox = false;
-    if (selectedMesh) snapBoxToContainer(selectedMesh);
+function onPtrDown(e) {
+  try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+  activePtrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  downInfo = { x: e.clientX, y: e.clientY, moved: false, onBox: false };
+  if (activePtrs.size >= 2) {
+    if (isDraggingBox) cancelDrag();
+    isOrbiting = false; isPanning = false;
+    const [a, b] = [...activePtrs.values()];
+    pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, r: spherical.radius, cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
+    return;
   }
-  isOrbiting = false;
-  isPanning = false;
-}
-
-function onCanvasMouseMove(e) {
-  const rect = canvas.getBoundingClientRect();
-  const mx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-  const my = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-  if (isDraggingBox && selectedMesh) {
-    raycaster.setFromCamera(new THREE.Vector2(mx, my), camera);
-    if (shiftHeld) {
-      const camDir = new THREE.Vector3();
-      camera.getWorldDirection(camDir);
-      camDir.y = 0; camDir.normalize();
-      dragPlane.setFromNormalAndCoplanarPoint(camDir, selectedMesh.position);
-    }
-    const intersection = new THREE.Vector3();
-    if (raycaster.ray.intersectPlane(dragPlane, intersection)) {
-      if (shiftHeld) {
-        selectedMesh.position.y = intersection.y + dragOffset.y;
-      } else {
-        selectedMesh.position.x = intersection.x + dragOffset.x;
-        selectedMesh.position.z = intersection.z + dragOffset.z;
-      }
-      const idx = boxMeshes.indexOf(selectedMesh);
-      if (idx >= 0 && edgeLines[idx]) edgeLines[idx].position.copy(selectedMesh.position);
-    }
+  if (e.button === 2 || (e.button === 0 && (e.ctrlKey || e.metaKey))) { isPanning = true; prevMouse = { x: e.clientX, y: e.clientY }; return; }
+  if (e.button !== 0) return;
+  raycaster.setFromCamera(ptrNDC(e), camera);
+  const hits = raycaster.intersectObjects(boxMeshes);
+  if (hits.length > 0) {
+    const mesh = hits[0].object;
+    selectBox(mesh);
+    downInfo.onBox = true;
+    isDraggingBox = true;
+    dragPlane.setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), hits[0].point);
+    const p = new THREE.Vector3();
+    raycaster.ray.intersectPlane(dragPlane, p);
+    dragOffset.subVectors(mesh.position, p);
+    dragState = { mesh, start: mesh.position.clone(), valid: true, startedMove: false };
     tooltip.style.display = 'none';
+    return;
+  }
+  isOrbiting = true;
+  prevMouse = { x: e.clientX, y: e.clientY };
+}
+function onPtrMove(e) {
+  if (activePtrs.has(e.pointerId)) activePtrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (downInfo && Math.hypot(e.clientX - downInfo.x, e.clientY - downInfo.y) > 4) downInfo.moved = true;
+  if (pinch && activePtrs.size >= 2) {
+    const [a, b] = [...activePtrs.values()];
+    const d = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+    spherical.radius = Math.max(4, Math.min(50, pinch.r * pinch.d / d));
+    const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
+    const right = new THREE.Vector3().crossVectors(camera.getWorldDirection(new THREE.Vector3()), new THREE.Vector3(0, 1, 0)).normalize();
+    target.addScaledVector(right, -(cx - pinch.cx) * 0.01);
+    target.y += (cy - pinch.cy) * 0.01;
+    pinch.cx = cx; pinch.cy = cy;
+    updateCameraFromSpherical();
+    return;
+  }
+  if (isDraggingBox && dragState) {
+    if (!downInfo || !downInfo.moved) return;
+    raycaster.setFromCamera(ptrNDC(e), camera);
+    const p = new THREE.Vector3();
+    if (raycaster.ray.intersectPlane(dragPlane, p)) {
+      dragState.startedMove = true;
+      const r = placeBoxAt(dragState.mesh, p.x + dragOffset.x, p.z + dragOffset.z);
+      dragState.valid = r.valid;
+      setDragTint(dragState.mesh, r.valid ? 0x2a1a00 : 0x5a0000);
+    }
     return;
   }
   if (isOrbiting) {
@@ -1391,14 +1388,147 @@ function onCanvasMouseMove(e) {
     const dx = (e.clientX - prevMouse.x) * 0.01;
     const dy = (e.clientY - prevMouse.y) * 0.01;
     const right = new THREE.Vector3();
-    right.crossVectors(camera.getWorldDirection(new THREE.Vector3()), new THREE.Vector3(0,1,0)).normalize();
+    right.crossVectors(camera.getWorldDirection(new THREE.Vector3()), new THREE.Vector3(0, 1, 0)).normalize();
     target.addScaledVector(right, -dx);
     target.y += dy;
     prevMouse = { x: e.clientX, y: e.clientY };
     updateCameraFromSpherical();
     return;
   }
-  handleHover(e);
+  if (e.pointerType === 'mouse') handleHover(e);
+}
+function onPtrUp(e) {
+  activePtrs.delete(e.pointerId);
+  if (activePtrs.size < 2) pinch = null;
+  if (isDraggingBox) finishDrag();
+  if (downInfo && !downInfo.moved && !downInfo.onBox && isOrbiting && e.button === 0) deselectBox();
+  isOrbiting = false;
+  isPanning = false;
+  if (activePtrs.size === 0) downInfo = null;
+}
+
+// ── yerleşim yardımcıları (sahne birimi: m; kutu ölçüleri: cm) ──
+function boxRect(i) {
+  const m = boxMeshes[i], u = m.userData;
+  const hw = u.currentW * SCALE / 2, hd = u.currentD * SCALE / 2, hh = u.currentH * SCALE / 2;
+  return { x0: m.position.x - hw, x1: m.position.x + hw, z0: m.position.z - hd, z1: m.position.z + hd, y0: m.position.y - hh, y1: m.position.y + hh };
+}
+const EPS = 1e-4;
+function overlapXZ(a, b) { return a.x0 < b.x1 - EPS && a.x1 > b.x0 + EPS && a.z0 < b.z1 - EPS && a.z1 > b.z0 + EPS; }
+function setDragTint(mesh, hex) {
+  const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+  mats.forEach((m) => m.emissive && m.emissive.setHex(hex));
+}
+// kutuyu (x,z) merkezine taşı: sınırla, kenarlara hizala, altındakilerin üstüne oturt
+function placeBoxAt(mesh, x, z, opts) {
+  const idx = boxMeshes.indexOf(mesh), u = mesh.userData;
+  const hw = u.currentW * SCALE / 2, hd = u.currentD * SCALE / 2, h = u.currentH * SCALE;
+  const maxX = cargoW * SCALE, maxZ = cargoD * SCALE, maxY = cargoH * SCALE;
+  x = Math.max(hw, Math.min(maxX - hw, x));
+  z = Math.max(hd, Math.min(maxZ - hd, z));
+  if (!opts || opts.snap !== false) {
+    const T = 6 * SCALE;  // 6 cm mıknatıs
+    let bx = null, bz = null, dbx = T, dbz = T;
+    const tryX = (edge, target) => { const d = Math.abs(edge - target); if (d < dbx) { dbx = d; bx = x + (target - edge); } };
+    const tryZ = (edge, target) => { const d = Math.abs(edge - target); if (d < dbz) { dbz = d; bz = z + (target - edge); } };
+    tryX(x - hw, 0); tryX(x + hw, maxX); tryZ(z - hd, 0); tryZ(z + hd, maxZ);
+    boxMeshes.forEach((m, j) => {
+      if (j === idx) return;
+      const r = boxRect(j);
+      tryX(x - hw, r.x1); tryX(x + hw, r.x0); tryX(x - hw, r.x0); tryX(x + hw, r.x1);
+      tryZ(z - hd, r.z1); tryZ(z + hd, r.z0); tryZ(z - hd, r.z0); tryZ(z + hd, r.z1);
+    });
+    if (bx != null) x = Math.max(hw, Math.min(maxX - hw, bx));
+    if (bz != null) z = Math.max(hd, Math.min(maxZ - hd, bz));
+  }
+  const me = { x0: x - hw, x1: x + hw, z0: z - hd, z1: z + hd };
+  let y = 0, support = [];
+  boxMeshes.forEach((m, j) => {
+    if (j === idx) return;
+    const r = boxRect(j);
+    if (overlapXZ(me, r)) { if (r.y1 > y + EPS) { y = r.y1; support = [j]; } else if (Math.abs(r.y1 - y) <= EPS) support.push(j); }
+  });
+  const valid = y + h <= maxY + EPS;
+  mesh.position.set(x, y + h / 2, z);
+  syncBoxVisuals(idx);
+  return { valid, support };
+}
+function syncBoxVisuals(idx) {
+  const m = boxMeshes[idx]; if (!m) return;
+  if (edgeLines[idx]) edgeLines[idx].position.copy(m.position);
+  if (orderSprites[idx]) orderSprites[idx].position.set(m.position.x, m.position.y, m.position.z + m.userData.currentD * SCALE / 2 + 0.005);
+}
+function writeBack(idx) {
+  const m = boxMeshes[idx], pb = placedBoxes[idx]; if (!m || !pb) return;
+  const u = m.userData;
+  pb.x = Math.round((m.position.x - u.currentW * SCALE / 2) / SCALE * 10) / 10;
+  pb.y = Math.round((m.position.y - u.currentH * SCALE / 2) / SCALE * 10) / 10;
+  pb.z = Math.round((m.position.z - u.currentD * SCALE / 2) / SCALE * 10) / 10;
+}
+// tüm kutuları yerçekimiyle oturt (aşağıdan yukarı)
+function settleAll() {
+  const order = boxMeshes.map((m, i) => i).sort((a, b) => (boxMeshes[a].position.y - boxMeshes[a].userData.currentH * SCALE / 2) - (boxMeshes[b].position.y - boxMeshes[b].userData.currentH * SCALE / 2));
+  const done = [];
+  order.forEach((i) => {
+    const m = boxMeshes[i], r = boxRect(i);
+    let y = 0;
+    done.forEach((j) => { const o = boxRect(j); if (overlapXZ(r, o) && o.y1 > y) y = o.y1; });
+    const ny = y + m.userData.currentH * SCALE / 2;
+    if (Math.abs(ny - m.position.y) > EPS) tweenY(i, ny);
+    m.position.y = ny;
+    done.push(i);
+  });
+  // tween başlangıcı için konumlar tweenY içinde saklanır
+  boxMeshes.forEach((m, i) => writeBack(i));
+}
+var tweens = new Map();
+function tweenY(i, ny) {
+  const m = boxMeshes[i];
+  tweens.set(m, { from: m.position.y, to: ny, t0: performance.now() });
+}
+function runTweens(now) {
+  tweens.forEach((tw, m) => {
+    const t = Math.min(1, (now - tw.t0) / 260), k = t * t;
+    m.position.y = tw.from + (tw.to - tw.from) * k;
+    const i = boxMeshes.indexOf(m); if (i >= 0) syncBoxVisuals(i);
+    if (t >= 1) { m.position.y = tw.to; tweens.delete(m); if (i >= 0) syncBoxVisuals(i); }
+  });
+}
+function afterLayoutChange() {
+  updateStats(); updateCOG(); updateBoxDimLabels();
+}
+function stackWarnings(idx) {
+  const me = boxRect(idx), below = [];
+  boxMeshes.forEach((m, j) => { if (j !== idx) { const r = boxRect(j); if (overlapXZ(me, r) && Math.abs(r.y1 - me.y0) < 0.002) below.push(j); } });
+  const w = boxMeshes[idx].userData.weight || 0;
+  for (const j of below) {
+    const u = boxMeshes[j].userData, sy = u.symbols || [];
+    if (sy.includes('nostack')) return `“${u.name}” üzerine istif yapılmamalı.`;
+    if (sy.includes('fragile')) return `“${u.name}” kırılabilir — üzerine yük koymayın.`;
+    if (u.maxStack > 0 && w > u.maxStack) return `“${u.name}” en fazla ${u.maxStack} kg taşır.`;
+  }
+  return null;
+}
+function finishDrag() {
+  isDraggingBox = false;
+  const st = dragState; dragState = null;
+  if (!st) return;
+  const idx = boxMeshes.indexOf(st.mesh);
+  setDragTint(st.mesh, 0x222244);
+  if (!st.startedMove) return;
+  if (!st.valid) {
+    st.mesh.position.copy(st.start); syncBoxVisuals(idx);
+    showToast('Bu konumda yükseklik yetmiyor — kutu eski yerine döndü.', 'error');
+    return;
+  }
+  settleAll();
+  const warn = stackWarnings(idx);
+  if (warn) showToast(warn, 'error');
+  afterLayoutChange();
+}
+function cancelDrag() {
+  if (dragState) { const idx = boxMeshes.indexOf(dragState.mesh); dragState.mesh.position.copy(dragState.start); syncBoxVisuals(idx); setDragTint(dragState.mesh, 0x222244); }
+  dragState = null; isDraggingBox = false;
 }
 
 function updateCameraFromSpherical() {
@@ -1420,14 +1550,14 @@ function selectBox(mesh) {
   selectedMesh = mesh;
   const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
   originalColor = mats[0].emissive.clone();
-  mats.forEach(m => m.emissive.set(0x222244));
+  mats.forEach(m => m.emissive && m.emissive.set(0x222244));
   document.getElementById('editHint').classList.add('visible');
 }
 
 function deselectBox() {
   if (selectedMesh) {
     const mats = Array.isArray(selectedMesh.material) ? selectedMesh.material : [selectedMesh.material];
-    mats.forEach(m => m.emissive.copy(originalColor || new THREE.Color(0x000000)));
+    mats.forEach(m => m.emissive && m.emissive.copy(originalColor || new THREE.Color(0x000000)));
     selectedMesh = null;
     originalColor = null;
   }
@@ -1435,23 +1565,11 @@ function deselectBox() {
 }
 
 function snapBoxToContainer(mesh) {
-  const ud = mesh.userData;
-  const hw = ud.currentW * SCALE / 2;
-  const hh = ud.currentH * SCALE / 2;
-  const hd = ud.currentD * SCALE / 2;
-  const maxX = cargoW * SCALE, maxY = cargoH * SCALE, maxZ = cargoD * SCALE;
-  mesh.position.x = Math.max(hw, Math.min(maxX - hw, mesh.position.x));
-  mesh.position.y = Math.max(hh, Math.min(maxY - hh, mesh.position.y));
-  mesh.position.z = Math.max(hd, Math.min(maxZ - hd, mesh.position.z));
   const idx = boxMeshes.indexOf(mesh);
-  if (idx >= 0 && edgeLines[idx]) edgeLines[idx].position.copy(mesh.position);
-  if (idx >= 0 && placedBoxes[idx]) {
-    placedBoxes[idx].x = (mesh.position.x - hw) / SCALE;
-    placedBoxes[idx].y = (mesh.position.y - hh) / SCALE;
-    placedBoxes[idx].z = (mesh.position.z - hd) / SCALE;
-  }
-  updateStats();
-  updateBoxDimLabels();
+  placeBoxAt(mesh, mesh.position.x, mesh.position.z, { snap: false });
+  settleAll();
+  if (idx >= 0) writeBack(idx);
+  afterLayoutChange();
 }
 
 function rotateSelectedBox() {
@@ -1460,22 +1578,25 @@ function rotateSelectedBox() {
   if (idx < 0) return;
   const pb = placedBoxes[idx];
   const ud = selectedMesh.userData;
-  const oldW = ud.currentW, oldD = ud.currentD;
-  ud.currentW = oldD; ud.currentD = oldW;
-  pb.w = ud.currentW; pb.d = ud.currentD;
-  const newW = ud.currentW * SCALE, newD = ud.currentD * SCALE, newH = ud.currentH * SCALE;
-  selectedMesh.geometry.dispose();
-  selectedMesh.geometry = new THREE.BoxGeometry(newW, newH, newD);
-  if (edgeLines[idx]) {
-    containerGroup.remove(edgeLines[idx]);
-    edgeLines[idx].geometry.dispose();
+  const before = selectedMesh.position.clone();
+  const swap = () => {
+    const oldW = ud.currentW; ud.currentW = ud.currentD; ud.currentD = oldW;
+    pb.w = ud.currentW; pb.d = ud.currentD;
+    const newW = ud.currentW * SCALE, newD = ud.currentD * SCALE, newH = ud.currentH * SCALE;
+    selectedMesh.geometry.dispose();
+    selectedMesh.geometry = new THREE.BoxGeometry(newW, newH, newD);
+    if (edgeLines[idx]) { edgeLines[idx].geometry.dispose(); edgeLines[idx].geometry = new THREE.EdgesGeometry(selectedMesh.geometry); }
+  };
+  swap();
+  // dönen kutu başka kutuya geçmesin: gerekirse üstlerine oturur, sığmazsa geri al
+  const r = placeBoxAt(selectedMesh, selectedMesh.position.x, selectedMesh.position.z, { snap: false });
+  if (!r.valid) {
+    swap(); selectedMesh.position.copy(before); syncBoxVisuals(idx);
+    showToast('Döndürmek için yer yok.', 'error');
+    return;
   }
-  const edgeGeo = new THREE.EdgesGeometry(selectedMesh.geometry);
-  const edgeMat = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 });
-  edgeLines[idx] = new THREE.LineSegments(edgeGeo, edgeMat);
-  edgeLines[idx].position.copy(selectedMesh.position);
-  containerGroup.add(edgeLines[idx]);
-  snapBoxToContainer(selectedMesh);
+  settleAll();
+  afterLayoutChange();
 }
 
 // ═══════════════════════════════════════════
@@ -1713,10 +1834,12 @@ function toggleLoadOrder(btn) {
 // DRAW CONTAINER
 // ═══════════════════════════════════════════
 function drawContainer() {
+  deselectBox();
   while (containerGroup.children.length) containerGroup.remove(containerGroup.children[0]);
   boxMeshes = [];
   edgeLines = [];
-  deselectBox();
+  orderSprites = [];
+  if (typeof tweens !== 'undefined') tweens.clear();
 
   const w = cargoW * SCALE, d = cargoD * SCALE, h = cargoH * SCALE;
 
@@ -1974,83 +2097,99 @@ function updateCOG() {
 // ═══════════════════════════════════════════
 // BIN PACKING
 // ═══════════════════════════════════════════
+function clearBoxMeshes() {
+  deselectBox();
+  tweens.clear();
+  boxMeshes.forEach(m => {
+    if (m.geometry) m.geometry.dispose();
+    if (m.material) { if (Array.isArray(m.material)) m.material.forEach(mt => mt.dispose()); else m.material.dispose(); }
+    containerGroup.remove(m);
+  });
+  edgeLines.forEach(l => { if (l) { l.geometry.dispose(); containerGroup.remove(l); } });
+  orderSprites.forEach(s => { if (s.material) s.material.dispose(); containerGroup.remove(s); });
+  boxMeshes = []; edgeLines = []; orderSprites = [];
+}
+
 function loadCargo() {
   placedBoxes = [];
   unplacedBoxes = [];
-  boxMeshes.forEach(m => {
-    if (m.geometry) m.geometry.dispose();
-    if (m.material) { if(Array.isArray(m.material)) m.material.forEach(mt=>mt.dispose()); else m.material.dispose(); }
-    containerGroup.remove(m);
-  });
-  edgeLines.forEach(l => { if(l) { l.geometry.dispose(); containerGroup.remove(l); } });
-  orderSprites.forEach(s => { if(s.material) s.material.dispose(); containerGroup.remove(s); });
-  boxMeshes = []; edgeLines = []; orderSprites = [];
-  deselectBox();
+  clearBoxMeshes();
 
   let allBoxes = [];
   boxTypes.forEach(bt => {
     for (let i = 0; i < bt.qty; i++) allBoxes.push({ ...bt, instanceId: allBoxes.length });
   });
-  allBoxes.sort((a, b) => (b.w * b.d * b.h) - (a.w * a.d * a.h));
+  const SYM = (b, s) => (b.symbols || []).includes(s);
+  const keyLess = (p, q) => { for (let k = 0; k < p.length; k++) { if (Math.abs(p[k] - q[k]) > 1e-6) return p[k] < q[k]; } return false; };
+  allBoxes.sort((a, b) => {
+    const ra = (SYM(a, 'heavy') ? 0 : 1) + (SYM(a, 'fragile') || SYM(a, 'nostack') ? 2 : 0);
+    const rb = (SYM(b, 'heavy') ? 0 : 1) + (SYM(b, 'fragile') || SYM(b, 'nostack') ? 2 : 0);
+    return ra - rb || (b.w * b.d * b.h) - (a.w * a.d * a.h) || (b.weight || 0) - (a.weight || 0);
+  });
 
-  const spaces = [{ x: 0, y: 0, z: 0, w: cargoW, d: cargoD, h: cargoH }];
+  // Serbest alanlar (giyotin bölme). maxLoad: bu alana konacak kutuların taşıyıcı kutuya bindirebileceği kalan yük (kg)
+  const spaces = [{ x: 0, y: 0, z: 0, w: cargoW, d: cargoD, h: cargoH, maxLoad: Infinity }];
 
   allBoxes.forEach(box => {
-    // Kullanıcının girdiği boyutları ASLA yeniden sıralamıyoruz.
-    // Sadece hangi eksende duracaklarını yön tercihine göre değiştiriyoruz;
-    // böylece her kutu tam olarak girilen En/Boy/Yükseklik ile yerleşir.
-    const W = box.w, D = box.d, H = box.h; // En, Boy, Yükseklik
+    // Kullanıcının girdiği boyutlar korunur; yalnızca hangi eksende duracakları değişir.
+    const W = box.w, D = box.d, H = box.h;
     let rotations;
-    if (box.orientation === 'yatay') {
-      // Yatay: kutu yan yatırılır. Yükseklik (H) artık yatay düzlemde kalır,
-      // dikey eksende En (W) veya Boy (D) bulunur. Taban da kendi içinde döner.
+    if (box.orientation === 'yatay' && !SYM(box, 'up')) {
       rotations = [
-        { w: W, d: H, h: D }, // dikey eksende Boy
-        { w: H, d: W, h: D },
-        { w: D, d: H, h: W }, // dikey eksende En
-        { w: H, d: D, h: W },
+        { w: W, d: H, h: D }, { w: H, d: W, h: D },
+        { w: D, d: H, h: W }, { w: H, d: D, h: W },
       ];
     } else {
-      // Dikey: kutu ayakta durur. Yükseklik (H) dikey eksende sabit kalır,
-      // yalnızca taban (En/Boy) 90° döndürülebilir.
-      rotations = [
-        { w: W, d: D, h: H },
-        { w: D, d: W, h: H },
-      ];
+      rotations = [{ w: W, d: D, h: H }, { w: D, d: W, h: H }];
     }
-    let bestSpace = null, bestRot = null, bestIdx = -1;
+    const wt = box.weight || 0;
+    let best = null;
     for (let si = 0; si < spaces.length; si++) {
       const sp = spaces[si];
+      if (SYM(box, 'heavy') && sp.y > 0) continue;          // ağır kutu yalnız tabana
+      if (sp.y > 0 && wt > sp.maxLoad) continue;            // alttaki kutunun istif sınırı
       for (const rot of rotations) {
-        if (rot.w <= sp.w && rot.d <= sp.d && rot.h <= sp.h) {
-          if (!bestSpace || sp.y < bestSpace.y || (sp.y === bestSpace.y && sp.x < bestSpace.x)) {
-            bestSpace = sp; bestRot = rot; bestIdx = si;
-          }
-        }
+        if (rot.w > sp.w || rot.d > sp.d || rot.h > sp.h) continue;
+        // duvar örerek yükle: önce önden (x), sonra alttan (y), sonra yandan (z); en iyi oturan yön
+        const key = [sp.x, sp.y, sp.z, (sp.d - rot.d), (sp.w - rot.w)];
+        if (!best || keyLess(key, best.key)) best = { si, sp, rot, key };
       }
     }
-    if (bestSpace && bestRot) {
+    if (best) {
+      const { sp, rot, si } = best;
       placedBoxes.push({
-        x: bestSpace.x, y: bestSpace.y, z: bestSpace.z,
-        w: bestRot.w, d: bestRot.d, h: bestRot.h,
+        x: sp.x, y: sp.y, z: sp.z,
+        w: rot.w, d: rot.d, h: rot.h,
         name: box.name, color: box.color, weight: box.weight,
         origW: box.w, origD: box.d, origH: box.h,
         maxStack: box.maxStack || 0, symbols: box.symbols || [],
         orientation: box.orientation || 'dikey',
         loadOrder: placedBoxes.length + 1,
       });
-      spaces.splice(bestIdx, 1);
-      if (bestSpace.w - bestRot.w > 0)
-        spaces.push({ x: bestSpace.x + bestRot.w, y: bestSpace.y, z: bestSpace.z, w: bestSpace.w - bestRot.w, d: bestSpace.d, h: bestSpace.h });
-      if (bestSpace.d - bestRot.d > 0)
-        spaces.push({ x: bestSpace.x, y: bestSpace.y, z: bestSpace.z + bestRot.d, w: bestRot.w, d: bestSpace.d - bestRot.d, h: bestSpace.h });
-      if (bestSpace.h - bestRot.h > 0)
-        spaces.push({ x: bestSpace.x, y: bestSpace.y + bestRot.h, z: bestSpace.z, w: bestRot.w, d: bestRot.d, h: bestSpace.h - bestRot.h });
-      spaces.sort((a, b) => a.y - b.y || a.x - b.x || a.z - b.z);
+      spaces.splice(si, 1);
+      const rest = sp.maxLoad - (sp.y > 0 ? wt : 0);
+      if (sp.w - rot.w > 0)
+        spaces.push({ x: sp.x + rot.w, y: sp.y, z: sp.z, w: sp.w - rot.w, d: sp.d, h: sp.h, maxLoad: sp.y > 0 ? rest : Infinity });
+      if (sp.d - rot.d > 0)
+        spaces.push({ x: sp.x, y: sp.y, z: sp.z + rot.d, w: rot.w, d: sp.d - rot.d, h: sp.h, maxLoad: sp.y > 0 ? rest : Infinity });
+      const noTop = SYM(box, 'fragile') || SYM(box, 'nostack');
+      if (sp.h - rot.h > 0 && !noTop) {
+        const own = box.maxStack > 0 ? box.maxStack : Infinity;
+        spaces.push({ x: sp.x, y: sp.y + rot.h, z: sp.z, w: rot.w, d: rot.d, h: sp.h - rot.h, maxLoad: Math.min(own, sp.y > 0 ? rest : Infinity) });
+      }
     } else {
       unplacedBoxes.push({ name: box.name, w: box.w, d: box.d, h: box.h, weight: box.weight });
     }
   });
+  // kısmi yükte blok araç boyunca ortalanır: ağırlık merkezi ortada kalır
+  if (placedBoxes.length) {
+    const used = Math.max(...placedBoxes.map(p => p.x + p.w));
+    const off = Math.floor((cargoW - used) / 2);
+    if (off > 0) placedBoxes.forEach(p => { p.x += off; });
+  }
+
+  renderPlacedBoxes(true);
+}
 
 // ═══════════════════════════════════════════
 // SYMBOL TEXTURES ON 3D BOXES
@@ -2146,7 +2285,8 @@ function createSymbolTexture(symbols, color, boxW, boxH) {
   return tex;
 }
 
-  // Draw boxes
+function renderPlacedBoxes(animateIn) {
+  clearBoxMeshes();
   placedBoxes.forEach((pb, idx) => {
     const w = pb.w * SCALE, d = pb.d * SCALE, h = pb.h * SCALE;
     const x = pb.x * SCALE, y = pb.y * SCALE, z = pb.z * SCALE;
@@ -2196,7 +2336,7 @@ function createSymbolTexture(symbols, color, boxW, boxH) {
   });
 
   // Drop animation
-  boxMeshes.forEach((m, i) => {
+  if (animateIn) boxMeshes.forEach((m, i) => {
     if (!m.position || m.isSprite) return; // skip sprites
     const targetY = m.position.y;
     m.position.y = targetY + 2;
@@ -2207,7 +2347,7 @@ function createSymbolTexture(symbols, color, boxW, boxH) {
       const ease = 1 - Math.pow(1 - t, 3);
       m.position.y = targetY + 2 * (1 - ease);
       const idx = boxMeshes.indexOf(m);
-      if (idx >= 0 && edgeLines[idx]) edgeLines[idx].position.copy(m.position);
+      if (idx >= 0) syncBoxVisuals(idx);
       if (t < 1) requestAnimationFrame(animIn);
     }
     requestAnimationFrame(animIn);
@@ -2257,8 +2397,9 @@ function setCameraView(view) {
 // ═══════════════════════════════════════════
 // RENDER LOOP
 // ═══════════════════════════════════════════
-function animate() {
+function animate(now) {
   requestAnimationFrame(animate);
+  if (tweens.size) runTweens(now || performance.now());
   renderer.render(scene, camera);
 }
 
@@ -2319,24 +2460,11 @@ function loadJSON(event) {
       placedBoxes = plan.placedBoxes || [];
       renderBoxList(); drawContainer();
       if (placedBoxes.length > 0) {
-        placedBoxes.forEach((pb) => {
-          const w = pb.w * SCALE, d = pb.d * SCALE, h = pb.h * SCALE;
-          const x = pb.x * SCALE, y = pb.y * SCALE, z = pb.z * SCALE;
-          const geo = new THREE.BoxGeometry(w, h, d);
-          const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(pb.color), metalness: 0.05, roughness: 0.55 });
-          const mesh = new THREE.Mesh(geo, mat);
-          mesh.position.set(x + w/2, y + h/2, z + d/2);
-          mesh.castShadow = true; mesh.receiveShadow = true;
-          mesh.userData = { name: pb.name, weight: pb.weight, origW: pb.origW||pb.w, origD: pb.origD||pb.d, origH: pb.origH||pb.h, currentW: pb.w, currentD: pb.d, currentH: pb.h, maxStack: pb.maxStack||0, symbols: pb.symbols||[] };
-          containerGroup.add(mesh); boxMeshes.push(mesh);
-          const edgeGeo = new THREE.EdgesGeometry(geo);
-          const edgeMat = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 });
-          const edge = new THREE.LineSegments(edgeGeo, edgeMat);
-          edge.position.copy(mesh.position);
-          containerGroup.add(edge); edgeLines.push(edge);
-        });
-        updateStats();
-        updateBoxDimLabels();
+        placedBoxes.forEach((pb, k) => { if (!pb.loadOrder) pb.loadOrder = k + 1; if (!pb.origW) { pb.origW = pb.w; pb.origD = pb.d; pb.origH = pb.h; } });
+        unplacedBoxes = [];
+        renderPlacedBoxes(false);
+      } else {
+        updateStats(); updateCOG();
       }
       showToast(`Plan yüklendi: ${plan.boxTypes.length} kutu tipi`);
     } catch (err) {
