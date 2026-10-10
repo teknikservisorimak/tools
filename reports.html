@@ -812,9 +812,7 @@ function showDashboard() {
 
 // ── MAKİNE LİSTESİ (admin) ──
 async function loadMachineList() {
-  const url = `${SUPABASE_URL}/rest/v1/machine_reports?select=machine_name&order=machine_name`;
-  const resp = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
-  const data = await resp.json();
+  const { data } = await rpc("get_machine_list", { p_user: currentUser.username, p_pass: currentUser.authHash });
   if (!Array.isArray(data)) return;
   const machines = [...new Set(data.map(r => r.machine_name))];
   const sel = document.getElementById("admin-machine-select");
@@ -837,14 +835,10 @@ async function loadData() {
     machine = sel;
   }
 
-  let url = `${SUPABASE_URL}/rest/v1/machine_reports?select=*&order=cut_date.desc`;
-  if (machine !== "ALL") {
-    url += `&machine_name=eq.${encodeURIComponent(machine)}`;
-  }
-
   try {
-    const resp = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
-    const data = await resp.json();
+    const r = await rpc("get_reports", { p_user: currentUser.username, p_pass: currentUser.authHash, p_machine: machine });
+    const resp = { ok: r.ok, status: r.status }, data = r.data;
+    if (data === "AUTH_FAILED" || (r.ok && data && data.code === "AUTH")) { logout(); return; }
 
     // Supabase hata döndürdüyse data bir dizi değil, hata nesnesidir.
     if (!resp.ok || !Array.isArray(data)) {
@@ -1014,7 +1008,8 @@ function renderTable() {
 const saved = sessionStorage.getItem("orimak_user");
 if (saved) {
   currentUser = JSON.parse(saved);
-  showDashboard();
+  if (currentUser && currentUser.authHash) showDashboard();
+  else { sessionStorage.removeItem("orimak_user"); currentUser = null; document.getElementById("login-screen").style.display = "flex"; }
 } else {
   document.getElementById("login-screen").style.display = "flex";
 }
