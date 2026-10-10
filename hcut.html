@@ -375,7 +375,7 @@ ul.notes li.crit{color:var(--o-bad-tx)!important} ul.notes li.wr{color:var(--o-w
         <label style="grid-column:1/-1;text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--ink)">
           <span style="display:flex;align-items:center;gap:9px;cursor:pointer">
             <input type="checkbox" id="bRot" checked style="width:18px;height:18px;accent-color:#f7a800">
-            Gerekirse parçayı çevir (En ↔ Boy) — yatay/dikey deneyip fireyi düşürür
+            Dikey ve yatay karışık yerleştir (En ↔ Boy) — tüm kombinasyonları dener, en az levha ve fireyi seçer
           </span>
         </label>
         <label style="grid-column:1/-1;text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--ink)">
@@ -945,44 +945,88 @@ function packShelves(W,H,pieces){
   });
   return{sheets:sheets,nShelf:shelves.length,leftover:shelves.reduce((a,b)=>a+(W-b.sum),0)};
 }
-/* yatay/dikey yönleri deneyip en az levha + en az boşluk veren çözümü seçer */
+/* yön optimizasyonu: her ölçünün kaç adedi dikey (doğal), kaç adedi yatay (çevrili) olsun?
+   küçük işlerde TÜM karışımlar denenir (kesin en iyi), büyük işlerde yerel arama yapılır.
+   sıralama: 1) en az levha  2) en az kullanılan levha boyu (en büyük artık)  3) en az raf (en az kesim) */
 function optimize(W,H,list,rot){
-  const base=[];
-  list.forEach(r=>{for(let i=0;i<r.n;i++)base.push({w:r.w,h:r.h});});
   const fits=(w,h)=>w<=W&&h<=H;
-  const opts=base.map(p=>{
-    const o=[];
-    if(fits(p.w,p.h))o.push({w:p.w,h:p.h});
-    if(rot&&p.w!==p.h&&fits(p.h,p.w))o.push({w:p.h,h:p.w});
-    return o;
+  const G=[];
+  list.forEach(r=>{
+    if(!(r.n>0))return;
+    const g=G.find(x=>x.w===r.w&&x.h===r.h);
+    if(g)g.n+=r.n;else G.push({w:r.w,h:r.h,n:r.n});
   });
-  const bad=[...new Set(base.filter((p,i)=>!opts[i].length).map(p=>p.h+"×"+p.w))];
+  const bad=[];
+  G.forEach(g=>{
+    g.canN=fits(g.w,g.h);
+    g.canR=!!rot&&g.w!==g.h&&fits(g.h,g.w);
+    if(!g.canN&&!g.canR)bad.push(g.h+"×"+g.w);
+    g.lo=g.canN?0:g.n; g.hi=g.canR?g.n:0;          // çevrili adet aralığı
+  });
   if(bad.length)return{err:["Levhaya ("+W+"×"+H+" mm) hiçbir yönde sığmayan ölçü: "+bad.join(", ")+
     (rot?"":" — «gerekirse parçayı çevir» seçeneğini açmayı deneyin")]};
-  const freq={};
-  opts.forEach(o=>[...new Set(o.map(x=>x.h))].forEach(h=>freq[h]=(freq[h]||0)+1));
-  const pool=[...new Set([].concat.apply([],opts.map(o=>o.map(x=>x.h))))].sort((a,b)=>b-a);
-  const strat=[{name:"dikey (doğal yön)",pick:o=>o[0]}];
-  if(rot){
-    strat.push({name:"tüm parçalar çevrili",pick:o=>o[o.length-1]});
-    strat.push({name:"alçak raflar",pick:o=>o.slice().sort((a,b)=>a.h-b.h)[0]});
-    strat.push({name:"yüksek raflar",pick:o=>o.slice().sort((a,b)=>b.h-a.h)[0]});
-    strat.push({name:"ortak raf yüksekliği",pick:o=>o.slice().sort((a,b)=>(freq[b.h]-freq[a.h])||(b.h-a.h))[0]});
-    pool.forEach(v=>strat.push({name:"hepsi "+v+" mm rafında",pick:o=>o.filter(x=>x.h===v)[0]||o[0]}));
-  }
+  const piecesOf=k=>{const p=[];G.forEach((g,i)=>{for(let j=0;j<g.n;j++)p.push(j<k[i]?{w:g.h,h:g.w}:{w:g.w,h:g.h});});return p;};
+  const less=(a,b)=>{for(let i=0;i<a.length;i++){if(a[i]!==b[i])return a[i]<b[i];}return false;};
+  const memo=new Map();let tried=0;
+  const evalK=k=>{
+    const id=k.join(",");if(memo.has(id))return memo.get(id);
+    tried++;
+    const r=packShelves(W,H,piecesOf(k));
+    const v=r?{r:r,k:k.slice(),key:[r.sheets.length,r.sheets.reduce((a,s)=>a+s.used,0),r.nShelf]}:null;
+    memo.set(id,v);return v;
+  };
   let best=null;
-  strat.forEach(st=>{
-    const pieces=opts.map(st.pick);
-    const r=packShelves(W,H,pieces);
-    if(!r)return;
-    const k=[r.sheets.length,r.nShelf,r.leftover];
-    if(!best||k[0]<best.k[0]||(k[0]===best.k[0]&&(k[1]<best.k[1]||(k[1]===best.k[1]&&k[2]<best.k[2])))){
-      best={sheets:r.sheets,k:k,name:st.name,
-        rot:pieces.filter((p,i)=>p.w!==base[i].w).length};
+  const consider=v=>{if(v&&(!best||less(v.key,best.key)))best=v;};
+  const combos=G.reduce((a,g)=>a*(g.hi-g.lo+1),1);
+  const t0=(typeof performance!=="undefined"?performance:Date).now();
+  const now=()=>(typeof performance!=="undefined"?performance:Date).now()-t0;
+  let mode;
+  if(combos<=20000){
+    mode="tam tarama";
+    const k=G.map(g=>g.lo);
+    for(;;){
+      consider(evalK(k));
+      let i=0;while(i<k.length){if(k[i]<G[i].hi){k[i]++;break;}k[i]=G[i].lo;i++;}
+      if(i===k.length)break;
     }
-  });
+  }else{
+    mode="akıllı arama";
+    const clamp=(i,v)=>Math.max(G[i].lo,Math.min(G[i].hi,v));
+    const starts=[G.map(g=>g.lo),G.map(g=>g.hi),
+      G.map(g=>g.w>g.h?g.hi:g.lo),G.map(g=>g.w>g.h?g.lo:g.hi),
+      G.map(g=>Math.round((g.lo+g.hi)/2))];
+    starts.forEach(s=>consider(evalK(s)));
+    starts.sort((a,b)=>{const x=evalK(a),y=evalK(b);if(!x)return 1;if(!y)return -1;return less(x.key,y.key)?-1:1;});
+    for(const s of starts.slice(0,3)){
+      let cur=evalK(s);if(!cur)continue;
+      let improved=true;
+      while(improved&&now()<1500){
+        improved=false;
+        for(let i=0;i<G.length&&now()<1500;i++){
+          const n=G[i].n,c=cur.k[i];
+          const steps=[...new Set([1,2,3,Math.ceil(n/4),Math.ceil(n/2),n])];
+          const cand=new Set([G[i].lo,G[i].hi]);
+          steps.forEach(d=>{cand.add(clamp(i,c+d));cand.add(clamp(i,c-d));});
+          for(const v of cand){
+            if(v===c)continue;
+            const k=cur.k.slice();k[i]=v;
+            const e=evalK(k);consider(e);
+            if(e&&less(e.key,cur.key)){cur=e;improved=true;}
+          }
+        }
+      }
+    }
+  }
   if(!best)return{err:["Yerleşim bulunamadı — ölçüleri kontrol edin."]};
-  return{sheets:best.sheets,info:{name:best.name,rot:best.rot,tried:strat.length}};
+  const rotN=best.k.reduce((a,b)=>a+b,0);
+  const parts=G.map((g,i)=>{
+    const r=best.k[i],d=g.n-r;
+    if(!g.canR||g.w===g.h)return null;
+    return g.h+"×"+g.w+": "+(d?d+" dikey":"")+(d&&r?" + ":"")+(r?r+" yatay":"");
+  }).filter(Boolean);
+  const name=(rotN===0?"tümü dikey (doğal yön)":rotN===G.reduce((a,g)=>a+g.n,0)?"tümü yatay (çevrili)":"karışık yön")+
+    (parts.length?" — "+parts.join(", "):"");
+  return{sheets:best.r.sheets,info:{name:name,rot:rotN,tried:tried,mode:mode,combos:combos}};
 }
 function buildRecipe(){
   const name=($("#bName").value||"").trim()||"yeni_recete";
@@ -1029,7 +1073,7 @@ function bRun(){
   S.sel=made.length?at:0;
   render();
   const fires=r.out.map(o=>nf2(o.Yerlesim.FireOrani*100)+"%").join(" · ");
-  const inf=r.info?(" &nbsp;|&nbsp; "+r.info.tried+" yerleşim denendi, en iyisi: <b>"+r.info.name+"</b>"+
+  const inf=r.info?(" &nbsp;|&nbsp; "+r.info.tried.toLocaleString("tr-TR")+" dikey/yatay kombinasyonu denendi ("+r.info.mode+"), en iyisi: <b>"+r.info.name+"</b>"+
     (r.info.rot?" &nbsp;|&nbsp; <b>"+r.info.rot+" parça çevrildi</b> (En↔Boy)":"")):"";
   bMsg("✓ "+(duz?("<b>"+esc(eskiAd||"reçete")+"</b> güncellendi — eskisi kaldırıldı, yerine "):"")+
     r.out.length+" levha yerleşimi "+(duz?"kondu":"oluşturuldu")+" — fire: "+fires+inf+
