@@ -746,6 +746,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
   .dim-toggle-btn:hover { color: var(--text-primary); border-color: var(--accent); }
   .dim-toggle-btn.active { background: rgba(243,146,0,0.2); color:var(--o-acc-tx); border-color: var(--accent); }
 
+  .align-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .align-lbl { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); }
+  .align-seg { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .align-seg button { border: 0; background: transparent; color: var(--text-secondary); font: 600 12px/1 inherit; padding: 8px 12px; cursor: pointer; min-height: 34px; }
+  .align-seg button + button { border-left: 1px solid var(--border); }
+  .align-seg button:hover { color: var(--text-primary); }
+  .align-seg button.on { background: var(--accent); color: #1F1F1F; }
   .load-btn-container {
     padding: 10px 16px; border-top: 1px solid var(--border);
     display: flex; flex-direction: column; gap: 6px;
@@ -1125,6 +1132,7 @@ header{border-bottom:2px solid var(--o-head-bar)!important}
     </div>
 
     <div class="load-btn-container">
+      <div class="align-row"><span class="align-lbl">Yükleme hizası</span><div class="align-seg" role="group" aria-label="Yükleme hizası"><button type="button" data-al="left" title="Kutular aracın sol ucundan dizilir" onclick="setLoadAlign('left')">⇤ Sol</button><button type="button" data-al="center" title="Kutular aracın ortasına dizilir" onclick="setLoadAlign('center')">Orta</button><button type="button" data-al="right" title="Kutular aracın sağ ucundan dizilir" onclick="setLoadAlign('right')">Sağ ⇥</button></div></div>
       <button class="btn btn-primary" onclick="loadCargo()" style="font-size:15px; padding:12px;">▶ Yükle</button>
       <button class="btn btn-danger btn-sm" onclick="clearAll()">Tümünü Temizle</button>
     </div>
@@ -1643,6 +1651,31 @@ function updateDistHUD() {
   const f = (v) => (v === 0 ? '<b class="eh-0">0</b>' : v);
   el.innerHTML = `Boy: ${f(cm(a.x0))} │ ${f(cm(maxX - a.x1))} cm &nbsp;·&nbsp; En: ${f(cm(a.z0))} │ ${f(cm(maxZ - a.z1))} cm &nbsp;·&nbsp; Yerden: ${cm(a.y0)} cm`;
 }
+
+// ── yükleme hizası: kutu bloğu aracın sol ucuna, ortasına veya sağ ucuna dizilir ──
+var loadAlign = (function () { try { return localStorage.getItem('orimak_cargo_align') || 'center'; } catch (e) { return 'center'; } })();
+function alignBlock() {
+  if (!placedBoxes.length) return;
+  const mn = Math.min(...placedBoxes.map(p => p.x)), mx = Math.max(...placedBoxes.map(p => p.x + p.w));
+  const used = mx - mn;
+  const tx = loadAlign === 'left' ? 0 : loadAlign === 'right' ? cargoW - used : Math.floor((cargoW - used) / 2);
+  const d = tx - mn;
+  if (Math.abs(d) > 1e-6) placedBoxes.forEach(p => { p.x = Math.round((p.x + d) * 10) / 10; });
+}
+function syncAlignUI() {
+  document.querySelectorAll('.align-seg button').forEach(b => {
+    const on = b.dataset.al === loadAlign; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+function setLoadAlign(a) {
+  loadAlign = a;
+  try { localStorage.setItem('orimak_cargo_align', a); } catch (e) {}
+  syncAlignUI();
+  // yüklenmiş kutular varsa elle yapılan düzen bozulmadan blok bütün olarak kaydırılır
+  if (placedBoxes.length) { alignBlock(); renderPlacedBoxes(false); updateStats(); updateCOG(); }
+}
+document.addEventListener('DOMContentLoaded', syncAlignUI);
+setTimeout(syncAlignUI, 0);
 
 function finishDrag() {
   isDraggingBox = false;
@@ -2319,12 +2352,8 @@ function loadCargo() {
       unplacedBoxes.push({ name: box.name, w: box.w, d: box.d, h: box.h, weight: box.weight });
     }
   });
-  // kısmi yükte blok araç boyunca ortalanır: ağırlık merkezi ortada kalır
-  if (placedBoxes.length) {
-    const used = Math.max(...placedBoxes.map(p => p.x + p.w));
-    const off = Math.floor((cargoW - used) / 2);
-    if (off > 0) placedBoxes.forEach(p => { p.x += off; });
-  }
+  // kısmi yükte blok seçilen hizaya (sol / orta / sağ) yerleştirilir
+  alignBlock();
 
   renderPlacedBoxes(true);
 }
