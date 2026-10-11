@@ -1476,12 +1476,78 @@ function slotted(d, o) {
       at(wl, edge, g, P(ww - 2 * g, depth, { name: nm, shape: shape }), hg);
     });
   }
-  flaps('bottom', o.bottom, { mi: [0.46, 0.58], ma: [0.55, 0.68] }, null);
-  flaps('top', o.top, { mi: [0.72, 0.84], ma: [0.82, 0.96] }, 'top');
+  // dilli (tuck) kapanış: menteşeli kapak + iki toz kapağı + dil
+  function tuck(edge, hingeIdx, tw, group) {
+    const span = tw[1] - tw[0], dh = Math.min(W * 0.45, H * 0.6), th = Math.min(H * 0.6, W * 0.4);
+    const op = (a, b) => (group ? { open: { to: a, t: b } } : {});
+    [walls[1], walls[3]].forEach((w) => at(w, edge, g, P(W - 2 * g, dh, { name: 'Toz kapağı', shape: trap(W - 2 * g, dh, dh * 0.2, dh * 0.6) }),
+      Object.assign({ to: 90, t: [tw[0], tw[0] + span * 0.4], group: group }, op(-10, [0.5, 1]))));
+    const lid = at(walls[hingeIdx], edge, 0, P(L, W + T, { name: edge === 'top' ? 'Dilli kapak' : 'Dilli alt kapak' }),
+      Object.assign({ to: 90, t: [tw[0] + span * 0.3, tw[0] + span * 0.8], layer: 1, group: group }, op(-20, [0.15, 0.8])));
+    at(lid, 'top', 2 * g, P(L - 4 * g, th, { name: 'Dil (tuck)', shape: rounded(L - 4 * g, th, Math.min(th * 0.6, 35)) }),
+      Object.assign({ to: 90, t: [tw[0] + span * 0.62, tw[1]], layer: -1, group: group }, op(10, [0, 0.35])));
+  }
+  // 1-2-3 kilitli dip (elle kurulan geçmeli dip)
+  function snap(tw) {
+    const span = tw[1] - tw[0];
+    walls.forEach((w, i) => {
+      const maj = i % 2 === 0, ww = w.w - 2 * g;
+      const dep = maj ? W * 0.5 + Math.min(25, W * 0.1) : W * 0.5;
+      const shape = maj ? [[0, 0], [ww, 0], [ww, dep * 0.55], [ww * 0.62, dep], [ww * 0.08, dep], [0, dep * 0.35]]
+                        : [[0, 0], [ww, 0], [ww * 0.55, dep], [0, dep * 0.9]];
+      const t = maj ? (i === 0 ? [tw[0] + span * 0.35, tw[0] + span * 0.7] : [tw[0] + span * 0.6, tw[1]]) : [tw[0], tw[0] + span * 0.4];
+      at(w, 'bottom', g, P(ww, dep, { name: '1-2-3 kilitli dip kanadı', shape: shape }), { to: 90, t: t, layer: maj ? (i === 0 ? 1 : 2) : 0 });
+    });
+  }
+  // taşıma kulplu çatı kapanışı (iki eğimli panel + kulp + alın üçgenleri)
+  function handleTop(tw) {
+    const s = (W / 2 - T) / Math.sin(PI / 4), hh = Math.min(110, Math.max(60, W * 0.32)), span = tw[1] - tw[0];
+    [walls[1], walls[3]].forEach((w) => at(w, 'top', g, P(W - 2 * g, (W - 2 * g) / 2 - T, { name: 'Alın üçgeni', shape: [[0, 0], [W - 2 * g, 0], [(W - 2 * g) / 2, (W - 2 * g) / 2 - T]] }),
+      { from: 0, to: 0, t: [tw[0], tw[0]] }));
+    [walls[0], walls[2]].forEach((w, i) => {
+      const sl = at(w, 'top', g, P(L - 2 * g, s, { name: 'Çatı paneli' }), { to: 45, t: [tw[0] + span * 0.1, tw[0] + span * 0.75] });
+      const hw = Math.min(120, (L - 2 * g) * 0.38), hy = Math.min(30, hh * 0.3);
+      at(sl, 'top', 0, P(L - 2 * g, hh, { name: 'Taşıma kulpu', holes: [stadium((L - 2 * g) / 2, hh * 0.58, hw, hy)] }),
+        { from: 0, to: -45, t: [tw[0] + span * 0.1, tw[0] + span * 0.75] });
+    });
+  }
+  const TW = { bottom: [0.46, 0.68], top: [0.72, 0.96] };
+  const style = (sp) => (sp && sp.style) || null;
+  if (style(o.bottom) === 'snap') snap(TW.bottom);
+  else if (style(o.bottom) === 'tuck') tuck('bottom', o.bottom.hinge === 'front' ? 0 : 2, TW.bottom, null);
+  else flaps('bottom', o.bottom, { mi: [0.46, 0.58], ma: [0.55, 0.68] }, null);
+  if (style(o.top) === 'tuck') tuck('top', o.top.hinge === 'front' ? 0 : 2, TW.top, 'top');
+  else if (style(o.top) === 'handle') handleTop(TW.top);
+  else flaps('top', o.top, { mi: [0.72, 0.84], ma: [0.82, 0.96] }, 'top');
+  const bTxt = { snap: '1-2-3 kilitli dip kapanıyor', tuck: 'Dilli alt kapak kapanıyor' }[style(o.bottom)] || (o.bottom ? 'Alt kapaklar kapanıyor' : 'Gövde');
+  const tTxt = { tuck: 'Toz kapakları ve dilli kapak', handle: 'Çatı panelleri ve taşıma kulpu' }[style(o.top)] || (o.top ? 'Üst kapaklar kapanıyor' : 'Kutu hazır');
   return {
     parts: [{ root: front, rootPos: [-L / 2, 0, -W / 2], orient: (f) => ({ from: LYING, to: UPRIGHT, t: [0.03, 0.40] }) }],
-    steps: [[0, 0.05, 'Açınım (bıçak kesimi)'], [0.05, 0.45, 'Gövde katlanıyor, yapıştırma dili'],
-            [0.45, 0.7, o.bottom ? 'Alt kapaklar kapanıyor' : 'Gövde'], [0.7, 1, o.top ? 'Üst kapaklar kapanıyor' : 'Kutu hazır']]
+    steps: [[0, 0.05, 'Açınım (bıçak kesimi)'], [0.05, 0.45, 'Gövde katlanıyor, yapıştırma dili'], [0.45, 0.7, bTxt], [0.7, 1, tTxt]]
+  };
+}
+
+/* 03 — yarıklı gövde + ayrı kapak (0312: tepsi kapak, 0320: ters çevrilmiş yarım yarıklı kapak) */
+function slottedTelescope(d, lidKind, lidDepth) {
+  const L = d.L, W = d.W, H = d.H, T = d.T;
+  const Ll = L + 2 * T + 3, Wl = W + 2 * T + 3, Dl = Math.min(H, lidDepth);
+  const body = slotted(d, { bottom: { ma: W / 2, mi: W / 2 }, top: null }).parts[0];
+  body.final = () => [0, 2 * T, 0]; body.move = [0.68, 0.72];
+  const mv = [0.72, 1], top = 2 * T + H + 0.5;
+  let lidPart;
+  if (lidKind === 'tray') {
+    const lid = tray(Ll, Wl, Dl, T, [0.08, 0.6], 'Kapak'); mark(lid, 'lid');
+    lidPart = trayPart(lid, Ll, Wl, { orient: () => ({ from: UPRIGHT, to: { x: PI, y: 0, z: 0 }, t: mv }),
+      final: (o) => [0, top + o * (Dl + H * 0.35), o * -Wl * 0.15], move: mv, arc: Math.max(H, Dl) * 0.9 });
+  } else {
+    const lp = slotted({ L: Ll, W: Wl, H: Dl, T: T }, { bottom: { ma: Wl / 2, mi: Wl / 2 }, top: null }).parts[0];
+    mark(lp.root, 'lid');
+    lidPart = Object.assign(lp, { rootPos: [-Ll / 2, 0, -Wl / 2], orient: () => ({ from: LYING, to: { x: 0, y: 0, z: PI }, t: [0.03, 0.4] }),
+      final: (o) => [0, top + o * (Dl + H * 0.35), o * -Wl * 0.15], move: mv, arc: Math.max(H, Dl) * 0.9 });
+  }
+  return {
+    parts: [body, lidPart],
+    steps: [[0, 0.05, 'Açınım: gövde ve kapak'], [0.05, 0.45, 'Gövde ve kapak katlanıyor'], [0.45, 0.7, 'Alt kapaklar kapanıyor'], [0.7, 1, 'Kapak gövdeye geçiriliyor']]
   };
 }
 
@@ -1556,9 +1622,12 @@ function folderBody(d, o) {
     at(w, 'left', g, P(h - 2 * g, ear, { name: 'Kulak', shape: trap(h - 2 * g, ear, 0, ear * 0.5) }), { to: 90, t: [0.24, 0.36], layer: -1 });
     at(w, 'right', g, P(h - 2 * g, ear, { name: 'Kulak', shape: trap(h - 2 * g, ear, ear * 0.5, 0) }), { to: 90, t: [0.24, 0.36], layer: -1 });
   });
-  const sides = [];
+  const sides = [], fh = o.frontH || H;
   ['left', 'right'].forEach((e) => {
-    const sw = at(base, e, 0, P(W, H, { name: 'Yan duvar' }), { to: 90, t: [0.36, 0.5] });
+    // eğimli teşhir tepsisi: yan duvar önde alçak (sol duvarda x=0 ön, sağ duvarda x=W ön)
+    const shape = o.slope ? (e === 'left' ? [[0, 0], [W, 0], [W, H], [0, fh]] : [[0, 0], [W, 0], [W, fh], [0, H]]) : null;
+    const sw = at(base, e, 0, P(W, H, { name: 'Yan duvar', shape: shape }), { to: 90, t: [0.36, 0.5] });
+    sw.side = e;
     sides.push(sw);
     if (o.doubleSides) {
       const ro = at(sw, 'top', g, P(W - 2 * g, H - T, { name: 'İç yan duvar (çift)' }), { to: 180, t: [0.5, 0.66], layer: 1 });
@@ -1569,8 +1638,10 @@ function folderBody(d, o) {
   });
   if (o.earsOnSides) {
     sides.forEach((sw) => {
-      at(sw, 'left', g, P(H - 2 * g, ear, { name: 'Kulak', shape: trap(H - 2 * g, ear, 0, ear * 0.5) }), { to: 90, t: [0.46, 0.56], layer: -1 });
-      at(sw, 'right', g, P(H - 2 * g, ear, { name: 'Kulak', shape: trap(H - 2 * g, ear, ear * 0.5, 0) }), { to: 90, t: [0.46, 0.56], layer: -1 });
+      const hl = (o.slope && sw.side === 'left' ? fh : H) - 2 * g, hr = (o.slope && sw.side === 'right' ? fh : H) - 2 * g;
+      const el = Math.min(ear, hl * 1.1), er = Math.min(ear, hr * 1.1);
+      at(sw, 'left', g, P(hl, el, { name: 'Kulak', shape: trap(hl, el, 0, el * 0.5) }), { to: 90, t: [0.46, 0.56], layer: -1 });
+      at(sw, 'right', g, P(hr, er, { name: 'Kulak', shape: trap(hr, er, er * 0.5, 0) }), { to: 90, t: [0.46, 0.56], layer: -1 });
     });
   }
   if (o.doubleFront) {
@@ -1618,6 +1689,12 @@ function crashLock(d, top) {
       at(w, 'top', g, P(w.w - 2 * g, W / 2, { name: maj ? 'Üst dış kapak' : 'Üst iç kapak' }),
         { to: 90, t: maj ? [0.8, 0.96] : [0.68, 0.82], layer: maj ? 1 : 0, group: 'top', open: maj ? { to: -18, t: [0, 0.6] } : { to: -12, t: [0.35, 1] } });
     });
+  } else if (top === 'cssc') {
+    walls.forEach((w, i) => {
+      const maj = i % 2 === 0;
+      at(w, 'top', g, P(w.w - 2 * g, maj ? W / 2 : L / 2 - g, { name: maj ? 'Üst dış kapak' : 'Üst iç kapak' }),
+        { to: 90, t: maj ? [0.8, 0.96] : [0.68, 0.82], layer: maj ? 1 : 0, group: 'top', open: maj ? { to: -18, t: [0, 0.6] } : { to: -12, t: [0.35, 1] } });
+    });
   } else if (top === 'tuck') {
     const dh = Math.min(W * 0.45, H * 0.6);
     [B, Dd].forEach((w) => at(w, 'top', g, P(W - 2 * g, dh, { name: 'Toz kapağı', shape: trap(W - 2 * g, dh, dh * 0.2, dh * 0.6) }),
@@ -1662,6 +1739,42 @@ function grid(d) {
       final: () => [x - L / 2 - T / 2, 0, 0], move: tm, arc: H * 1.4 });
   });
   return { parts: parts, layoutAxis: 'z', steps: [[0, 0.1, 'Kesilmiş bölme şeritleri'], [0.1, 0.5, 'Boyuna şeritler yerleşiyor'], [0.5, 1, 'Enine şeritler yarıklara geçiyor']] };
+}
+
+/* ───────────── 04 — Beş panelli sarma kutular (0409 / 0411) ─────────────
+   Kök: taban L×W yatay; ön/arka paneller uzun kenarlardan kalkar. */
+function fivePanel409(d) {
+  const L = d.L, W = d.W, H = d.H, T = d.T, g = Math.max(2, T * 0.6);
+  const base = P(L, W, { name: 'Taban paneli' });
+  const fr = at(base, 'bottom', 0, P(L, H, { name: 'Ön panel' }), { to: 90, t: [0.06, 0.28] });
+  const bk = at(base, 'top', 0, P(L, H, { name: 'Arka panel' }), { to: 90, t: [0.06, 0.28] });
+  // ön ve arka panellerin uç kanatları içe kapanır
+  [fr, bk].forEach((w) => {
+    at(w, 'left', g, P(H - 2 * g, W / 2 - g, { name: 'İç uç kanadı' }), { to: 90, t: [0.3, 0.44], layer: -1 });
+    at(w, 'right', g, P(H - 2 * g, W / 2 - g, { name: 'İç uç kanadı' }), { to: 90, t: [0.3, 0.44], layer: -1 });
+  });
+  const top = at(bk, 'top', 0, P(L, W + T, { name: 'Kapak paneli' }), { to: 90, t: [0.48, 0.66], group: 'top', open: { to: -15, t: [0.2, 1] } });
+  at(top, 'top', 0, P(L, H - T, { name: 'Bindirme paneli' }), { to: 90, t: [0.62, 0.76], layer: -1, group: 'top', open: { to: 0, t: [0, 0.5] } });
+  // kapak panelinin uç kanatları dıştan iner ve uçları kapatır
+  at(top, 'left', g, P(W + T - 2 * g, H - T, { name: 'Dış uç kanadı' }), { to: 90, t: [0.78, 0.96], group: 'top', open: { to: 0, t: [0, 0.4] } });
+  at(top, 'right', g, P(W + T - 2 * g, H - T, { name: 'Dış uç kanadı' }), { to: 90, t: [0.78, 0.96], group: 'top', open: { to: 0, t: [0, 0.4] } });
+  return { parts: [trayPart(base, L, W)], steps: [[0, 0.05, 'Açınım'], [0.05, 0.46, 'Ön/arka paneller ve iç uç kanatları'], [0.46, 0.77, 'Kapak ve bindirme paneli'], [0.77, 1, 'Dış uç kanatları kapanıyor']] };
+}
+function centerSeam411(d) {
+  const L = d.L, W = d.W, H = d.H, T = d.T, g = Math.max(2, T * 0.6);
+  const base = P(L, W, { name: 'Taban paneli' });
+  const fr = at(base, 'bottom', 0, P(L, H, { name: 'Ön panel' }), { to: 90, t: [0.06, 0.28] });
+  const bk = at(base, 'top', 0, P(L, H, { name: 'Arka panel' }), { to: 90, t: [0.06, 0.28] });
+  [fr, bk].forEach((w) => {
+    at(w, 'left', g, P(H - 2 * g, W / 2 - g, { name: 'İç uç kanadı' }), { to: 90, t: [0.3, 0.42], layer: -1 });
+    at(w, 'right', g, P(H - 2 * g, W / 2 - g, { name: 'İç uç kanadı' }), { to: 90, t: [0.3, 0.42], layer: -1 });
+  });
+  at(base, 'left', 0, P(W, H, { name: 'Uç kapağı' }), { to: 90, t: [0.44, 0.6] });
+  at(base, 'right', 0, P(W, H, { name: 'Uç kapağı' }), { to: 90, t: [0.44, 0.6] });
+  // üst: ön ve arka panellerden gelen iki yarım kapak ortada birleşir (orta dikiş)
+  at(fr, 'top', 0, P(L, W / 2, { name: 'Yarım üst panel' }), { to: 90, t: [0.66, 0.86], group: 'top', open: { to: -20, t: [0, 0.7] } });
+  at(bk, 'top', 0, P(L, W / 2, { name: 'Yarım üst panel' }), { to: 90, t: [0.74, 0.96], group: 'top', open: { to: -20, t: [0.3, 1] } });
+  return { parts: [trayPart(base, L, W)], steps: [[0, 0.05, 'Açınım'], [0.05, 0.43, 'Ön/arka paneller ve iç uç kanatları'], [0.43, 0.62, 'Uç kapakları'], [0.62, 1, 'Yarım üst paneller ortada birleşiyor']] };
 }
 
 /* ═══════════════ KATALOG ═══════════════ */
@@ -1715,6 +1828,31 @@ const TYPES = [
     use: 'Çok ağır ve değerli yükler, ihracat ambalajı',
     build: (d, op) => { const s = { ma: d.W, mi: d.L / 2, majLayer: [1, 2] }; return slotted(d, { bottom: s, top: s, handhole: op.handhole }); } },
 
+  { code: '0210', s: '02', name: 'Dilli üst ve dilli alt kapaklı koli', ma: 'M/A', close: 'Dilli kapak (bantsız)', def: [300, 200, 250],
+    desc: 'Yarıklı gövde; üstte ve altta arka duvara menteşeli tam boy birer kapak vardır. Kapaklar yan duvarlardaki toz kapaklarının üzerine kapanır ve dilleri ön duvarın içine geçer. Bant gerektirmez.',
+    use: 'Perakende ürün kutuları, yedek parça, hafif ürünler',
+    build: (d) => slotted(d, { bottom: { style: 'tuck', hinge: 'back' }, top: { style: 'tuck', hinge: 'back' } }) },
+  { code: '0211', s: '02', name: 'Arkadan dilli üst, önden dilli alt kapaklı koli', ma: 'M/A', close: 'Dilli kapak (bantsız)', def: [300, 200, 250],
+    desc: '0210’un ters kapanışlı hâli: üst kapak ön duvara menteşelidir ve dili arkaya geçer; alt kapak arka duvardan gelir ve dili öne geçer. Gövde fabrikada yapıştırılır.',
+    use: 'Rafta önden açılması istenmeyen ürünler, perakende',
+    build: (d) => slotted(d, { bottom: { style: 'tuck', hinge: 'back' }, top: { style: 'tuck', hinge: 'front' } }) },
+  { code: '0212', s: '02', name: 'Dilli üst kapaklı, standart dipli koli', ma: 'M/A', close: 'Üst: dil · Alt: bant', def: [350, 250, 250],
+    desc: 'Alt kapaklar 0201 gibidir ve bantla kapatılır; üstte toz kapakları ve dilli menteşeli kapak vardır. Üstten tekrar açılıp kapatılabilen koli.',
+    use: 'Tekrar açılan sevkiyat kolileri, servis parçaları',
+    build: (d) => slotted(d, { bottom: { ma: d.W / 2, mi: d.W / 2 }, top: { style: 'tuck', hinge: 'back' } }) },
+  { code: '0215', s: '02', name: 'Dilli üst kapaklı, 1-2-3 kilitli dipli kutu', ma: 'M/A', close: 'Üst: dil · Alt: geçmeli kilit', def: [250, 180, 220],
+    desc: 'Dip, dört kanadın sırayla birbirine geçmesiyle kilitlenir (1-2-3 / snap-lock dip); bant gerekmez. Üstte toz kapakları ve dilli kapak vardır. Elle hızlı kurulan perakende kutusu.',
+    use: 'Kozmetik, gıda, elektronik perakende kutuları',
+    build: (d) => slotted(d, { bottom: { style: 'snap' }, top: { style: 'tuck', hinge: 'back' } }) },
+  { code: '0216', s: '02', name: 'Standart üstlü, 1-2-3 kilitli dipli koli', ma: 'M/A', close: 'Üst: bant · Alt: geçmeli kilit', def: [400, 300, 250],
+    desc: 'Üst kapaklar 0201 gibidir; dip kanatları birbirine geçerek kilitlenir (1-2-3 dip). Dibi bantsız kurulur, üstü bantla kapatılır.',
+    use: 'Elle hızlı paketleme, orta ağırlıkta ürünler',
+    build: (d) => slotted(d, { bottom: { style: 'snap' }, top: { ma: d.W / 2, mi: d.W / 2 } }) },
+  { code: '0217', s: '02', name: 'Taşıma kulplu, 1-2-3 kilitli dipli kutu', ma: 'M', close: 'Üst: kulplu çatı · Alt: geçmeli kilit', def: [320, 200, 220],
+    desc: 'Üst kapaklar eğimli bir çatı oluşturur ve tepede birleşerek elle tutulan bir taşıma kulpu meydana getirir; alın üçgenleri yanları kapatır. Dip 1-2-3 geçmeli kilitlidir.',
+    use: 'Hediye ve ikram kutuları, pasta-tatlı, promosyon',
+    build: (d) => slotted(d, { bottom: { style: 'snap' }, top: { style: 'handle' } }) },
+
   { code: '0300', s: '03', name: 'Teleskopik kutu (taban + kapak)', ma: 'M/A', close: 'Köşe dilleri yapıştırma / zımba', def: [400, 300, 200],
     desc: 'İki ayrı parça: taban tepsisi ve üzerine geçen kapak. Her ikisi de köşe dilleriyle kurulur; kapak, gövde yüksekliğinin bir kısmını örter.',
     use: 'Ayakkabı, tekstil, arşiv ve hediye kutuları',
@@ -1747,6 +1885,19 @@ const TYPES = [
       };
     } },
 
+  { code: '0312', s: '03', name: 'Yarım yarıklı gövde, tepsi kapaklı kutu', ma: 'M/A', close: 'Gövde: bant · Kapak: geçme', def: [400, 300, 250],
+    desc: 'Gövde, üst kapakları olmayan yarıklı bir kutudur (0200). Üzerine köşe dilleriyle kurulan sığ bir tepsi kapak geçirilir.',
+    use: 'Arşiv, tekstil, tekrar açılan depolama kutuları',
+    build: (d) => slottedTelescope(d, 'tray', Math.max(50, d.H * 0.3)) },
+  { code: '0320', s: '03', name: 'Yarım yarıklı gövde ve kapak', ma: 'M/A', close: 'Bant', def: [400, 300, 250],
+    desc: 'İki ayrı yarım yarıklı kutu: biri gövde, diğeri ters çevrilerek kapak olarak kullanılır. Kapağın kapakları kutunun üstünü, gövdenin kapakları tabanı oluşturur; kapak yüksekliği isteğe göre seçilir.',
+    use: 'Yüksekliği değişken yükler, ağır ve hacimli ürünler',
+    build: (d) => slottedTelescope(d, 'slotted', Math.max(60, d.H * 0.4)) },
+
+  { code: '0409', s: '04', name: 'Beş panelli katlama kutu', ma: 'M/A', close: 'Yapıştırma / bant', def: [600, 250, 120],
+    desc: 'Tek parça mukavva ürünün çevresine sarılır: taban, ön panel, kapak, arka panel ve bindirme paneli. Uçlar, ön-arka panellerin iç kanatları ve kapak panelinden inen dış uç kanatlarıyla kapanır.',
+    use: 'Uzun ve yassı ürünler, profil, kitap, ray',
+    build: (d) => fivePanel409(d) },
   { code: '0410', s: '04', name: 'Beş panelli sarma kutu (FPF)', ma: 'M/A', close: 'Yapıştırma / bant', def: [600, 250, 120],
     desc: 'Tek parça mukavva ürünün etrafına uzunlamasına sarılır: taban, ön, kapak, arka ve bindirme paneli. Uçlar iç kanatlar ve tam boy uç kapaklarıyla kapanır. Uzun ve yassı ürünler için idealdir.',
     use: 'Profil, ray, korniş, uzun makine parçaları',
@@ -1765,6 +1916,21 @@ const TYPES = [
       at(base, 'right', 0, P(W, H, { name: 'Uç kapağı' }), { to: 90, t: [0.76, 0.94] });
       return { parts: [trayPart(base, L, W)], steps: [[0, 0.05, 'Açınım'], [0.05, 0.44, 'Ön/arka paneller ve iç kanatlar'], [0.44, 0.75, 'Kapak ve bindirme paneli'], [0.75, 1, 'Uç kapakları kapanıyor']] };
     } },
+  { code: '0411', s: '04', name: 'Orta dikişli beş panelli kutu', ma: 'M/A', close: 'Bant / yapıştırma (orta dikiş)', def: [600, 250, 150],
+    desc: 'Beş panelli sarma kutunun üst yüzü ön ve arka panellerden gelen iki yarım kapakla oluşur; kapaklar ortada birleşir ve bu orta dikiş bantlanır. Uçlar iç kanatlar ve tabandan kalkan uç kapaklarıyla kapanır.',
+    use: 'Uzun sanayi ürünleri, boru ve profil, makine parçaları',
+    build: (d) => centerSeam411(d) },
+
+  { code: '0415', s: '04', name: 'Toz kapaklı tek parça kutu', ma: 'M/A', close: 'Dilli kapak (bantsız)', def: [320, 240, 100],
+    desc: 'Tek parça; ön ve arka duvarlardaki kulaklar yan duvarların içine kapanır. Arka duvara menteşeli kapağın toz kapakları ve dili kutuyu tamamen kapatır. Tek kat yan duvarlıdır.',
+    use: 'Posta ve sevkiyat kutusu, yedek parça',
+    build: (d) => ({ parts: [trayPart(folderBody(d, { earsOnFrontBack: true, lid: true, lidDust: true }), d.L, d.W)],
+      steps: [[0, 0.05, 'Açınım'], [0.05, 0.4, 'Ön/arka duvarlar ve kulaklar'], [0.4, 0.72, 'Yan duvarlar'], [0.72, 1, 'Kapak, toz kapakları ve dil']] }) },
+  { code: '0421', s: '04', name: 'Rulo kenarlı, menteşe kapaklı tepsi', ma: 'M/A', close: 'Kilitli (bantsız)', def: [320, 240, 90],
+    desc: 'Yan duvarlar çift kattır (rulo kenar): iç kat içe kıvrılıp tırnaklarla tabana kilitlenir ve ön-arka kulakları sıkıştırır. Arka duvara menteşeli kapağın dili ön duvarın içine geçer.',
+    use: 'Sunum ve hediye kutuları, yedek parça kutuları',
+    build: (d) => ({ parts: [trayPart(folderBody(d, { earsOnFrontBack: true, doubleSides: true, lid: true }), d.L, d.W)],
+      steps: [[0, 0.05, 'Açınım'], [0.05, 0.38, 'Ön/arka duvarlar ve kulaklar'], [0.38, 0.72, 'Çift yan duvarlar kilitleniyor'], [0.72, 1, 'Kapak ve dil']] }) },
   { code: '0422', s: '04', name: 'Kendinden kilitli tepsi', ma: 'M/A', close: 'Kilitli (bantsız)', def: [400, 300, 120],
     desc: 'Tek parça, yapıştırma veya bant gerektirmeyen açık tepsi. Ön ve arka duvardaki kulaklar, çift kat yan duvarların arasına girer; yan duvarların iç katı tırnaklarla tabana kilitlenir.',
     use: 'Meyve-sebze, raf teşhiri, ara tepsi',
@@ -1780,6 +1946,22 @@ const TYPES = [
     use: 'E-ticaret, kargo, abonelik ve hediye kutuları',
     build: (d) => ({ parts: [trayPart(folderBody(d, { earsOnFrontBack: true, doubleSides: true, lid: true, lidDust: true }), d.L, d.W)],
       steps: [[0, 0.05, 'Açınım'], [0.05, 0.38, 'Ön/arka duvarlar ve kulaklar'], [0.38, 0.72, 'Çift yan duvarlar kilitleniyor'], [0.72, 1, 'Kapak, toz kapakları ve dil']] }) },
+
+  { code: '0428', s: '04', name: 'Kendinden kilitli, dilli kapaklı tepsi', ma: 'M', close: 'Kilitli dil (bantsız)', def: [300, 220, 80],
+    desc: 'Yan duvarlardaki kulaklar ön ve arka duvarların içine kapanır. Arka duvara menteşeli kapak, toz kapakları ve dil ile kutuyu kapatır. Yapıştırma ve bant gerektirmez.',
+    use: 'E-ticaret, abonelik ve hediye kutuları',
+    build: (d) => ({ parts: [trayPart(folderBody(d, { earsOnSides: true, lid: true, lidDust: true }), d.L, d.W)],
+      steps: [[0, 0.05, 'Açınım'], [0.05, 0.56, 'Duvarlar ve kulaklar'], [0.56, 0.74, 'Gövde kilitleniyor'], [0.74, 1, 'Kapak, toz kapakları ve dil']] }) },
+  { code: '0443', s: '04', name: 'Rijit tepsi (köşe dilli)', ma: 'M/A', close: 'Köşe dilleri yapıştırma / zımba', def: [400, 300, 100],
+    desc: 'Taban ve dört duvardan oluşan açık tepsi; uzun duvarlardaki köşe dilleri uç duvarların içine yapıştırılır veya zımbalanır. Sağlam köşeleri sayesinde istiflenebilir.',
+    use: 'Meyve-sebze, ara tepsi, palet üstü ürün grupları',
+    build: (d) => ({ parts: [trayPart(tray(d.L, d.W, d.H, d.T, [0.06, 0.9], 'Taban'), d.L, d.W)],
+      steps: [[0, 0.06, 'Açınım'], [0.06, 0.45, 'Uzun duvarlar'], [0.45, 0.7, 'Köşe dilleri'], [0.7, 1, 'Uç duvarlar kapanıyor']] }) },
+  { code: '0449', s: '04', name: 'Teşhir tepsisi (eğimli ön)', ma: 'M/A', close: 'Kilitli (bantsız)', def: [400, 300, 140],
+    desc: 'Ön duvarı alçak, yan duvarları önden arkaya yükselen açık teşhir tepsisi. Yan duvar kulakları ön ve arka duvarların içine kapanır; ürün raf önünden kolayca görülür ve alınır.',
+    use: 'Market rafı teşhiri (SRP), şekerleme, küçük ürünler',
+    build: (d) => ({ parts: [trayPart(folderBody(d, { earsOnSides: true, slope: true, frontH: Math.max(40, d.H * 0.42) }), d.L, d.W)],
+      steps: [[0, 0.05, 'Açınım'], [0.05, 0.4, 'Ön ve arka duvarlar'], [0.4, 0.6, 'Eğimli yan duvarlar ve kulaklar'], [0.6, 1, 'Teşhir tepsisi hazır']] }) },
 
   { code: '0501', s: '05', name: 'Kılıf / palet çemberi', ma: 'M', close: 'Yapıştırma / zımba', def: [800, 600, 400],
     desc: 'Alt ve üst kapağı olmayan dört duvarlı kılıf (tüp). Paletli yüklerin çevresine geçirilir ya da tepsilerle birlikte kullanılır.',
@@ -1838,6 +2020,11 @@ const TYPES = [
     desc: 'Fabrikada yapıştırılmış, düz katlı gelir. Gövde açıldığı anda önceden yapıştırılmış dip kanatları kendiliğinden kilitlenir; dip için bant gerekmez. Üst kapaklar 0201 gibidir.',
     use: 'Yüksek hızlı elle paketleme, e-ticaret depoları',
     build: (d) => crashLock(d, 'rsc') },
+  { code: '0712', s: '07', name: 'Otomatik dipli, merkezde buluşan üstlü koli', ma: 'M', close: 'Dip: otomatik kilit · Üst: bant', def: [400, 300, 250],
+    desc: 'Fabrikada yapıştırılmış otomatik (crash-lock) dip ile 0204 tipi üst kapanış: iç ve dış üst kapaklar ortada buluşur, üst yüzey tam kapanır.',
+    use: 'Düz üst yüzey istenen e-ticaret ve depo kolileri',
+    build: (d) => crashLock(d, 'cssc') },
+
   { code: '0713', s: '07', name: 'Otomatik dipli, dilli kapaklı kutu', ma: 'M', close: 'Dip: otomatik kilit · Üst: dil', def: [300, 200, 200],
     desc: 'Otomatik (crash-lock) dip ile tek kanatlı, dilli (tuck) üst kapak. Hiç bant kullanmadan saniyeler içinde kurulur ve tekrar açılıp kapatılabilir.',
     use: 'Perakende, kozmetik, gıda, hızlı kurulum',

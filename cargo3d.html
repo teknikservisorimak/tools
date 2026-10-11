@@ -778,10 +778,16 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     color:var(--o-acc-tx); display: none; z-index: 100;
     white-space: nowrap; pointer-events: none;
   }
-  .edit-hint.visible { display: flex; align-items: center; gap: 10px; pointer-events: auto; }
-  .edit-hint .eh-btn { pointer-events: auto; border: 1px solid var(--accent); background: transparent; color: inherit; border-radius: 8px; padding: 4px 10px; font: inherit; cursor: pointer; }
+  .edit-hint.visible { top: 58px; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: auto; white-space: normal; max-width: calc(100% - 24px); padding: 8px 14px; }
+  .edit-hint .eh-txt { font-size: 11px; font-weight: 500; opacity: .85; text-align: center; }
+  .edit-hint .eh-dist { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; text-align: center; }
+  .edit-hint .eh-dist .eh-0 { color: #3fbf7f; }
+  .edit-hint .eh-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .edit-hint .eh-lbl { font-size: 11px; opacity: .8; }
+  .edit-hint .eh-btn { pointer-events: auto; border: 1px solid var(--accent); background: transparent; color: inherit; border-radius: 8px; padding: 4px 10px; font: inherit; cursor: pointer; min-height: 30px; }
+  .edit-hint .eh-ar { min-width: 34px; padding: 4px 6px; }
   .edit-hint .eh-btn:hover { background: rgba(243,146,0,.18); }
-  @media (max-width: 768px) { .edit-hint { white-space: normal; width: calc(100% - 24px); justify-content: center; flex-wrap: wrap; font-size: 11px; padding: 8px 10px; } .edit-hint span { display: none; } }
+  @media (max-width: 768px) { .edit-hint.visible { width: calc(100% - 24px); font-size: 11px; padding: 8px 10px; } .edit-hint .eh-txt, .edit-hint .eh-lbl { display: none; } .edit-hint .eh-row { gap: 5px; } .edit-hint .eh-btn { min-height: 36px; padding: 4px 8px; } .edit-hint .eh-ar { min-width: 38px; padding: 4px; } }
 
   .action-toolbar { display: flex; gap: 8px; align-items: center; }
   .btn-toolbar {
@@ -1133,7 +1139,7 @@ header{border-bottom:2px solid var(--o-head-bar)!important}
       <div class="tt-symbols"></div>
     </div>
     <div class="edit-hint" id="editHint">
-<span>Sürükle: taşı — kutu altındakinin üstüne oturur &nbsp;│&nbsp; R: döndür &nbsp;│&nbsp; Esc: bırak</span><button type="button" class="eh-btn" onclick="rotateSelectedBox()">⟳ Döndür</button><button type="button" class="eh-btn" onclick="deselectBox()">✓ Bırak</button>
+<span class="eh-txt">Sürükle: kaydır, kutulara değince durur · Başka kutunun ortasına bırak: üstüne istifle · Ok tuşları: yasla · Shift+Ok: 1 cm · R: döndür</span><span class="eh-dist" id="ehDist"></span><span class="eh-row"><span class="eh-lbl">Yasla</span><button type="button" class="eh-btn eh-ar" title="Sola yasla (←)" onclick="moveSelected('left',0)">◀</button><button type="button" class="eh-btn eh-ar" title="İleri yasla (↑)" onclick="moveSelected('up',0)">▲</button><button type="button" class="eh-btn eh-ar" title="Geri yasla (↓)" onclick="moveSelected('down',0)">▼</button><button type="button" class="eh-btn eh-ar" title="Sağa yasla (→)" onclick="moveSelected('right',0)">▶</button><button type="button" class="eh-btn" onclick="rotateSelectedBox()">⟳ Döndür</button><button type="button" class="eh-btn" onclick="deselectBox()">✓ Bırak</button></span>
     </div>
     <div class="dim-toggle">
       <button class="dim-toggle-btn active" onclick="toggleDimLabels(this)">📏 Ölçüler</button>
@@ -1308,6 +1314,8 @@ canvas.addEventListener('wheel', (e) => {
 window.addEventListener('keydown', (e) => {
   if (e.target && e.target.matches && e.target.matches('input,textarea,select')) return;
   if ((e.key === 'r' || e.key === 'R') && selectedMesh) rotateSelectedBox();
+  const AK = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' }[e.key];
+  if (AK && selectedMesh && !isDraggingBox) { e.preventDefault(); moveSelected(AK, e.shiftKey ? 1 : 0); }
   if (e.key === 'Escape') { if (isDraggingBox) cancelDrag(); deselectBox(); }
 });
 
@@ -1369,9 +1377,7 @@ function onPtrMove(e) {
     const p = new THREE.Vector3();
     if (raycaster.ray.intersectPlane(dragPlane, p)) {
       dragState.startedMove = true;
-      const r = placeBoxAt(dragState.mesh, p.x + dragOffset.x, p.z + dragOffset.z);
-      dragState.valid = r.valid;
-      setDragTint(dragState.mesh, r.valid ? 0x2a1a00 : 0x5a0000);
+      dragTo(dragState, p.x + dragOffset.x, p.z + dragOffset.z);
     }
     return;
   }
@@ -1509,6 +1515,135 @@ function stackWarnings(idx) {
   }
   return null;
 }
+// ── elle yerleştirme: aynı seviyede kayar ve temas noktasında durur; merkezi başka kutunun
+//    üstüne getirilirse onun üstüne istiflenir. Duvarlara ve kutu kenarlarına mıknatısla hizalanır.
+function bandOverlap(a, b) { return a.y0 < b.y1 - EPS && a.y1 > b.y0 + EPS; }
+function magnetT() { return Math.min(0.2, Math.max(0.08, spherical.radius * 0.012)); }
+function supportTop(me, idx, L) {
+  let y = 0;
+  boxMeshes.forEach((m, j) => { if (j === idx) return; const r = boxRect(j); if (overlapXZ(me, r) && r.y1 <= L + 0.002 && r.y1 > y) y = r.y1; });
+  return y;
+}
+function levelAt(idx, x, z, h) {
+  // imlecin altındaki en yüksek kutu üstü (sığıyorsa); yoksa zemin
+  let L = 0;
+  const maxY = cargoH * SCALE;
+  boxMeshes.forEach((m, j) => {
+    if (j === idx) return; const r = boxRect(j);
+    if (x > r.x0 && x < r.x1 && z > r.z0 && z < r.z1 && r.y1 > L) L = r.y1;
+  });
+  return L;
+}
+function resolveAt(idx, x, z, L, opts) {
+  const u = boxMeshes[idx].userData;
+  const hw = u.currentW * SCALE / 2, hd = u.currentD * SCALE / 2, h = u.currentH * SCALE;
+  const maxX = cargoW * SCALE, maxZ = cargoD * SCALE, maxY = cargoH * SCALE;
+  const clamp = () => { x = Math.max(hw, Math.min(maxX - hw, x)); z = Math.max(hd, Math.min(maxZ - hd, z)); };
+  clamp();
+  const band = { y0: L, y1: L + h };
+  if (!opts || opts.snap !== false) {
+    const T = magnetT();
+    let bx = null, bz = null, dbx = T, dbz = T;
+    const tryX = (edge, t) => { const d = Math.abs(edge - t); if (d < dbx) { dbx = d; bx = x + (t - edge); } };
+    const tryZ = (edge, t) => { const d = Math.abs(edge - t); if (d < dbz) { dbz = d; bz = z + (t - edge); } };
+    tryX(x - hw, 0); tryX(x + hw, maxX); tryZ(z - hd, 0); tryZ(z + hd, maxZ);
+    boxMeshes.forEach((m, j) => {
+      if (j === idx) return; const r = boxRect(j);
+      if (!bandOverlap(band, r) && Math.abs(r.y1 - L) > 0.002) return;
+      tryX(x - hw, r.x1); tryX(x + hw, r.x0); tryX(x - hw, r.x0); tryX(x + hw, r.x1);
+      tryZ(z - hd, r.z1); tryZ(z + hd, r.z0); tryZ(z - hd, r.z0); tryZ(z + hd, r.z1);
+    });
+    if (bx != null) x = bx; if (bz != null) z = bz; clamp();
+  }
+  let ok = false;
+  for (let it = 0; it < 10; it++) {
+    const me = { x0: x - hw, x1: x + hw, z0: z - hd, z1: z + hd };
+    let worst = null, wp = 0;
+    boxMeshes.forEach((m, j) => {
+      if (j === idx) return; const r = boxRect(j);
+      if (!bandOverlap(band, r) || !overlapXZ(me, r)) return;
+      const px = Math.min(me.x1 - r.x0, r.x1 - me.x0), pz = Math.min(me.z1 - r.z0, r.z1 - me.z0), pp = Math.min(px, pz);
+      if (pp > wp) { wp = pp; worst = { r, px, pz }; }
+    });
+    if (!worst) { ok = true; break; }
+    const r = worst.r;
+    if (worst.px <= worst.pz) x += (x < (r.x0 + r.x1) / 2 ? -worst.px : worst.px);
+    else z += (z < (r.z0 + r.z1) / 2 ? -worst.pz : worst.pz);
+    clamp();
+  }
+  if (!ok) return null;
+  const me = { x0: x - hw, x1: x + hw, z0: z - hd, z1: z + hd };
+  const y = supportTop(me, idx, L);
+  return { x, z, y, h, valid: y + h <= maxY + EPS };
+}
+function dragTo(st, x, z) {
+  const idx = boxMeshes.indexOf(st.mesh), u = st.mesh.userData, h = u.currentH * SCALE;
+  const L = levelAt(idx, x, z, h);
+  let r = resolveAt(idx, x, z, L);
+  if (!r) return;                                   // sıkışık: son geçerli konumda kalır
+  st.mesh.position.set(r.x, r.y + h / 2, r.z);
+  syncBoxVisuals(idx);
+  st.valid = r.valid;
+  const warn = r.valid && stackWarnings(idx);
+  setDragTint(st.mesh, !r.valid ? 0x5a0000 : warn ? 0x4a2a00 : 0x2a1a00);
+  updateDistHUD();
+}
+// görüntüye göre yön: ekranda sol/sağ/yukarı/aşağı → x veya z ekseni
+function viewAxis(k) {
+  const f = new THREE.Vector3(); camera.getWorldDirection(f); f.y = 0;
+  if (f.lengthSq() < 1e-6) f.set(-Math.cos(spherical.theta), 0, -Math.sin(spherical.theta));
+  f.normalize();
+  const r = new THREE.Vector3(-f.z, 0, f.x);
+  // sağ-sol ve ileri-geri her zaman farklı eksenlere düşer (45° bakışta da)
+  const axR = Math.abs(r.x) > Math.abs(r.z) + 1e-3 ? 'x' : 'z', axU = axR === 'x' ? 'z' : 'x';
+  if (k === 'left' || k === 'right') { const sg = Math.sign(r[axR]) || 1; return { ax: axR, sgn: k === 'right' ? sg : -sg }; }
+  const sg = Math.sign(f[axU]) || 1; return { ax: axU, sgn: k === 'up' ? sg : -sg };
+}
+// seçili kutuyu bir yöne kaydır: step=0 → duvara veya kutuya değene kadar; step>0 → o kadar cm
+function moveSelected(k, stepCm) {
+  if (!selectedMesh) return;
+  const idx = boxMeshes.indexOf(selectedMesh); if (idx < 0) return;
+  const { ax, sgn } = viewAxis(k);
+  const a = boxRect(idx), maxX = cargoW * SCALE, maxZ = cargoD * SCALE;
+  let lim = ax === 'x' ? (sgn < 0 ? 0 : maxX) : (sgn < 0 ? 0 : maxZ);
+  boxMeshes.forEach((m, j) => {
+    if (j === idx) return; const r = boxRect(j);
+    if (!bandOverlap(a, r)) return;
+    if (ax === 'x') {
+      if (!(a.z0 < r.z1 - EPS && a.z1 > r.z0 + EPS)) return;
+      if (sgn > 0 && r.x0 >= a.x1 - EPS) lim = Math.min(lim, r.x0);
+      if (sgn < 0 && r.x1 <= a.x0 + EPS) lim = Math.max(lim, r.x1);
+    } else {
+      if (!(a.x0 < r.x1 - EPS && a.x1 > r.x0 + EPS)) return;
+      if (sgn > 0 && r.z0 >= a.z1 - EPS) lim = Math.min(lim, r.z0);
+      if (sgn < 0 && r.z1 <= a.z0 + EPS) lim = Math.max(lim, r.z1);
+    }
+  });
+  let d = ax === 'x' ? (sgn > 0 ? lim - a.x1 : lim - a.x0) : (sgn > 0 ? lim - a.z1 : lim - a.z0);
+  if (stepCm) d = sgn > 0 ? Math.min(d, stepCm * SCALE) : Math.max(d, -stepCm * SCALE);
+  if (Math.abs(d) < 1e-6) { showToast('Kutu zaten duvara / komşu kutuya dayalı.', 'success'); return; }
+  const m = selectedMesh, h = m.userData.currentH * SCALE;
+  const nx = m.position.x + (ax === 'x' ? d : 0), nz = m.position.z + (ax === 'z' ? d : 0);
+  const me = { x0: nx - m.userData.currentW * SCALE / 2, x1: nx + m.userData.currentW * SCALE / 2, z0: nz - m.userData.currentD * SCALE / 2, z1: nz + m.userData.currentD * SCALE / 2 };
+  const y = supportTop(me, idx, a.y0);
+  m.position.set(nx, y + h / 2, nz);
+  syncBoxVisuals(idx);
+  settleAll();
+  const warn = stackWarnings(idx);
+  if (warn) showToast(warn, 'error');
+  afterLayoutChange();
+  updateDistHUD();
+}
+function updateDistHUD() {
+  const el = document.getElementById('ehDist'); if (!el) return;
+  if (!selectedMesh) { el.innerHTML = ''; return; }
+  const i = boxMeshes.indexOf(selectedMesh); if (i < 0) return;
+  const a = boxRect(i), maxX = cargoW * SCALE, maxZ = cargoD * SCALE;
+  const cm = (v) => Math.max(0, Math.round(v / SCALE));
+  const f = (v) => (v === 0 ? '<b class="eh-0">0</b>' : v);
+  el.innerHTML = `Boy: ${f(cm(a.x0))} │ ${f(cm(maxX - a.x1))} cm &nbsp;·&nbsp; En: ${f(cm(a.z0))} │ ${f(cm(maxZ - a.z1))} cm &nbsp;·&nbsp; Yerden: ${cm(a.y0)} cm`;
+}
+
 function finishDrag() {
   isDraggingBox = false;
   const st = dragState; dragState = null;
@@ -1525,6 +1660,7 @@ function finishDrag() {
   const warn = stackWarnings(idx);
   if (warn) showToast(warn, 'error');
   afterLayoutChange();
+  updateDistHUD();
 }
 function cancelDrag() {
   if (dragState) { const idx = boxMeshes.indexOf(dragState.mesh); dragState.mesh.position.copy(dragState.start); syncBoxVisuals(idx); setDragTint(dragState.mesh, 0x222244); }
@@ -1552,6 +1688,7 @@ function selectBox(mesh) {
   originalColor = mats[0].emissive.clone();
   mats.forEach(m => m.emissive && m.emissive.set(0x222244));
   document.getElementById('editHint').classList.add('visible');
+  if (typeof updateDistHUD === 'function') updateDistHUD();
 }
 
 function deselectBox() {
@@ -1597,6 +1734,7 @@ function rotateSelectedBox() {
   }
   settleAll();
   afterLayoutChange();
+  updateDistHUD();
 }
 
 // ═══════════════════════════════════════════
