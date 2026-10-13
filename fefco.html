@@ -725,6 +725,8 @@ footer{
 .pdf-scope-item input{accent-color:var(--orange);width:14px;height:14px;cursor:pointer;}
 .pdf-scope-item span{color:var(--muted);font-size:11px;}
 .pdf-scope-item.off{opacity:.35;cursor:not-allowed;}
+.f-src{font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.4px;padding:4px 9px;border-radius:5px;border:1px solid var(--border);color:var(--muted);white-space:nowrap;}
+.f-src-kisi{border-color:#60A5FA;color:#60A5FA;background:rgba(96,165,250,.08);}
 .tip-pdf-btn{background:rgba(243,146,0,.14);border:1px solid var(--orange-border);color:var(--orange);font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;padding:5px 12px;border-radius:5px;cursor:pointer;white-space:nowrap;transition:all .15s;}
 .tip-pdf-btn:hover{background:var(--orange);color:#1a1a1a;box-shadow:0 3px 12px rgba(243,146,0,.35);}
 .pdf-opt:hover span{color:var(--text);}
@@ -1104,6 +1106,7 @@ html #orkGuide .ork-steps>li,html #orkGuide .ork-card{background:var(--o-panel2)
       <button class="save-btn" data-i18n="btn_jsonsave" onclick="exportJSON()" title="Tüm veriyi JSON dosyası olarak kaydet">💾 JSON Olarak Kaydet</button>
       <button class="save-btn" data-i18n="btn_jsonopen" onclick="importJSON()" title="Daha önce kaydedilen JSON dosyasını aç">📂 JSON'dan Aç</button>
       <button class="save-btn" data-i18n="btn_pdf" onclick="openPdfMenu()" title="Kurumsal PDF raporları" style="background:rgba(245,166,35,.14);border-color:rgba(245,166,35,.45);color:var(--orange);font-weight:700;">📄 PDF Rapor</button>
+      <button class="save-btn" id="stdFormulBtn" onclick="stdFormulPaneliAc()" title="Herkes için standart formülleri ayarla (yönetici)" style="display:none;background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.45);color:#60A5FA;font-weight:700;">⚙️ Standart Formüller</button>
       <button class="save-btn del" data-i18n="btn_clear" onclick="clearDataModal()" title="Veri temizle (tümü veya tek tip)">🗑️ Temizle</button>
       <span id="saveMsg" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--green);opacity:0;transition:opacity .3s;white-space:nowrap;" data-i18n="save_kaydedildi">💾 Kaydedildi!</span>
     </div>
@@ -1503,6 +1506,177 @@ function compileFormulas(ft){
 // Track which formula panels are open
 const formulaOpen={};
 
+// ============================================================
+// FORMÜL KAYNAKLARI — STANDART (herkes) + KİŞİSEL (sadece bu tarayıcı)
+// ------------------------------------------------------------
+// STANDART: Repodaki "fefco_formuller.json" dosyası. Yönetici
+//   (fefco.html?yonetici) "Standart Formüller" panelinden düzenler,
+//   dosyayı indirip GitHub'a yükler → siteyi açan HERKES aynı formülü görür.
+//   Dosyaya ulaşılamazsa (çevrimdışı) son indirilen kopya, o da yoksa
+//   DEFAULT_FEFCO_TYPES kullanılır.
+// KİŞİSEL: Sekmedeki "Formül" alanından yapılan değişiklik. Sadece o
+//   kişinin tarayıcısında (localStorage) durur, başkasını etkilemez.
+//   "Standarda dön" ile silinir.
+// Kişinin tarayıcısında kayıtlı eski formüller standardı EZEMEZ.
+// ============================================================
+const STD_FORMUL_DOSYA='fefco_formuller.json';
+const STD_CACHE_KEY='orimak_fefco_std_formul_cache';
+const KISISEL_KEY='orimak_fefco_formul_kisisel';
+const YONETICI_KEY='orimak_fefco_yonetici';
+const _FKEYS=['dikeyEn','dikeyBoy','yatayEn','yatayBoy'];
+
+let STD_FORMULLER={};          // {id:{kod,ad,dikeyEn,dikeyBoy,yatayEn,yatayBoy}}
+let STD_KAYNAK='gomulu';       // 'gomulu' | 'onbellek' | 'dosya'
+let STD_GUNCELLEME='';
+let KISISEL_FORMULLER={};      // {id:{dikeyEn,dikeyBoy,yatayEn,yatayBoy}}
+
+function _fPick(o){ const r={}; _FKEYS.forEach(k=>{ r[k]=String((o&&o[k])||'').trim(); }); return r; }
+function _fEsit(a,b){ return !!a&&!!b&&_FKEYS.every(k=>String(a[k]||'').replace(/\s/g,'')===String(b[k]||'').replace(/\s/g,'')); }
+
+(function stdInit(){
+  DEFAULT_FEFCO_TYPES.forEach(d=>{ STD_FORMULLER[d.id]={kod:d.kod,ad:d.ad,..._fPick(d)}; });
+  try{
+    const c=JSON.parse(localStorage.getItem(STD_CACHE_KEY)||'null');
+    if(c&&c.formuller){ _stdBirlestir(c); STD_KAYNAK='onbellek'; }
+  }catch(e){}
+  try{ KISISEL_FORMULLER=JSON.parse(localStorage.getItem(KISISEL_KEY)||'{}')||{}; }catch(e){ KISISEL_FORMULLER={}; }
+  // Yönetici modu: ?yonetici ile açılır, ?yonetici=0 ile kapanır (bu tarayıcıda hatırlanır)
+  try{
+    const q=new URLSearchParams(location.search);
+    if(q.has('yonetici')){
+      if(q.get('yonetici')==='0') localStorage.removeItem(YONETICI_KEY);
+      else localStorage.setItem(YONETICI_KEY,'1');
+    }
+  }catch(e){}
+})();
+
+function _stdBirlestir(obj){
+  const f=obj.formuller||{};
+  Object.keys(f).forEach(id=>{
+    const v=f[id]; if(!v) return;
+    const p=_fPick(v);
+    if(!_FKEYS.every(k=>p[k]&&validateFormula(p[k]))) return;   // bozuk satırı atla
+    STD_FORMULLER[id]={kod:v.kod||(STD_FORMULLER[id]||{}).kod||id, ad:v.ad||(STD_FORMULLER[id]||{}).ad||'', ...p};
+  });
+  STD_GUNCELLEME=obj.guncelleme||'';
+}
+function yoneticiMi(){ try{ return localStorage.getItem(YONETICI_KEY)==='1'; }catch(e){ return false; } }
+function kisiselVarMi(id){ return !!(KISISEL_FORMULLER[id]&&STD_FORMULLER[id]); }
+function _kisiselYaz(){ try{ localStorage.setItem(KISISEL_KEY,JSON.stringify(KISISEL_FORMULLER)); }catch(e){} }
+
+// Sekmede formül değişince çağrılır: standarttan farklıysa kişisel olarak sakla
+function kisiselFormulKaydet(ft){
+  if(!ft||!STD_FORMULLER[ft.id]) return;               // kullanıcının kendi eklediği sekme: zaten kendine ait
+  const f=_fPick(ft);
+  if(_fEsit(f,STD_FORMULLER[ft.id])) delete KISISEL_FORMULLER[ft.id];
+  else KISISEL_FORMULLER[ft.id]=f;
+  _kisiselYaz();
+}
+function standardaDon(ftId){
+  if(!confirm('Bu sekmedeki kişisel formülünüz silinip standart formül kullanılacak. Devam edilsin mi?')) return;
+  delete KISISEL_FORMULLER[ftId]; _kisiselYaz();
+  formulKaynaklariniUygula(); recalcAll();
+}
+
+// Her tipe geçerli formülü yazar: KİŞİSEL > STANDART > (kendi eklediği sekme ise kendi formülü)
+function formulKaynaklariniUygula(){
+  let degisti=false;
+  FEFCO_TYPES.forEach(ft=>{
+    const kaynak=KISISEL_FORMULLER[ft.id]&&STD_FORMULLER[ft.id] ? KISISEL_FORMULLER[ft.id] : STD_FORMULLER[ft.id];
+    if(!kaynak) return;
+    if(_fEsit(_fPick(ft),kaynak)) return;
+    const oldVars=[...(ft._vars||[])];
+    _FKEYS.forEach(k=>{ ft[k]=kaynak[k]; });
+    compileFormulas(ft);
+    (ft._vars||[]).forEach(v=>{
+      if(!oldVars.includes(v)&&DATA[ft.id]){
+        DATA[ft.id].forEach(r=>{ if(r[v]===undefined||r[v]===''||r[v]===null) r[v]=VAR_DEFAULTS[v]!==undefined?VAR_DEFAULTS[v]:0; });
+      }
+    });
+    degisti=true;
+  });
+  return degisti;
+}
+
+// Repodaki standart dosyayı çek (önbelleğe alma — her açılışta en güncelini al)
+function stdFormulleriYukle(){
+  if(location.protocol==='file:') return Promise.resolve(false);
+  return fetch(STD_FORMUL_DOSYA+'?t='+Date.now(),{cache:'no-store'})
+    .then(r=>r.ok?r.json():null)
+    .then(obj=>{
+      if(!obj||!obj.formuller) return false;
+      _stdBirlestir(obj); STD_KAYNAK='dosya';
+      try{ localStorage.setItem(STD_CACHE_KEY,JSON.stringify(obj)); }catch(e){}
+      return true;
+    }).catch(()=>false);
+}
+
+// ---------- YÖNETİCİ: STANDART FORMÜLLER PANELİ ----------
+function stdFormulPaneliAc(){
+  const ids=Object.keys(STD_FORMULLER);
+  const satir=id=>{
+    const f=STD_FORMULLER[id];
+    const inp=(k,ph)=>`<input type="text" class="formula-inp" data-id="${id}" data-k="${k}" value="${esc(f[k])}" placeholder="${ph}" style="width:100%;">`;
+    return `<div class="stdf-row" style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+      <div style="font-weight:800;color:var(--orange);margin-bottom:6px;">${esc(f.kod)} <span style="color:var(--muted);font-weight:600;">— ${esc(f.ad)}</span></div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;font-size:11px;">
+        <label>DİKEY En${inp('dikeyEn','2*L+2*B+K+K+P')}</label><label>DİKEY Boy${inp('dikeyBoy','2*H+(L+B)/2+K+K+P')}</label>
+        <label>YATAY En${inp('yatayEn','2*B+2*L+K+K+P')}</label><label>YATAY Boy${inp('yatayBoy','2*H+(B+L)/2+K+K+P')}</label>
+      </div></div>`;
+  };
+  const kaynakTxt={gomulu:'sayfaya gömülü varsayılanlar',onbellek:'son indirilen kopya (sunucu dosyasına ulaşılamadı)',dosya:'sunucudaki '+STD_FORMUL_DOSYA}[STD_KAYNAK];
+  const bg=document.createElement('div');
+  bg.className='modal-bg';
+  bg.innerHTML=`<div class="modal-box" style="min-width:min(760px,94vw);max-width:860px;max-height:90vh;overflow:auto;">
+    <h3>⚙️ Standart Formüller (Herkes İçin)</h3>
+    <p style="font-size:12px;color:var(--muted);line-height:1.6;margin:0 0 10px;">
+      Burada ayarladığınız formüller siteyi açan <b>herkes</b> için varsayılandır; kimsenin tarayıcısındaki eski formül bunu ezemez.
+      Kişiler sekmedeki <b>Formül</b> alanından değiştirirse bu sadece <b>kendi tarayıcılarında</b> geçerli olur.<br>
+      Şu an yüklenen: <b>${esc(kaynakTxt)}</b>${STD_GUNCELLEME?' · son güncelleme '+esc(new Date(STD_GUNCELLEME).toLocaleString('tr-TR')):''}
+    </p>
+    <div id="stdfList">${ids.map(satir).join('')}</div>
+    <div style="background:rgba(243,146,0,.08);border:1px solid var(--orange-border);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6;margin-top:6px;">
+      <b>Yayınlama:</b> “Kaydet ve İndir”e basınca <b>${STD_FORMUL_DOSYA}</b> dosyası iner.
+      GitHub’da <b>teknikservisorimak/tools</b> reposunda <b>Add file → Upload files</b> ile bu dosyayı yükleyip <b>Commit</b> edin
+      (eskisinin üzerine yazar). 1–2 dakika içinde herkeste geçerli olur.
+    </div>
+    <div class="modal-btns" style="flex-wrap:wrap;gap:8px;">
+      <button class="modal-btn cancel" onclick="this.closest('.modal-bg').remove()">Kapat</button>
+      <button class="modal-btn" style="background:var(--surface);color:var(--text);border:1px solid var(--border);" onclick="_stdfSekmedenAl(this)">Sekmelerdeki mevcut formülleri buraya al</button>
+      <button class="modal-btn confirm" onclick="_stdfKaydet(this)">💾 Kaydet ve İndir</button>
+    </div></div>`;
+  bg.addEventListener('click',e=>{ if(e.target===bg) bg.remove(); });
+  document.body.appendChild(bg);
+}
+function _stdfSekmedenAl(btn){
+  const bg=btn.closest('.modal-bg');
+  FEFCO_TYPES.forEach(ft=>{
+    _FKEYS.forEach(k=>{ const el=bg.querySelector(`input[data-id="${ft.id}"][data-k="${k}"]`); if(el) el.value=ft[k]||''; });
+  });
+}
+function _stdfKaydet(btn){
+  const bg=btn.closest('.modal-bg');
+  const yeni={};
+  for(const el of bg.querySelectorAll('input[data-id]')){
+    const id=el.dataset.id, k=el.dataset.k, v=el.value.trim();
+    if(!validateFormula(v)){ alert(`❌ Hatalı formül: ${(STD_FORMULLER[id]||{}).kod||id} · ${k}\n\n"${v}"`); el.focus(); return; }
+    (yeni[id]=yeni[id]||{kod:(STD_FORMULLER[id]||{}).kod, ad:(STD_FORMULLER[id]||{}).ad})[k]=v;
+  }
+  const obj={aciklama:'ORİMAK FEFCO standart formülleri — fefco.html?yonetici panelinden üretildi. Herkes için varsayılan.',
+             guncelleme:new Date().toISOString(), formuller:yeni};
+  _stdBirlestir(obj); STD_KAYNAK='dosya';
+  try{ localStorage.setItem(STD_CACHE_KEY,JSON.stringify(obj)); }catch(e){}
+  // Yöneticinin kendi tarayıcısında standarda eşit hale gelen kişisel kayıtları temizle
+  Object.keys(KISISEL_FORMULLER).forEach(id=>{ if(_fEsit(KISISEL_FORMULLER[id],STD_FORMULLER[id])) delete KISISEL_FORMULLER[id]; });
+  _kisiselYaz();
+  const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=STD_FORMUL_DOSYA;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500);
+  bg.remove();
+  formulKaynaklariniUygula(); recalcAll();
+  alert('✅ '+STD_FORMUL_DOSYA+' indirildi.\n\nŞimdi GitHub → teknikservisorimak/tools → Add file → Upload files ile bu dosyayı yükleyip Commit edin. Yükledikten 1–2 dk sonra herkes bu formülleri görür.');
+}
+
 // Piyasa karton enleri 100'ün katlarıdır (1050 gibi 50'lik enler piyasada yoktur).
 // Hesaplanan en daima bir ÜST 100 katına yuvarlanır: 1038 -> 1100, 1101 -> 1200, 1200 -> 1200.
 const PIYASA=[100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500];
@@ -1776,6 +1950,7 @@ function showTabModal(editId){
           DATA[existing.id].forEach(r=>{ if(r[v]===undefined) r[v]=VAR_DEFAULTS[v]!==undefined?VAR_DEFAULTS[v]:0; });
         }
       });
+      kisiselFormulKaydet(existing);
     }else{
       const newId='ft_'+(Date.now());
       const ft={id:newId,kod,ad,dikeyEn:de,dikeyBoy:db,yatayEn:ye,yatayBoy:yb,isOzel};
@@ -2261,7 +2436,11 @@ function renderTable(ftId){
         🔄 ${t('fb_yatay')} ${t('fb_en')}: <b style="color:#92D050">${esc(ft.yatayEn)}</b> &nbsp;|&nbsp; ${t('fb_boy')}: <b style="color:#92D050">${esc(ft.yatayBoy)}</b>
         &nbsp;&nbsp;<span style="color:var(--muted);font-size:9px;">· ${t('fb_rowvars')}: <b style="color:#f0c040">${varsDisplay}</b></span>
       </span>
-      <div style="display:flex;gap:6px;align-items:center;">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        ${kisiselVarMi(ftId)
+          ? `<span class="f-src f-src-kisi" title="Bu formülü siz değiştirdiniz. Sadece sizin tarayıcınızda geçerli; başkaları standart formülü görür.">👤 Kişisel formül · sadece bu tarayıcıda</span>
+             <button class="formula-toggle" onclick="standardaDon('${ftId}')" title="Kişisel formülü sil, standart formülü kullan">↺ Standarda dön</button>`
+          : (STD_FORMULLER[ftId]?`<span class="f-src" title="Herkes için ortak standart formül">🔒 Standart formül</span>`:'')}
         <button class="formula-toggle ${fOpen?'open':''}" onclick="toggleFormula('${ftId}')">${t('btn_formul')}</button>
         <button class="formula-toggle" onclick="showTabModal('${ftId}')" style="font-size:9px;">${t('btn_sekme_sm')}</button>
       </div>
@@ -2286,6 +2465,7 @@ function renderTable(ftId){
         <input type="text" class="formula-inp yatay-inp" id="fyb_${ftId}" value="${esc(ft.yatayBoy)}" placeholder="2*H+(B+L)/2+K+K+P">
       </div>
       <button class="formula-btn" onclick="applyFormula('${ftId}')">${t('btn_uygula')}</button>
+      ${STD_FORMULLER[ftId]?`<div class="formula-help" style="flex-basis:100%;">ℹ️ Burada yaptığınız değişiklik <b>sadece sizin tarayıcınızda</b> geçerli olur; diğer kullanıcılar standart formülü görmeye devam eder.</div>`:''}
     </div>`:''}`;
 
   c.innerHTML=`<div class="fefco-card">
@@ -2352,6 +2532,7 @@ function applyFormula(ftId){
     }
   });
 
+  kisiselFormulKaydet(ft);   // standarttan farklıysa sadece bu tarayıcıda saklanır
   recalcAll();
 }
 
@@ -3014,6 +3195,7 @@ function buildSaveObj(){
     piyasaTolerans:PIYASA_TOLERANS,
     stokEnleri:STOK_ENLERI.slice(),
     stokModu:STOK_MODU,
+    kisiselFormuller:JSON.parse(JSON.stringify(KISISEL_FORMULLER)),
     savedAt:new Date().toISOString()
   };
 }
@@ -3058,6 +3240,15 @@ function applyLoadedData(obj){
       });
     }
 
+    // JSON dosyasında kişisel formül varsa bu tarayıcıya al
+    if(obj.kisiselFormuller&&typeof obj.kisiselFormuller==='object'){
+      Object.keys(obj.kisiselFormuller).forEach(id=>{
+        const f=_fPick(obj.kisiselFormuller[id]);
+        if(STD_FORMULLER[id]&&_FKEYS.every(k=>f[k]&&validateFormula(f[k]))&&!_fEsit(f,STD_FORMULLER[id])) KISISEL_FORMULLER[id]=f;
+      });
+      _kisiselYaz();
+    }
+
     // Restore data rows
     if(obj.data){
       FEFCO_TYPES.forEach(ft=>{
@@ -3066,6 +3257,7 @@ function applyLoadedData(obj){
         }
       });
     }
+    formulKaynaklariniUygula();   // kayıttaki eski formüller standardı ezmesin (kişisel varsa o)
     // Restore stok karton enleri (varsa)
     if(Array.isArray(obj.stokEnleri)){
       STOK_ENLERI=obj.stokEnleri.filter(v=>isFinite(v)&&v>0);
@@ -3337,30 +3529,11 @@ window.addEventListener('DOMContentLoaded',()=>{
     try{saveToLocal();}catch(e){}
   })();
 
-  // --- Tek seferlik geçiş: 0410 / 0411 STANDART formülleri ---
-  // Siteyi açan herkes bu formülleri görür. Sonradan kullanıcı formülü
-  // değiştirirse bayrak yüzünden bir daha geri yazılmaz.
-  (function stdFormul0410_0411(){
-    const MIG='orimak_fefco_std_formul_v1';
-    if(localStorage.getItem(MIG)) return;
-    ['f0410','f0411'].forEach(id=>{
-      const def=DEFAULT_FEFCO_TYPES.find(f=>f.id===id);
-      const cur=FEFCO_TYPES.find(f=>f.id===id);
-      if(!def||!cur) return;
-      const oldVars=[...(cur._vars||[])];
-      cur.dikeyEn=def.dikeyEn; cur.dikeyBoy=def.dikeyBoy;
-      cur.yatayEn=def.yatayEn; cur.yatayBoy=def.yatayBoy;
-      compileFormulas(cur);
-      // Yeni değişkenler (örn. T) mevcut satırlara varsayılan değerle eklensin
-      (cur._vars||[]).forEach(v=>{
-        if(!oldVars.includes(v)&&DATA[id]){
-          DATA[id].forEach(r=>{ if(r[v]===undefined||r[v]===''||r[v]===null) r[v]=VAR_DEFAULTS[v]!==undefined?VAR_DEFAULTS[v]:0; });
-        }
-      });
-    });
-    localStorage.setItem(MIG,'1');
-    try{saveToLocal();}catch(e){}
-  })();
+  // --- Formüller: KİŞİSEL > STANDART (fefco_formuller.json) — tarayıcıdaki eski formüller standardı ezemez ---
+  formulKaynaklariniUygula();
+  if(yoneticiMi()){ const b=document.getElementById('stdFormulBtn'); if(b) b.style.display=''; }
+  // Sunucudaki en güncel standart dosyayı arka planda çek; farklıysa tabloyu yeniden hesapla
+  stdFormulleriYukle().then(ok=>{ if(ok&&formulKaynaklariniUygula()) recalcAll(); });
 
   buildDynamicDOM();
   loadStok();                   // stok karton enleri + modu (render öncesi — nearPiyasa etkilenir)
@@ -4314,7 +4487,9 @@ function kalibPredCalc(){
 // Türkçe karakterler tarayıcı fontuyla render edildiği için sorunsuzdur.
 // ============================================================
 
-function _logoSrc(){ const img=document.querySelector('.hdr-logo'); return img?img.src:''; }
+function _logoSrc(){ // rapor beyaz zeminli → açık tema (koyu yazılı) logo
+  const img=document.querySelector('.hdr-logo img.o-logo-dark')||document.querySelector('.hdr-logo img')||document.querySelector('img.hdr-logo');
+  return img?img.src:''; }
 
 function _trDate(){
   const d=new Date();
@@ -4334,7 +4509,7 @@ function _varLbl(v){ return v; }
 function _typeStats(ft){
   const vars = ft._vars || extractAllVars(ft);
   const out  = {vars, rows:[], tM2:0, tTL:0, tFireM2:0, tFireTL:0, tAdet:0,
-                islM2:0, piyM2:0, tRulo:0, tBrutM2:0, tBrutTL:0, tNetTL:0, tSigmaz:0};
+                islM2:0, piyM2:0, tRulo:0, tUzun:0, tBrutM2:0, tBrutTL:0, tNetTL:0, tSigmaz:0};
   (DATA[ft.id]||[]).forEach(r=>{
     const h=hesapla(ft,r); if(!h||!(h.en>0)) return;
     if(h.sigmaz){ out.tSigmaz++; return; }        // sığmayan satır maliyete girmez
@@ -4352,6 +4527,7 @@ function _typeStats(ft){
     out.tFireTL += h.fireTL;
     out.tAdet   += adet;
     out.tRulo   += h.rulo;
+    out.tUzun   += h.boy/1000*adet;          // adete göre toplam karton uzunluğu (m)
     // DÜZELTME: bileşenler doğrudan m² olarak alınır — artık islM2+piyM2 = tFireM2
     out.islM2   += h.islemeM2*adet;
     out.piyM2   += h.piyasaM2*adet;
@@ -4373,9 +4549,10 @@ function _piyasaUsage(types){
     (DATA[ft.id]||[]).forEach(r=>{
       const h=hesapla(ft,r); if(!h||!(h.en>0)||h.sigmaz) return;
       const p=h.piyasa;
-      if(!map[p]) map[p]={piyasa:p,olcu:0,adet:0,m2:0,brutM2:0,brutTL:0,fireM2:0,fireTL:0};
+      if(!map[p]) map[p]={piyasa:p,olcu:0,adet:0,uzun:0,m2:0,brutM2:0,brutTL:0,fireM2:0,fireTL:0};
       map[p].olcu  += 1;
       map[p].adet  += (r.adet||0);
+      map[p].uzun  += h.boy/1000*(r.adet||0);
       map[p].m2    += h.totM2;
       map[p].brutM2+= h.brutTop;
       map[p].brutTL+= h.brutTL;
@@ -4410,8 +4587,8 @@ function _docHeader(title,subtitle){
 }
 
 // KPI kutusu
-function _kpi(val,lbl,cls){
-  return '<div class="kpi"><div class="v '+(cls||'')+'">'+val+'</div><div class="l">'+esc(lbl)+'</div></div>';
+function _kpi(val,lbl,cls,tag){
+  return '<div class="kpi'+(tag?' '+tag:'')+'"><div class="v '+(cls||'')+'">'+val+'</div><div class="l">'+esc(lbl)+'</div></div>';
 }
 
 // Yazdırma penceresini açar
@@ -4452,7 +4629,10 @@ function _openReport(title, bodyHTML, landscape){
    + '.no-print .pr{background:#F5A623;color:#1a1a1a;}.no-print .cl{background:#333;color:#ccc;}'
    + '.no-print .hint{color:#888;font-size:11px;margin-left:auto;}'
    + '@media screen{body{background:#525659;}.sheet{background:#fff;max-width:'+(landscape?'1180px':'880px')+';margin:18px auto;padding:26px 30px 40px;box-shadow:0 0 24px rgba(0,0,0,.45);}.doc-footer{position:static;border:none;color:#bbb;margin-top:24px;}}'
-   + '@media print{.no-print{display:none;}.sheet{padding:0;}}';
+   + '@media print{.no-print{display:none;}.sheet{padding:0;}}'
+   // Rapor seçenekleri: fiyatsız / toplam maliyetsiz
+   + '.nofiyat .tl,.nofiyat .tltop{display:none!important;}'
+   + '.notoplam .tltop{display:none!important;}.notoplam .tlsum,.notoplam .tlsum *{color:transparent!important;}';
 
   const html = '<!DOCTYPE html><html lang="'+i18nCurrentLang()+'" dir="'+(i18nCurrentLang()==='ar'?'rtl':'ltr')+'"><head><meta charset="UTF-8"><title>'+esc(title)+'</title>'
    + ''
@@ -4460,7 +4640,7 @@ function _openReport(title, bodyHTML, landscape){
    + '<div class="no-print"><button class="pr" onclick="window.print()">'+t('p_yazdir')+'</button>'
    + '<button class="cl" onclick="window.close()">'+t('p_kapat')+'</button>'
    + '<span class="hint">'+t('p_ipucu')+'</span></div>'
-   + '<div class="sheet">'+bodyHTML+'</div>'
+   + '<div class="sheet'+(_PDF_OPT.fiyat?'':' nofiyat')+(_PDF_OPT.toplam?'':' notoplam')+'">'+bodyHTML+'</div>'
    + '<div class="doc-footer"><span>'+t('p_footer')+'</span><span>'+_trDate()+'</span></div>'
    + '<script>window.addEventListener("load",function(){setTimeout(function(){try{window.print();}catch(e){}},450);});<\/script>'
    + '</body></html>';
@@ -4487,19 +4667,20 @@ function pdfKutuDetay(ids){
     // KPI
     body+='<div class="kpi-row">'
       + _kpi(_n(st.tAdet,0),t('p_toplamadet'),'blue')
+      + _kpi(_n(st.tUzun,1)+' m',t('p_toplamuzunluk'),'blue')
       + _kpi(_n(st.tBrutM2,2)+' m²',t('p_satinalinan'),'blue')
-      + _kpi(_n(st.tBrutTL,2)+' TL',t('p_brutmaliyet'),'orange')
-      + _kpi(_n(st.tNetTL,2)+' TL',t('p_urunegiden'),'green')
+      + _kpi(_n(st.tBrutTL,2)+' TL',t('p_brutmaliyet'),'orange','tltop')
+      + _kpi(_n(st.tNetTL,2)+' TL',t('p_urunegiden'),'green','tltop')
       + _kpi(_n(st.firePct,1)+' %',t('p_fireorani'), st.firePct<=5?'green':st.firePct<=12?'orange':'red')
-      + _kpi(_n(st.tFireTL,2)+' TL',t('p_firemaliyeti'),'red')
+      + _kpi(_n(st.tFireTL,2)+' TL',t('p_firemaliyeti'),'red','tltop')
       + '</div>';
 
     // Tablo başlığı
     let head='<thead><tr><th class="l">'+t('p_kutuadi')+'</th>';
     vars.forEach(v=>head+='<th>'+esc(_varLbl(v))+'</th>');
-    head+='<th class="c">'+t('p_yon')+'</th><th>'+t('p_adet')+'</th><th>'+t('p_keni')+'</th><th>'+t('p_piyasaeni')+'</th><th>'+t('p_kboy')+'</th>'
-        +'<th>'+t('p_kalipm2ad')+'</th><th>'+t('p_kalipm2')+'</th><th>'+t('p_brtl')+'</th><th>'+t('p_brutm2')+'</th><th>'+t('p_bruttl')+'</th>'
-        +'<th>'+t('p_fireyuzde')+'</th><th>'+t('p_firem2')+'</th><th>'+t('p_firetl')+'</th><th>'+t('p_rulom')+'</th></tr></thead>';
+    head+='<th class="c">'+t('p_yon')+'</th><th>'+t('p_adet')+'</th><th>'+t('p_keni')+'</th><th>'+t('p_piyasaeni')+'</th><th>'+t('p_kboy')+'</th><th>'+t('p_topuzun')+'</th>'
+        +'<th>'+t('p_kalipm2ad')+'</th><th>'+t('p_kalipm2')+'</th><th class="tl">'+t('p_brtl')+'</th><th>'+t('p_brutm2')+'</th><th class="tl">'+t('p_bruttl')+'</th>'
+        +'<th>'+t('p_fireyuzde')+'</th><th>'+t('p_firem2')+'</th><th class="tl">'+t('p_firetl')+'</th><th>'+t('p_rulom')+'</th></tr></thead>';
 
     let rowsHtml='';
     st.rows.forEach(x=>{
@@ -4511,14 +4692,15 @@ function pdfKutuDetay(ids){
         +'<td>'+_n(h.en,0)+'</td>'
         +'<td><b>'+_n(h.piyasa,0)+'</b></td>'
         +'<td>'+_n(h.boy,0)+'</td>'
+        +'<td><b>'+_n(h.boy/1000*x.adet,1)+'</b></td>'
         +'<td>'+_n(h.m2A,4)+'</td>'
         +'<td>'+_n(h.totM2,2)+'</td>'
-        +'<td>'+_n(x.fi,2)+'</td>'
+        +'<td class="tl">'+_n(x.fi,2)+'</td>'
         +'<td><b>'+_n(h.brutTop,2)+'</b></td>'
-        +'<td><b>'+_n(h.brutTL,2)+'</b></td>'
+        +'<td class="tl"><b>'+_n(h.brutTL,2)+'</b></td>'
         +'<td><span class="fire-badge '+cls+'">'+_n(h.fireOran,2)+'%</span></td>'
         +'<td>'+_n(h.totFireM2,3)+'</td>'
-        +'<td>'+_n(h.fireTL,2)+'</td>'
+        +'<td class="tl">'+_n(h.fireTL,2)+'</td>'
         +'<td>'+_n(h.rulo,2)+'</td></tr>';
     });
 
@@ -4526,14 +4708,16 @@ function pdfKutuDetay(ids){
     let foot='<tfoot><tr><td class="l">'+t('p_toplam')+' ('+st.rows.length+' '+t('p_olcu')+')</td>'
       + '<td colspan="'+(colspanVars+1)+'"></td>'
       + '<td>'+_n(st.tAdet,0)+'</td>'
-      + '<td colspan="4"></td>'
-      + '<td>'+_n(st.tM2,2)+'</td>'
+      + '<td colspan="3"></td>'
+      + '<td><b>'+_n(st.tUzun,1)+'</b></td>'
       + '<td></td>'
+      + '<td>'+_n(st.tM2,2)+'</td>'
+      + '<td class="tl"></td>'
       + '<td><b>'+_n(st.tBrutM2,2)+'</b></td>'
-      + '<td><b>'+_n(st.tBrutTL,2)+'</b></td>'
+      + '<td class="tl tlsum"><b>'+_n(st.tBrutTL,2)+'</b></td>'
       + '<td>'+_n(st.firePct,1)+'%</td>'
       + '<td>'+_n(st.tFireM2,3)+'</td>'
-      + '<td>'+_n(st.tFireTL,2)+'</td>'
+      + '<td class="tl tlsum">'+_n(st.tFireTL,2)+'</td>'
       + '<td>'+_n(st.tRulo,2)+'</td></tr></tfoot>';
 
     body+='<table>'+head+'<tbody>'+rowsHtml+'</tbody>'+foot+'</table>';
@@ -4541,10 +4725,10 @@ function pdfKutuDetay(ids){
     // Bu tipe ait piyasa karton eni kullanımı
     const usage=_piyasaUsage([ft]);
     body+='<div class="sec-title" style="font-size:12px;margin-top:10px;">'+t('p_piyasakullanim')+' '+esc(ft.kod)+'</div>';
-    let uHead='<thead><tr><th>'+t('p_piyasaeni')+' (mm)</th><th>'+t('p_kullanilanolcu')+'</th><th>'+t('p_toplamadet')+'</th><th>'+t('p_brutm2')+'</th><th>'+t('p_bruttl')+'</th><th>'+t('p_firem2')+'</th><th>'+t('p_firetl')+'</th></tr></thead>';
+    let uHead='<thead><tr><th>'+t('p_piyasaeni')+' (mm)</th><th>'+t('p_kullanilanolcu')+'</th><th>'+t('p_toplamadet')+'</th><th>'+t('p_topuzun')+'</th><th>'+t('p_brutm2')+'</th><th class="tltop">'+t('p_bruttl')+'</th><th>'+t('p_firem2')+'</th><th class="tltop">'+t('p_firetl')+'</th></tr></thead>';
     let uRows='';
     usage.forEach(u=>{
-      uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' '+t('p_olcu')+'</td><td>'+_n(u.adet,0)+'</td><td><b>'+_n(u.brutM2,2)+'</b></td><td><b>'+_n(u.brutTL,2)+'</b></td><td>'+_n(u.fireM2,3)+'</td><td>'+_n(u.fireTL,2)+'</td></tr>';
+      uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' '+t('p_olcu')+'</td><td>'+_n(u.adet,0)+'</td><td>'+_n(u.uzun,1)+'</td><td><b>'+_n(u.brutM2,2)+'</b></td><td class="tltop"><b>'+_n(u.brutTL,2)+'</b></td><td>'+_n(u.fireM2,3)+'</td><td class="tltop">'+_n(u.fireTL,2)+'</td></tr>';
     });
     body+='<table>'+uHead+'<tbody>'+uRows+'</tbody></table>';
     body+='</div>';
@@ -4570,43 +4754,44 @@ function pdfFire(ids){
     + _kpi(_n(gBrutM2,2)+' m²',t('p_satinalinan'),'blue')
     + _kpi(_n(gFireM2,2)+' m²',t('p_toplamfire'),'red')
     + _kpi(_n(gFirePct,1)+' %',t('p_genelfireorani'), gFirePct<=5?'green':gFirePct<=12?'orange':'red')
-    + _kpi(_n(gFireTL,2)+' TL',t('p_toplamfiremaliyet'),'red')
-    + _kpi(_n(gBrutTL,2)+' TL',t('p_brutmaliyet'),'orange')
-    + _kpi(_n(gNetTL,2)+' TL',t('p_urunegiden'),'green')
+    + _kpi(_n(gFireTL,2)+' TL',t('p_toplamfiremaliyet'),'red','tltop')
+    + _kpi(_n(gBrutTL,2)+' TL',t('p_brutmaliyet'),'orange','tltop')
+    + _kpi(_n(gNetTL,2)+' TL',t('p_urunegiden'),'green','tltop')
     + '</div>';
 
   // Tip bazında fire
   body+='<div class="sec-title">'+t('p_tipbazfire')+'</div>';
-  let head='<thead><tr><th class="l">'+t('p_fefcotipi')+'</th><th class="l">'+t('p_ad')+'</th><th>'+t('p_olcu')+'</th><th>'+t('p_adet')+'</th>'
-    +'<th>'+t('p_islemefire')+'</th><th>'+t('p_piyasaenifire')+'</th><th>'+t('p_toplamfireyuzde')+'</th><th>'+t('p_firem2')+'</th><th>'+t('p_firetl')+'</th></tr></thead>';
+  let head='<thead><tr><th class="l">'+t('p_fefcotipi')+'</th><th class="l">'+t('p_ad')+'</th><th>'+t('p_olcu')+'</th><th>'+t('p_adet')+'</th><th>'+t('p_topuzun')+'</th>'
+    +'<th>'+t('p_islemefire')+'</th><th>'+t('p_piyasaenifire')+'</th><th>'+t('p_toplamfireyuzde')+'</th><th>'+t('p_firem2')+'</th><th class="tltop">'+t('p_firetl')+'</th></tr></thead>';
   let rows='';
   statList.forEach(({ft,st})=>{
     const cls=_fireCls(st.firePct);
     rows+='<tr><td class="l"><b>'+esc(ft.kod)+'</b></td><td class="l">'+esc(ft.ad)+'</td>'
       +'<td>'+_n(st.rows.length,0)+'</td>'
       +'<td>'+_n(st.tAdet,0)+'</td>'
+      +'<td>'+_n(st.tUzun,1)+'</td>'
       +'<td>'+_n(st.islPct,1)+'%</td>'
       +'<td>'+_n(st.piyPct,1)+'%</td>'
       +'<td><span class="fire-badge '+cls+'">'+_n(st.firePct,1)+'%</span></td>'
       +'<td>'+_n(st.tFireM2,3)+'</td>'
-      +'<td>'+_n(st.tFireTL,2)+'</td></tr>';
+      +'<td class="tltop">'+_n(st.tFireTL,2)+'</td></tr>';
   });
-  let foot='<tfoot><tr><td class="l" colspan="2">'+t('p_geneltoplam')+'</td><td></td><td></td><td></td><td></td>'
-    +'<td>'+_n(gFirePct,1)+'%</td><td>'+_n(gFireM2,3)+'</td><td>'+_n(gFireTL,2)+'</td></tr></tfoot>';
+  let foot='<tfoot><tr><td class="l" colspan="2">'+t('p_geneltoplam')+'</td><td></td><td></td><td><b>'+_n(statList.reduce((a,x)=>a+x.st.tUzun,0),1)+'</b></td><td></td><td></td>'
+    +'<td>'+_n(gFirePct,1)+'%</td><td>'+_n(gFireM2,3)+'</td><td class="tltop">'+_n(gFireTL,2)+'</td></tr></tfoot>';
   body+='<table>'+head+'<tbody>'+rows+'</tbody>'+foot+'</table>';
 
   // Piyasa eni bazında fire
   const usage=_piyasaUsage(types);
   body+='<div class="sec-title">'+t('p_piyasabazfire')+'</div>';
-  let uHead='<thead><tr><th>'+t('p_piyasaeni')+' (mm)</th><th>'+t('p_kullanilanolcu')+'</th><th>'+t('p_toplamadet')+'</th><th>'+t('p_brutm2')+'</th><th>'+t('p_firem2')+'</th><th>'+t('p_fireyuzde')+'</th><th>'+t('p_firemaliyettl')+'</th></tr></thead>';
-  let uRows=''; let uM2=0,uFireM2=0,uFireTL=0,uAdet=0,uOlcu=0;
+  let uHead='<thead><tr><th>'+t('p_piyasaeni')+' (mm)</th><th>'+t('p_kullanilanolcu')+'</th><th>'+t('p_toplamadet')+'</th><th>'+t('p_topuzun')+'</th><th>'+t('p_brutm2')+'</th><th>'+t('p_firem2')+'</th><th>'+t('p_fireyuzde')+'</th><th class="tltop">'+t('p_firemaliyettl')+'</th></tr></thead>';
+  let uRows=''; let uM2=0,uFireM2=0,uFireTL=0,uAdet=0,uOlcu=0,uUzun=0;
   usage.forEach(u=>{
     const p=u.brutM2>0?u.fireM2/u.brutM2*100:0;
-    uM2+=u.brutM2;uFireM2+=u.fireM2;uFireTL+=u.fireTL;uAdet+=u.adet;uOlcu+=u.olcu;
-    uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' '+t('p_olcu')+'</td><td>'+_n(u.adet,0)+'</td><td>'+_n(u.brutM2,2)+'</td><td>'+_n(u.fireM2,3)+'</td>'
-      +'<td><span class="fire-badge '+_fireCls(p)+'">'+_n(p,1)+'%</span></td><td>'+_n(u.fireTL,2)+'</td></tr>';
+    uM2+=u.brutM2;uFireM2+=u.fireM2;uFireTL+=u.fireTL;uAdet+=u.adet;uOlcu+=u.olcu;uUzun+=u.uzun;
+    uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' '+t('p_olcu')+'</td><td>'+_n(u.adet,0)+'</td><td>'+_n(u.uzun,1)+'</td><td>'+_n(u.brutM2,2)+'</td><td>'+_n(u.fireM2,3)+'</td>'
+      +'<td><span class="fire-badge '+_fireCls(p)+'">'+_n(p,1)+'%</span></td><td class="tltop">'+_n(u.fireTL,2)+'</td></tr>';
   });
-  let uFoot='<tfoot><tr><td>'+t('p_toplam')+'</td><td>'+_n(uOlcu,0)+' '+t('p_olcu')+'</td><td>'+_n(uAdet,0)+'</td><td>'+_n(uM2,2)+'</td><td>'+_n(uFireM2,3)+'</td><td>'+_n(uM2>0?uFireM2/uM2*100:0,1)+'%</td><td>'+_n(uFireTL,2)+'</td></tr></tfoot>';
+  let uFoot='<tfoot><tr><td>'+t('p_toplam')+'</td><td>'+_n(uOlcu,0)+' '+t('p_olcu')+'</td><td>'+_n(uAdet,0)+'</td><td>'+_n(uUzun,1)+'</td><td>'+_n(uM2,2)+'</td><td>'+_n(uFireM2,3)+'</td><td>'+_n(uM2>0?uFireM2/uM2*100:0,1)+'%</td><td class="tltop">'+_n(uFireTL,2)+'</td></tr></tfoot>';
   body+='<table>'+uHead+'<tbody>'+uRows+'</tbody>'+uFoot+'</table>';
 
   body+='<p class="note">'+t('p_firenote')+'</p>';
@@ -4619,11 +4804,11 @@ function pdfKurumsal(ids){
   const types=_typesWithData(ids);
   if(!types.length){ alert(t('p_onceolcu')); return; }
 
-  let gM2=0,gBrutM2=0,gBrutTL=0,gNetTL=0,gRulo=0,gFireM2=0,gFireTL=0,gAdet=0,gSigmaz=0;
+  let gM2=0,gBrutM2=0,gBrutTL=0,gNetTL=0,gRulo=0,gFireM2=0,gFireTL=0,gAdet=0,gSigmaz=0,gUzun=0;
   const statList=types.map(ft=>{
     const st=_typeStats(ft);
     gM2+=st.tM2;gBrutM2+=st.tBrutM2;gBrutTL+=st.tBrutTL;gNetTL+=st.tNetTL;
-    gRulo+=st.tRulo;gFireM2+=st.tFireM2;gFireTL+=st.tFireTL;gAdet+=st.tAdet;gSigmaz+=st.tSigmaz;
+    gRulo+=st.tRulo;gFireM2+=st.tFireM2;gFireTL+=st.tFireTL;gAdet+=st.tAdet;gSigmaz+=st.tSigmaz;gUzun+=st.tUzun;
     return {ft,st};
   });
   const gFirePct=gBrutM2>0?gFireM2/gBrutM2*100:0;
@@ -4633,47 +4818,49 @@ function pdfKurumsal(ids){
   body+='<div class="kpi-row">'
     + _kpi(_n(gAdet,0),t('p_toplamadet'),'blue')
     + _kpi(_n(gBrutM2,2)+' m²',t('p_satinalinan'),'blue')
-    + _kpi(_n(gBrutTL,2)+' TL',t('p_brutmaliyet'),'orange')
+    + _kpi(_n(gBrutTL,2)+' TL',t('p_brutmaliyet'),'orange','tltop')
+    + _kpi(_n(gUzun,1)+' m',t('p_toplamuzunluk'),'blue')
     + _kpi(_n(gRulo,1)+' m',t('p_toplamrulo'),'blue')
     + '</div>';
   body+='<div class="kpi-row">'
-    + _kpi(_n(gNetTL,2)+' TL',t('p_urunegiden'),'green')
+    + _kpi(_n(gNetTL,2)+' TL',t('p_urunegiden'),'green','tltop')
     + _kpi(_n(gFireM2,2)+' m²',t('p_toplamfire'),'red')
-    + _kpi(_n(gFireTL,2)+' TL',t('p_toplamfiremaliyet'),'red')
+    + _kpi(_n(gFireTL,2)+' TL',t('p_toplamfiremaliyet'),'red','tltop')
     + _kpi(_n(gFirePct,1)+' %',t('p_genelfireorani'), gFirePct<=5?'green':gFirePct<=12?'orange':'red')
     + '</div>';
 
   // Kutu tipi bazında özet
   body+='<div class="sec-title">'+t('p_tipbazozet')+'</div>';
-  let head='<thead><tr><th class="l">'+t('p_fefcotipi')+'</th><th class="l">'+t('p_ad')+'</th><th>'+t('p_adet')+'</th><th>'+t('p_brutm2')+'</th>'
-    +'<th>'+t('p_brutmaliyettl')+'</th><th>'+t('p_fireyuzde')+'</th><th>'+t('p_firem2')+'</th><th>'+t('p_firetl')+'</th><th>'+t('p_rulom')+'</th></tr></thead>';
+  let head='<thead><tr><th class="l">'+t('p_fefcotipi')+'</th><th class="l">'+t('p_ad')+'</th><th>'+t('p_adet')+'</th><th>'+t('p_topuzun')+'</th><th>'+t('p_brutm2')+'</th>'
+    +'<th class="tltop">'+t('p_brutmaliyettl')+'</th><th>'+t('p_fireyuzde')+'</th><th>'+t('p_firem2')+'</th><th class="tltop">'+t('p_firetl')+'</th><th>'+t('p_rulom')+'</th></tr></thead>';
   let rows='';
   statList.forEach(({ft,st})=>{
     rows+='<tr><td class="l"><b>'+esc(ft.kod)+'</b></td><td class="l">'+esc(ft.ad)+'</td>'
       +'<td>'+_n(st.tAdet,0)+'</td>'
+      +'<td>'+_n(st.tUzun,1)+'</td>'
       +'<td>'+_n(st.tBrutM2,2)+'</td>'
-      +'<td>'+_n(st.tBrutTL,2)+'</td>'
+      +'<td class="tltop">'+_n(st.tBrutTL,2)+'</td>'
       +'<td><span class="fire-badge '+_fireCls(st.firePct)+'">'+_n(st.firePct,1)+'%</span></td>'
       +'<td>'+_n(st.tFireM2,3)+'</td>'
-      +'<td>'+_n(st.tFireTL,2)+'</td>'
+      +'<td class="tltop">'+_n(st.tFireTL,2)+'</td>'
       +'<td>'+_n(st.tRulo,1)+'</td></tr>';
   });
   let foot='<tfoot><tr><td class="l" colspan="2">'+t('p_geneltoplam')+'</td>'
-    +'<td>'+_n(gAdet,0)+'</td><td>'+_n(gBrutM2,2)+'</td><td>'+_n(gBrutTL,2)+'</td>'
-    +'<td>'+_n(gFirePct,1)+'%</td><td>'+_n(gFireM2,3)+'</td><td>'+_n(gFireTL,2)+'</td><td>'+_n(gRulo,1)+'</td></tr></tfoot>';
+    +'<td>'+_n(gAdet,0)+'</td><td>'+_n(gUzun,1)+'</td><td>'+_n(gBrutM2,2)+'</td><td class="tltop">'+_n(gBrutTL,2)+'</td>'
+    +'<td>'+_n(gFirePct,1)+'%</td><td>'+_n(gFireM2,3)+'</td><td class="tltop">'+_n(gFireTL,2)+'</td><td>'+_n(gRulo,1)+'</td></tr></tfoot>';
   body+='<table>'+head+'<tbody>'+rows+'</tbody>'+foot+'</table>';
 
   // Piyasa karton eni kullanım dağılımı
   const usage=_piyasaUsage(types);
   body+='<div class="sec-title">'+t('p_piyasakullanimdagilim')+'</div>';
   body+='<div class="formula" style="margin-left:0;">'+t('p_kullanimaciklama')+'</div>';
-  let uHead='<thead><tr><th>'+t('p_piyasaeni')+' (mm)</th><th>'+t('p_kullanilanolcusayisi')+'</th><th>'+t('p_toplamadet')+'</th><th>'+t('p_brutm2satin')+'</th><th>'+t('p_firem2')+'</th><th>'+t('p_tahminifiremaliyet')+'</th></tr></thead>';
-  let uRows=''; let uM2=0,uFireM2=0,uFireTL=0,uAdet=0,uOlcu=0;
+  let uHead='<thead><tr><th>'+t('p_piyasaeni')+' (mm)</th><th>'+t('p_kullanilanolcusayisi')+'</th><th>'+t('p_toplamadet')+'</th><th>'+t('p_topuzun')+'</th><th>'+t('p_brutm2satin')+'</th><th>'+t('p_firem2')+'</th><th class="tltop">'+t('p_tahminifiremaliyet')+'</th></tr></thead>';
+  let uRows=''; let uM2=0,uFireM2=0,uFireTL=0,uAdet=0,uOlcu=0,uUzun=0;
   usage.forEach(u=>{
-    uM2+=u.brutM2;uFireM2+=u.fireM2;uFireTL+=u.fireTL;uAdet+=u.adet;uOlcu+=u.olcu;
-    uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' '+t('p_olcu')+'</td><td>'+_n(u.adet,0)+'</td><td>'+_n(u.brutM2,2)+'</td><td>'+_n(u.fireM2,3)+'</td><td>'+_n(u.fireTL,2)+'</td></tr>';
+    uM2+=u.brutM2;uFireM2+=u.fireM2;uFireTL+=u.fireTL;uAdet+=u.adet;uOlcu+=u.olcu;uUzun+=u.uzun;
+    uRows+='<tr><td><b>'+_n(u.piyasa,0)+'</b></td><td>'+_n(u.olcu,0)+' '+t('p_olcu')+'</td><td>'+_n(u.adet,0)+'</td><td>'+_n(u.uzun,1)+'</td><td>'+_n(u.brutM2,2)+'</td><td>'+_n(u.fireM2,3)+'</td><td class="tltop">'+_n(u.fireTL,2)+'</td></tr>';
   });
-  let uFoot='<tfoot><tr><td>'+t('p_toplam')+'</td><td>'+_n(uOlcu,0)+' '+t('p_olcu')+'</td><td>'+_n(uAdet,0)+'</td><td>'+_n(uM2,2)+'</td><td>'+_n(uFireM2,3)+'</td><td>'+_n(uFireTL,2)+'</td></tr></tfoot>';
+  let uFoot='<tfoot><tr><td>'+t('p_toplam')+'</td><td>'+_n(uOlcu,0)+' '+t('p_olcu')+'</td><td>'+_n(uAdet,0)+'</td><td>'+_n(uUzun,1)+'</td><td>'+_n(uM2,2)+'</td><td>'+_n(uFireM2,3)+'</td><td class="tltop">'+_n(uFireTL,2)+'</td></tr></tfoot>';
   body+='<table>'+uHead+'<tbody>'+uRows+'</tbody>'+uFoot+'</table>';
 
   body+='<p class="note">'+t('p_kurumsalnote')
@@ -4703,17 +4890,19 @@ function pdfPiyasa(ids){
   let body=_docHeader(t('p_t_piyasa'), _withScope(subt,ids));
 
   // KPI
-  let gKutu=0,gBrutM2=0,gBrutTL=0,gSig=0,shownW=0;
+  let gKutu=0,gBrutM2=0,gBrutTL=0,gSig=0,shownW=0,gAdet=0,gUzun=0;
   widths.forEach(w=>{
     if(filtered && String(w)!==String(_piyasaFilter)) return;
     shownW++;
-    groups[w].forEach(it=>{ gKutu++; if(it.h.sigmaz){gSig++;} else {gBrutM2+=it.h.brutTop; gBrutTL+=it.h.brutTL;} });
+    groups[w].forEach(it=>{ gKutu++; gAdet+=(it.r.adet||0); gUzun+=it.h.boy/1000*(it.r.adet||0); if(it.h.sigmaz){gSig++;} else {gBrutM2+=it.h.brutTop; gBrutTL+=it.h.brutTL;} });
   });
   body+='<div class="kpi-row">'
     + _kpi(_n(gKutu,0),t('p_toplamkutu'),'blue')
     + _kpi(_n(shownW,0),t('p_farklipiyasa'),'blue')
+    + _kpi(_n(gAdet,0),t('p_toplamadet'),'blue')
+    + _kpi(_n(gUzun,1)+' m',t('p_toplamuzunluk'),'blue')
     + _kpi(_n(gBrutM2,2)+' m²',t('p_satinalinan'),'orange')
-    + _kpi(_n(gBrutTL,2)+' TL',t('p_brutmaliyet'),'orange')
+    + _kpi(_n(gBrutTL,2)+' TL',t('p_brutmaliyet'),'orange','tltop')
     + (gSig?_kpi(_n(gSig,0),t('p_stogasigmayan'),'red'):'')
     + '</div>';
 
@@ -4721,18 +4910,18 @@ function pdfPiyasa(ids){
   let head='<thead><tr>'
     + '<th>'+t('p_piyasaeni')+' (mm)</th><th>'+t('p_hesaplanani')+'</th><th>'+t('p_toplameni')+'</th>'
     + '<th class="l">FEFCO</th><th class="l">'+t('p_kutuadi')+'</th><th class="c">'+t('p_kesimyonu')+'</th>'
-    + '<th>'+t('p_kartonboyu')+'</th><th class="l">'+t('p_notlar')+'</th></tr></thead>';
+    + '<th>'+t('p_kartonboyu')+'</th><th>'+t('p_adet')+'</th><th>'+t('p_topuzun')+'</th><th class="l">'+t('p_notlar')+'</th></tr></thead>';
   let rows='';
   widths.forEach(w=>{
     if(filtered && String(w)!==String(_piyasaFilter)) return;
     const list=groups[w];
-    let tBrut=0,tBrutTL=0;
-    list.forEach(it=>{ if(!it.h.sigmaz){ tBrut+=it.h.brutTop; tBrutTL+=it.h.brutTL; } });
+    let tBrut=0,tBrutTL=0,tAdetG=0,tUzunG=0;
+    list.forEach(it=>{ tAdetG+=(it.r.adet||0); tUzunG+=it.h.boy/1000*(it.r.adet||0); if(!it.h.sigmaz){ tBrut+=it.h.brutTop; tBrutTL+=it.h.brutTL; } });
     const lbl = w>0 ? (_n(w,0)+' mm '+((STOK_MODU&&STOK_ENLERI.length)?t('p_stok'):t('p_piyasa'))+' '+t('p_eni')) : t('p_stogasigmayankutular');
-    rows+='<tr><td colspan="8" style="text-align:left;font-weight:800;font-family:\'Barlow Condensed\',Arial,sans-serif;letter-spacing:.4px;padding:5px 8px;'
+    rows+='<tr><td colspan="10" style="text-align:left;font-weight:800;font-family:\'Barlow Condensed\',Arial,sans-serif;letter-spacing:.4px;padding:5px 8px;'
       + 'background:'+(w>0?'#fbf2df':'#fde9e9')+';color:'+(w>0?'#b06f00':'#c00000')+';border-left:4px solid '+(w>0?'#F5A623':'#c00000')+';">'
-      + '📦 '+esc(lbl)+' &nbsp;·&nbsp; '+list.length+' '+t('p_kutu')
-      + (w>0?' &nbsp;·&nbsp; '+t('p_satinalinankisa')+' '+_n(tBrut,2)+' m² · '+_n(tBrutTL,2)+' TL':' &nbsp;·&nbsp; '+t('p_maliyetedahildegil'))
+      + '📦 '+esc(lbl)+' &nbsp;·&nbsp; '+list.length+' '+t('p_kutu')+' &nbsp;·&nbsp; '+_n(tAdetG,0)+' '+t('p_adet')+' &nbsp;·&nbsp; '+_n(tUzunG,1)+' m'
+      + (w>0?' &nbsp;·&nbsp; '+t('p_satinalinankisa')+' '+_n(tBrut,2)+' m²<span class="tltop"> · '+_n(tBrutTL,2)+' TL</span>':' &nbsp;·&nbsp; '+t('p_maliyetedahildegil'))
       + '</td></tr>';
     list.forEach(({ft,r,h})=>{
       rows+='<tr>'
@@ -4743,6 +4932,8 @@ function pdfPiyasa(ids){
         + '<td class="l">'+(esc(r.ad)||'—')+'</td>'
         + '<td class="c">'+esc(yonLabel(r.yon||''))+'</td>'
         + '<td>'+_n(h.boy,0)+'</td>'
+        + '<td>'+_n(r.adet||0,0)+'</td>'
+        + '<td><b>'+_n(h.boy/1000*(r.adet||0),1)+'</b></td>'
         + '<td class="l">'+esc(r.notlar||'')+'</td>'
       + '</tr>';
     });
@@ -4757,6 +4948,10 @@ function pdfPiyasa(ids){
 }
 
 // ---------- PDF MENÜSÜ ----------
+// Rapor seçenekleri (tarayıcıda hatırlanır): fiyat=false → tüm TL değerleri gizli; toplam=false → toplam maliyetler gizli
+const PDF_OPT_KEY='orimak_fefco_pdfopt';
+let _PDF_OPT={fiyat:true,toplam:true};
+try{ const o=JSON.parse(localStorage.getItem(PDF_OPT_KEY)||'null'); if(o) _PDF_OPT={fiyat:o.fiyat!==false,toplam:o.toplam!==false}; }catch(e){}
 function openPdfMenu(preIds){
   const withData=_typesWithData();
   if(!withData.length){ alert(t('p_onceolcu')); return; }
@@ -4783,6 +4978,11 @@ function openPdfMenu(preIds){
     + '<button type="button" onclick="_pdfScopeAll(this,true)">'+t('pm_tumu')+'</button>'
     + '<button type="button" onclick="_pdfScopeAll(this,false)">'+t('pm_hicbiri')+'</button></div>'
     + '<div class="pdf-scope-list">'+items+'</div></div>'
+    + '<div class="pdf-scope"><div class="pdf-scope-head">'+t('pm_secenek')+'</div>'
+    + '<div class="pdf-scope-list">'
+    + '<label class="pdf-scope-item"><input type="checkbox" class="pdf-opt-toplam"'+(_PDF_OPT.toplam?'':' checked')+'><span>'+t('pm_toplamgizle')+'</span></label>'
+    + '<label class="pdf-scope-item"><input type="checkbox" class="pdf-opt-fiyat"'+(_PDF_OPT.fiyat?'':' checked')+'><span>'+t('pm_fiyatgizle')+'</span></label>'
+    + '</div></div>'
     + '<div style="display:flex;flex-direction:column;gap:10px;">'
     + '<button class="save-btn pdf-opt" onclick="_pdfMenuRun(this,\'pdfKutuDetay\')">'+t('pm_kutudetay')
     + '<span>'+t('pm_kutudetay_sub')+'</span></button>'
@@ -4805,6 +5005,9 @@ function _pdfMenuRun(btn,fn){
   const bg=btn.closest('.modal-bg');
   const ids=[...bg.querySelectorAll('.pdf-scope-cb:checked')].map(c=>c.value);
   if(!ids.length){ alert(t('pm_secimyok')); return; }
+  const ct=bg.querySelector('.pdf-opt-toplam'), cf=bg.querySelector('.pdf-opt-fiyat');
+  _PDF_OPT={toplam:!(ct&&ct.checked), fiyat:!(cf&&cf.checked)};
+  try{ localStorage.setItem(PDF_OPT_KEY,JSON.stringify(_PDF_OPT)); }catch(e){}
   bg.remove();
   const f={pdfKutuDetay,pdfFire,pdfKurumsal,pdfPiyasa}[fn];
   if(f) f(ids);
@@ -4884,6 +5087,11 @@ const I18N_DEFAULTS = {
     p_firem2:              'Fire m²',
     p_firetl:              'Fire TL',
     p_rulom:               'Rulo m',
+    p_topuzun:             'Toplam Uzunluk (m)',
+    p_toplamuzunluk:       'Toplam Uzunluk (adet × boy)',
+    pm_secenek:            'Rapor seçenekleri',
+    pm_toplamgizle:        'Toplam maliyeti gösterme',
+    pm_fiyatgizle:         'Fiyatları gösterme (tüm TL değerleri gizlenir)',
     p_formul:              'Formül (En × Boy):',
     p_toplam:              'TOPLAM',
     p_olcu:                'ölçü',
@@ -5156,6 +5364,11 @@ const I18N_DEFAULTS = {
     p_firem2:              'Waste m²',
     p_firetl:              'Waste TL',
     p_rulom:               'Roll m',
+    p_topuzun:             'Total Length (m)',
+    p_toplamuzunluk:       'Total Length (qty × length)',
+    pm_secenek:            'Report options',
+    pm_toplamgizle:        'Hide total cost',
+    pm_fiyatgizle:         'Hide prices (all TL values hidden)',
     p_formul:              'Formula (Width × Length):',
     p_toplam:              'TOTAL',
     p_olcu:                'entries',
