@@ -1586,15 +1586,30 @@ const DATA={};
 
 // Sekmenin birim fiyatını döner (price-row inputundan)
 const DEFAULT_FIYAT=5.5;
+// Klavyeden girilen sayıyı okur: "7,25" ve "7.25" ikisi de 7.25 olur. Boşsa NaN.
+function numIn(v){
+  if(typeof v==='number') return v;
+  v=String(v==null?'':v).trim().replace(/\s/g,'');
+  if(v==='') return NaN;
+  if(v.indexOf(',')>=0){ v=v.replace(/\./g,'').replace(',','.'); }   // 1.250,50 -> 1250.50
+  return parseFloat(v);
+}
+// Adet: sadece rakamlar ("5.000" -> 5000). Boşsa 0.
+function adetIn(v){ const d=String(v==null?'':v).replace(/[^0-9]/g,''); return d===''?0:parseInt(d,10); }
+// Satırın birim fiyatı — 0 da geçerli bir değerdir (maliyet hesaplanmasın diye).
+function rowFi(ftId,r){
+  const v=r?numIn(r.fiyat):NaN;
+  return isFinite(v)?v:gF(ftId);
+}
 function gF(ftId){
   if(ftId){
     const el=document.getElementById('fp_'+ftId);
-    if(el) return parseFloat(el.value)||DEFAULT_FIYAT;
+    if(el){ const v=numIn(el.value); return isFinite(v)?v:DEFAULT_FIYAT; }
     // Henüz render edilmemişse DATA içindeki ilk dolu fiyata bak
     const rows=DATA[ftId];
     if(rows&&rows.length){
-      const f=rows.find(r=>r.fiyat&&r.fiyat>0);
-      if(f) return f.fiyat;
+      const f=rows.find(r=>isFinite(numIn(r.fiyat)));
+      if(f) return numIn(f.fiyat);
     }
   }
   return DEFAULT_FIYAT;
@@ -1898,7 +1913,7 @@ function hesapla(ft,r){
   const totFire=islemeM2+piyasaM2;               // m²/adet
   const netUrunM2=Math.max(0,brutM2A-totFire);   // ürüne fiilen giren malzeme
 
-  const adet=r.adet||0,fi=parseFloat(r.fiyat)||gF(ft.id);
+  const adet=r.adet||0,fi=rowFi(ft.id,r);
   const totM2=m2A*adet;                          // kalıp alanı toplamı
   const brutTop=brutM2A*adet;                    // SATIN ALINAN toplam
   const totFireM2=totFire*adet;
@@ -2071,7 +2086,7 @@ function rowInner(ftId,i){
   const isOzel=ft.isOzel;
   const h=hesapla(ft,row);
   const cc=calcCellsHtml(h);
-  const fi=parseFloat(row.fiyat)||gF(ftId);
+  const fi=rowFi(ftId,row);
   const fiyatManuel=row._fiyatManuel||false;
   const P=ftId+'_'+i;
 
@@ -2094,12 +2109,12 @@ ${varCells}
 <td id="cPi_${P}">${cc.pi}</td>
 <td id="cBoy_${P}">${cc.boy}</td>
 <td id="cM2_${P}">${cc.m2}</td>
-<td><input type="number" value="${row.adet||''}" placeholder="${esc(t('ph_adet'))}" min="0"
-  onchange="editCell('${ftId}',${i},'adet',+this.value)"></td>
+<td><input type="text" inputmode="numeric" autocomplete="off" value="${row.adet||''}" placeholder="${esc(t('ph_adet'))}"
+  oninput="editCell('${ftId}',${i},'adet',adetIn(this.value))" onchange="editCell('${ftId}',${i},'adet',adetIn(this.value))"></td>
 <td id="cTM2_${P}">${cc.tm2}</td>
-<td><input type="number" id="pPrice_${P}" class="row-price${fiyatManuel?' row-price-manual':''}" value="${fi}" step="0.1" min="0"
+<td><input type="text" inputmode="decimal" autocomplete="off" id="pPrice_${P}" class="row-price${fiyatManuel?' row-price-manual':''}" value="${fi}"
   title="${fiyatManuel?'Manuel fiyat — sekme fiyatından etkilenmez':'Sekme varsayılan fiyatı'}"
-  onchange="editPrice('${ftId}',${i},+this.value)"></td>
+  oninput="editPrice('${ftId}',${i},this.value,true)" onchange="editPrice('${ftId}',${i},this.value)"></td>
 <td id="cTL_${P}">${cc.tl}</td>
 <td class="brut-col" id="cBM2_${P}">${cc.brutm2}</td>
 <td class="brut-col" id="cBTL_${P}">${cc.bruttl}</td>
@@ -2138,9 +2153,11 @@ function editCell(ftId,i,k,v){
   refreshRow(ftId,i);
   scheduleSummary();
 }
-function editPrice(ftId,i,v){
+function editPrice(ftId,i,v,live){
   const r=DATA[ftId]&&DATA[ftId][i]; if(!r)return;
-  r.fiyat=v; r._fiyatManuel=true;
+  let n=numIn(v);
+  if(!isFinite(n)){ if(live) return; n=0; }        // yazarken boşsa bekle; bırakınca boş = 0
+  r.fiyat=n; r._fiyatManuel=true;
   const inp=document.getElementById('pPrice_'+ftId+'_'+i);
   if(inp){inp.classList.add('row-price-manual');inp.title='Manuel fiyat — sekme fiyatından etkilenmez';}
   refreshRow(ftId,i);
@@ -2281,8 +2298,8 @@ function renderTable(ftId){
   ${formulaHtml}
   <div class="price-row">
     <label>${t('price_lbl')}</label>
-    <input type="number" class="price-inp" id="fp_${ftId}" value="${gF(ftId)}" step="0.1" min="0"
-      onchange="setDefaultFiyat('${ftId}',+this.value);renderTable('${ftId}');scheduleSummary()">
+    <input type="text" inputmode="decimal" autocomplete="off" class="price-inp" id="fp_${ftId}" value="${gF(ftId)}"
+      onchange="setDefaultFiyat('${ftId}',this.value);renderTable('${ftId}');scheduleSummary()">
     <span class="price-hint">${t('price_hint')}</span>
   </div>
   ${pfBar}
@@ -2346,6 +2363,8 @@ function addRow(ftId){
 function delRow(ftId,i){DATA[ftId].splice(i,1);renderTable(ftId);scheduleSummary();}
 function setV(ftId,i,k,v){DATA[ftId][i][k]=v;}
 function setDefaultFiyat(ftId,v){
+  v=numIn(v); if(!isFinite(v)) v=0;
+  const el=document.getElementById('fp_'+ftId); if(el) el.value=v;
   // Sadece manuel değiştirilmemiş satırları güncelle
   DATA[ftId].forEach(r=>{ if(!r._fiyatManuel) r.fiyat=v; });
 }
@@ -2493,7 +2512,7 @@ function stokOzetHesap(){
       satir++;
       const n=Math.max(1,parseFloat(r.adet)||0);
       if(h.sigmaz){sigmazSay++;return;}
-      const fi=parseFloat(r.fiyat)||gF(ft.id);
+      const fi=rowFi(ft.id,r);
       fireM2 +=h.fireM2A*n;
       brutM2 +=h.brutM2A*n;
       kalipM2+=h.m2A*n;
@@ -2660,7 +2679,7 @@ function updateFire(){
       const h=hesapla(ft,r);
       if(!h)return;
       const adet=Math.max(1,parseFloat(r.adet)||0);
-      const fi=parseFloat(r.fiyat)||gF(ft.id);
+      const fi=rowFi(ft.id,r);
       sumFireM2   += h.fireM2A  * adet;
       sumFireTL   += h.fireM2A  * adet * fi;
       sumIslemeM2 += h.islemeM2 * adet;
@@ -3786,7 +3805,7 @@ function exportExcel(){
       const rows=[header];
       (DATA[ft.id]||[]).forEach(r=>{
         const h=hesapla(ft,r);
-        const fi=parseFloat(r.fiyat)||gF(ft.id);
+        const fi=rowFi(ft.id,r);
         const varVals=vars.map(v=>{
           const def=VAR_DEFAULTS[v]!==undefined?VAR_DEFAULTS[v]:0;
           const val=r[v];
@@ -3929,8 +3948,7 @@ function importExcel(){
             if(ciYon>=0)  r.yon=parseYon(row[ciYon]);
             if(ciAdet>=0) r.adet=parseFloat(row[ciAdet])||0;
             if(ciFiyat>=0 && row[ciFiyat]!==''){
-              r.fiyat=parseFloat(row[ciFiyat])||gF(ft.id);
-              r._fiyatManuel=!!(parseFloat(row[ciFiyat]));
+              { const fv=numIn(row[ciFiyat]); r.fiyat=isFinite(fv)?fv:gF(ft.id); r._fiyatManuel=isFinite(fv); }
             }
             if(ciNot>=0)  r.notlar=String(row[ciNot]||'');
 
@@ -4167,7 +4185,7 @@ function convBuildRows(map){
       if(map.yon!==undefined)    row.yon=parseYon(r[map.yon]);
       if(map.adet!==undefined)   row.adet=parseFloat(r[map.adet])||0;
       if(map.fiyat!==undefined && r[map.fiyat]!==''){
-        row.fiyat=parseFloat(r[map.fiyat])||gF(ft?ft.id:null);
+        { const fv=numIn(r[map.fiyat]); row.fiyat=isFinite(fv)?fv:gF(ft?ft.id:null); }
         row._fiyatManuel=true;
       }
       if(map.notlar!==undefined) row.notlar=String(r[map.notlar]||'');
@@ -4230,7 +4248,7 @@ function convDoExcel(){
       ...vars.map(v=>r[v]!==undefined?r[v]:''),
       r.yon||'DİKEY',
       r.adet||0,
-      r.fiyat||'',
+      (r.fiyat===undefined||r.fiyat===null)?'':r.fiyat,
       r.notlar||''
     ]);
     const ws=XLSX.utils.aoa_to_sheet([header,...dataRows]);
@@ -4320,7 +4338,7 @@ function _typeStats(ft){
   (DATA[ft.id]||[]).forEach(r=>{
     const h=hesapla(ft,r); if(!h||!(h.en>0)) return;
     if(h.sigmaz){ out.tSigmaz++; return; }        // sığmayan satır maliyete girmez
-    const fi=parseFloat(r.fiyat)||gF(ft.id);
+    const fi=rowFi(ft.id,r);
     const adet=r.adet||0;
     const varVals=vars.map(v=>{
       const def=VAR_DEFAULTS[v]!==undefined?VAR_DEFAULTS[v]:0;
