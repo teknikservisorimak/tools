@@ -1,30 +1,30 @@
 {
   "aciklama": "ORİMAK FEFCO standart formülleri — fefco.html?yonetici panelinden üretildi. Herkes için varsayılan.",
-  "guncelleme": "2026-10-13T17:00:30.849Z",
+  "guncelleme": "2026-10-13T17:20:50.183Z",
   "formuller": {
     "f0201": {
       "kod": "FEFCO 0201",
       "ad": "Standart Koli (RSC)",
-      "dikeyEn": "2*L+2*B+K+K+P",
-      "dikeyBoy": "2*H+(L+B)/2+K+K+P",
-      "yatayEn": "2*B+2*L+K+K+P",
-      "yatayBoy": "2*H+(B+L)/2+K+K+P"
+      "dikeyEn": "B+H+3*T",
+      "dikeyBoy": "2*B+2*L+3*T+K1",
+      "yatayEn": "2*B+2*L+3*T+K1",
+      "yatayBoy": "B+H+3*T"
     },
     "f0202": {
       "kod": "FEFCO 0202",
       "ad": "Bindirmeli Kapaklı Koli",
-      "dikeyEn": "2*L+2*B+K+K+P",
-      "dikeyBoy": "2*H+(3*B)/2+K+K+P",
-      "yatayEn": "2*B+2*L+K+K+P",
-      "yatayBoy": "2*H+(3*L)/2+K+K+P"
+      "dikeyEn": "B/2+B+H+3*T+K2",
+      "dikeyBoy": "2*B+2*L+K1+3*T",
+      "yatayEn": "2*B+2*L+K1+3*T",
+      "yatayBoy": "B/2+B+H+3*T+K2"
     },
     "f0203": {
       "kod": "FEFCO 0203",
       "ad": "Tam Kapaklı Koli",
-      "dikeyEn": "2*L+2*B+K+K+P",
-      "dikeyBoy": "2*H+L+K+K+P",
-      "yatayEn": "2*B+2*L+K+K+P",
-      "yatayBoy": "2*H+B+K+K+P"
+      "dikeyEn": "2*B+H+3*T",
+      "dikeyBoy": "2*B+2*L+K1+3*T",
+      "yatayEn": "2*B+2*L+K1+3*T",
+      "yatayBoy": "2*B+H+3*T"
     },
     "f0204": {
       "kod": "FEFCO 0204",
@@ -61,26 +61,26 @@
     "f0300": {
       "kod": "FEFCO 0300",
       "ad": "Teleskopik Gövde",
-      "dikeyEn": "2*L+2*B+K+K+P",
-      "dikeyBoy": "H+T+K+K+P",
-      "yatayEn": "2*B+2*L+K+K+P",
-      "yatayBoy": "H+T+K+K+P"
+      "dikeyEn": "2*H+B+3*T",
+      "dikeyBoy": "2*H+L+2*T",
+      "yatayEn": "2*H+L+2*T",
+      "yatayBoy": "2*H+B+3*T"
     },
     "f0301": {
       "kod": "FEFCO 0301",
       "ad": "Teleskopik Tava",
-      "dikeyEn": "2*L+2*B+K+K+P",
-      "dikeyBoy": "H+K+K+P",
-      "yatayEn": "2*B+2*L+K+K+P",
-      "yatayBoy": "H+K+K+P"
+      "dikeyEn": "2*H+B+2*T",
+      "dikeyBoy": "2*H+L+3*T",
+      "yatayEn": "2*H+L+3*T",
+      "yatayBoy": "2*H+B+2*T"
     },
     "ozel": {
       "kod": "ÖZEL",
       "ad": "Özel Kutu (Kullanıcı Tanımlı)",
-      "dikeyEn": "2*L+2*B+K+K+P",
-      "dikeyBoy": "2*H+(L+B)/2+K+K+P",
-      "yatayEn": "2*B+2*L+K+K+P",
-      "yatayBoy": "2*H+(B+L)/2+K+K+P"
+      "dikeyEn": "2*H+B+6*T",
+      "dikeyBoy": "3*H+2*L+5*T",
+      "yatayEn": "3*H+2*L+5*T",
+      "yatayBoy": "2*H+B+6*T"
     }
   }
 }
