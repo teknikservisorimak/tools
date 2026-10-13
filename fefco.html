@@ -1039,6 +1039,112 @@ html #orkGuide .ork-steps>li,html #orkGuide .ork-card{background:var(--o-panel2)
 .hdr-right .stat-pill{padding:4px 12px!important}
 
 :root[data-theme="light"] .page-header{background:var(--o-head)!important;border-bottom:2px solid var(--o-head-bar)!important}
+
+/* ═════════ YENİ YERLEŞİM: SOL MENÜ + İŞLEM ÇUBUĞU + AYAR PANELİ ═════════ */
+.app-shell{display:grid;grid-template-columns:248px minmax(0,1fr);gap:18px;align-items:start;}
+.main-col{min-width:0;}
+.side{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 10px;
+  box-shadow:0 10px 30px rgba(0,0,0,.18);scrollbar-width:thin;}
+.side .tabs{display:flex;flex-direction:column;gap:2px;flex-wrap:nowrap;background:none;border:none;border-radius:0;padding:0;margin:0;}
+.nv-grp{font-family:'Barlow Condensed',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:2.2px;text-transform:uppercase;
+  color:var(--orange);opacity:.85;padding:12px 10px 5px;display:flex;align-items:center;gap:8px;}
+.nv-grp::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--orange-border),transparent);}
+.nv-grp:first-child{padding-top:2px;}
+.side .tab-btn{width:100%;text-align:left;display:flex;align-items:center;gap:8px;
+  padding:9px 11px;margin:0;border:none;border-left:3px solid transparent;border-radius:8px;
+  font-size:12.5px;letter-spacing:.3px;color:var(--muted);white-space:nowrap;position:relative;
+  transition:background .18s,color .18s,border-color .18s,transform .18s;}
+.side .tab-btn:hover{color:var(--text);background:rgba(255,255,255,.045);transform:translateX(2px);}
+.side .tab-btn.active{color:var(--text);background:linear-gradient(90deg,var(--orange-dim),transparent 110%);
+  border-left-color:var(--orange);font-weight:700;box-shadow:inset 0 0 0 1px var(--orange-border);}
+.nv-types{display:flex;flex-direction:column;gap:2px;}
+.side .tab-dyn{display:flex;align-items:center;border-radius:8px;overflow:visible;margin:0;position:relative;}
+.side .tab-dyn .tab-btn{flex:1;min-width:0;border-radius:8px;}
+.nv-kod{flex:0 0 auto;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11.5px;letter-spacing:.6px;
+  color:var(--orange);background:var(--orange-dim);border:1px solid var(--orange-border);border-radius:5px;padding:1px 6px;min-width:40px;text-align:center;}
+.nv-ad{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.nv-cnt{flex:0 0 auto;font-size:10px;font-weight:800;color:var(--muted);min-width:18px;text-align:center;padding:1px 6px;border-radius:9px;opacity:0;transition:opacity .2s;}
+.nv-cnt.on{opacity:1;background:rgba(74,222,128,.14);color:#4ade80;}
+.side .tab-btn.active .nv-kod{background:var(--orange);color:#1a1a1a;border-color:var(--orange);}
+.side .tab-dyn-del{position:absolute;right:4px;top:50%;transform:translateY(-50%);opacity:0;padding:4px 6px;border-radius:5px;background:var(--surface);transition:opacity .15s;}
+.side .tab-dyn:hover .tab-dyn-del{opacity:1;}
+.side .tab-dyn:hover .nv-cnt{opacity:0;}
+.side .tab-add-btn{margin-top:4px;justify-content:center;border:1px dashed var(--orange-border)!important;color:var(--orange);background:none;font-weight:700;}
+.side .tab-add-btn:hover{background:var(--orange-dim);}
+
+.act-bar{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+.act-btns{margin-left:auto;display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
+.act-bar .opt-btn{padding:9px 16px;font-size:13px;}
+.dd{position:relative;}
+.dd-menu{position:absolute;right:0;top:calc(100% + 6px);min-width:230px;z-index:60;display:none;
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.35);}
+.dd.open .dd-menu{display:block;animation:ddIn .16s ease-out;}
+@keyframes ddIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.dd-sec{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);padding:7px 10px 3px;}
+.dd-item{display:block;width:100%;text-align:left;background:none;border:none;color:var(--text);cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;padding:8px 10px;border-radius:7px;}
+.dd-item:hover{background:var(--orange-dim);color:var(--orange);}
+.ayar-btn.on{background:var(--orange-dim);border-color:var(--orange-border);color:var(--orange);}
+
+.ayar-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden;}
+.ayar-head{display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;user-select:none;flex-wrap:wrap;}
+.ayar-head:hover{background:rgba(255,255,255,.025);}
+.ayar-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text);}
+.ayar-ozet{display:flex;gap:6px;flex-wrap:wrap;flex:1;}
+.ao-chip{font-size:11px;padding:3px 9px;border-radius:12px;border:1px solid var(--border);color:var(--muted);white-space:nowrap;}
+.ao-chip.hi{border-color:var(--orange-border);color:var(--orange);background:var(--orange-dim);}
+.ayar-car{color:var(--muted);transition:transform .2s;}
+.ayar-panel.open .ayar-car{transform:rotate(180deg);}
+.ayar-body{display:none;padding:4px 14px 14px;border-top:1px solid var(--border);}
+.ayar-panel.open .ayar-body{display:block;animation:ddIn .2s ease-out;}
+.ayar-row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;padding-top:12px;}
+.ayar-row.stok-bar{background:none;border:none;border-radius:0;margin:0;box-shadow:none;}
+
+.main-col .section.active{animation:secIn .28s ease-out;}
+@keyframes secIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.main-col .section{padding-top:0;}
+
+:root[data-theme="light"] .side{box-shadow:0 6px 22px rgba(0,0,0,.06);}
+:root[data-theme="light"] .side .tab-btn:hover{background:rgba(35,35,35,.04)!important;}
+:root[data-theme="light"] .side .tab-btn.active .nv-kod{color:#fff;}
+:root[data-theme="light"] .nv-cnt.on{color:#1e7e34;background:rgba(30,126,52,.1);}
+
+@media(max-width:900px){
+  .app-shell{grid-template-columns:1fr;gap:10px;}
+  .side{position:sticky;top:0;z-index:50;max-height:none;padding:6px;border-radius:10px;}
+  .side .tabs{flex-direction:row;overflow-x:auto;gap:4px;scrollbar-width:none;}
+  .side .tabs::-webkit-scrollbar{display:none;}
+  .nv-grp{display:none;}
+  .nv-types{flex-direction:row;gap:4px;}
+  .side .tab-btn{width:auto;flex:0 0 auto;padding:8px 10px;}
+  .side .tab-btn:hover{transform:none;}
+  .nv-ad{max-width:120px;}
+  .side .tab-dyn-del{display:none;}
+  .side .tab-add-btn{margin-top:0;}
+  .act-btns{margin-left:0;}
+}
+
+.ozet-item{cursor:pointer;transition:transform .18s,box-shadow .18s,opacity .18s;}
+.ozet-item:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.22);}
+.ozet-item.oi-bos{opacity:.42;}
+.ozet-item.oi-bos:hover{opacity:.8;}
+.ayar-row.stok-bar{padding:12px 0 0!important;}
+.side{position:sticky;}
+.side-col-btn{position:absolute;top:8px;right:8px;z-index:2;width:24px;height:24px;border-radius:6px;border:1px solid var(--border);
+  background:var(--surface);color:var(--muted);cursor:pointer;font-size:13px;line-height:1;}
+.side-col-btn:hover{color:var(--orange);border-color:var(--orange-border);}
+.app-shell{transition:grid-template-columns .25s ease;}
+.app-shell.side-dar{grid-template-columns:70px minmax(0,1fr);}
+.side-dar .side{padding:38px 6px 10px;}
+.side-dar .nv-grp{font-size:0;padding:8px 4px 4px;}
+.side-dar .nv-grp::after{margin:0 4px;}
+.side-dar .side .tab-btn{padding:9px 6px;overflow:hidden;width:100%;font-size:15px;justify-content:center;}
+.side-dar .side .tab-btn:not(.tab-dyn .tab-btn){display:block;width:26px;margin:0 auto;padding:9px 0 9px 4px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:clip;border-left-width:0;}
+.side-dar .side .tab-add-btn{width:26px!important;padding-left:6px!important;border-style:dashed!important;}
+.side-dar .nv-ad,.side-dar .nv-cnt,.side-dar .side .tab-dyn-del{display:none;}
+.side-dar .nv-kod{min-width:0;font-size:11px;padding:1px 4px;}
+@media(max-width:900px){ .side-col-btn{display:none;} .app-shell.side-dar{grid-template-columns:1fr;} }
 </style><!--/OK:css--></head>
 <body>
 
@@ -1073,12 +1179,64 @@ html #orkGuide .ork-steps>li,html #orkGuide .ork-card{background:var(--o-panel2)
 
 <div class="wrap">
 
-  <div class="global-bar">
+  <div class="app-shell">
+  <!-- ═════ SOL MENÜ ═════ -->
+  <aside class="side" id="sideNav">
+    <button class="side-col-btn" onclick="sideDaralt()" title="Menüyü daralt / genişlet">«</button>
+    <div class="tabs" id="tabBar">
+      <div class="nv-grp" data-i18n="nv_genel">Genel</div>
+      <button class="tab-btn active" id="tab-ozet" data-i18n="tab_ozet" onclick="switchTab('ozet',this)">📊 Genel Özet</button>
+      <div class="nv-grp"><span data-i18n="nv_tipler">Kutu Tipleri</span></div>
+      <div id="navTypes" class="nv-types"></div>
+      <button class="tab-btn tab-add-btn" data-i18n="tab_add" onclick="addNewTab()" title="Yeni kutu tipi ekle">＋ Sekme Ekle</button>
+      <div class="nv-grp" data-i18n="nv_analiz">Analiz</div>
+      <button class="tab-btn" id="tab-piyasa-btn" data-i18n="tab_piyasa" onclick="switchTab('piyasa',this)">📦 Piyasa Özet</button>
+      <button class="tab-btn" id="tab-fire-btn" data-i18n="tab_fire" onclick="switchTab('fire',this)">🔥 Fire Analizi</button>
+      <button class="tab-btn" id="tab-kalib-btn" data-i18n="tab_kalib" onclick="switchTab('kalib',this)">🎯 Fire Kalibrasyon</button>
+      <button class="tab-btn" id="tab-langmgr-btn" data-i18n="tab_langmgr" onclick="switchTab('langmgr',this)" style="display:none;">🌐 Dil Yönetimi</button>
+    </div>
+  </aside>
+
+  <main class="main-col">
+  <!-- ═════ İŞLEM ÇUBUĞU ═════ -->
+  <div class="global-bar act-bar">
     <div class="gb-field">
       <div class="gb-lbl" data-i18n="gb_ara">Kutu Adı Ara</div>
       <input type="text" class="gb-inp" id="aramaInput" placeholder="kutu adı..." data-i18n-ph="ph_kutuadi" oninput="aramaYap()" style="width:200px;">
     </div>
-    <div class="gb-field">
+    <div class="act-btns">
+      <span id="saveMsg" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--green);opacity:0;transition:opacity .3s;white-space:nowrap;" data-i18n="save_kaydedildi">💾 Kaydedildi!</span>
+      <button class="opt-btn" onclick="optimizeEt()"
+              data-i18n="btn_optimize" title="Her kutu için tüm kesim yönlerini dener ve EN AZ KARTON SATIN ALDIRAN (brüt m²/adet en düşük) yönü seçer. Stok enleri girilmişse onlara göre optimize eder.">⚡ OPTİMİZE ET</button>
+      <button class="save-btn" data-i18n="btn_pdf" onclick="openPdfMenu()" title="Kurumsal PDF raporları" style="background:rgba(245,166,35,.14);border-color:rgba(245,166,35,.45);color:var(--orange);font-weight:700;">📄 PDF Rapor</button>
+      <div class="dd" id="ddDosya">
+        <button class="save-btn dd-toggle" onclick="ddToggle('ddDosya',event)">📁 <span data-i18n="btn_dosya">Dosya</span> ▾</button>
+        <div class="dd-menu">
+          <div class="dd-sec" data-i18n="dd_kayit">Kayıt</div>
+          <button class="dd-item" data-i18n="btn_jsonsave" onclick="exportJSON()" title="Tüm veriyi JSON dosyası olarak kaydet">💾 JSON Olarak Kaydet</button>
+          <button class="dd-item" data-i18n="btn_jsonopen" onclick="importJSON()" title="Daha önce kaydedilen JSON dosyasını aç">📂 JSON'dan Aç</button>
+          <div class="dd-sec">Excel</div>
+          <button class="dd-item" data-i18n="btn_excelexport" onclick="exportExcel()" title="Ölçüleri Excel'e aktar">📊 Excel'e Aktar</button>
+          <button class="dd-item" data-i18n="btn_excelimport" onclick="importExcel()" title="Excel'den ölçü yükle">📂 Excel'den Al</button>
+          <button class="dd-item" data-i18n="btn_excelconv" onclick="openConverter()" title="Kendi Excel'ini dönüştür">🔄 Excel Dönüştür</button>
+        </div>
+      </div>
+      <button class="save-btn" id="stdFormulBtn" onclick="stdFormulPaneliAc()" title="Herkes için standart formülleri ayarla (yönetici)" style="display:none;background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.45);color:#60A5FA;font-weight:700;">⚙️ Standart Formüller</button>
+      <button class="save-btn ayar-btn" id="ayarBtn" onclick="ayarToggle()">⚙️ <span data-i18n="btn_ayarlar">Ayarlar</span></button>
+      <button class="save-btn del" data-i18n="btn_clear" onclick="clearDataModal()" title="Veri temizle (tümü veya tek tip)">🗑️ Temizle</button>
+    </div>
+  </div>
+
+  <!-- ═════ HESAP AYARLARI (açılır) ═════ -->
+  <div class="ayar-panel" id="ayarPanel">
+    <div class="ayar-head" onclick="ayarToggle()">
+      <span class="ayar-title">⚙️ <span data-i18n="ayar_baslik">Hesap Ayarları</span></span>
+      <span class="ayar-ozet" id="ayarOzet"></span>
+      <span class="ayar-car">▾</span>
+    </div>
+    <div class="ayar-body">
+      <div class="ayar-row">
+        <div class="gb-field">
       <div class="gb-lbl" data-i18n="gb_yon">⟲ Kesim Yönü (Komple)</div>
       <select class="gb-inp or" id="globalYonSel" style="width:170px;" title="Seçince TÜM kutu tiplerindeki TÜM satırların yönü bu değere çevrilir."
               onchange="setGlobalYon(this.value)">
@@ -1093,27 +1251,14 @@ html #orkGuide .ork-steps>li,html #orkGuide .ork-card{background:var(--o-panel2)
         <option value="YATAY 90° İKİLİ" data-i18n="yon_yatay_90_ikili">YATAY 90° İKİLİ</option>
       </select>
     </div>
-    <div class="gb-field">
+        <div class="gb-field">
       <div class="gb-lbl" data-i18n="gb_tolerans">📏 Piyasa Eni Toleransı (mm)</div>
       <input type="number" class="gb-inp" id="toleransInp" min="0" max="99" step="1" value="0"
              style="width:130px;" title="Karton eni, bir alt 100 katını bu kadar mm'ye kadar aşıyorsa o alt boydan kesilir (örn. 1205 → 1200). Fire ona göre hesaplanır."
              onchange="setPiyasaTolerans(this.value)" oninput="setPiyasaTolerans(this.value)">
     </div>
-    <div style="margin-left:auto;display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap;">
-      <button class="save-btn" data-i18n="btn_excelconv" onclick="openConverter()" title="Kendi Excel'ini dönüştür" style="background:rgba(245,166,35,.12);border-color:rgba(245,166,35,.4);color:var(--orange);">🔄 Excel Dönüştür</button>
-      <button class="save-btn" data-i18n="btn_excelexport" onclick="exportExcel()" title="Ölçüleri Excel'e aktar" style="background:rgba(146,208,80,.12);border-color:rgba(146,208,80,.35);color:#92D050;">📊 Excel'e Aktar</button>
-      <button class="save-btn" data-i18n="btn_excelimport" onclick="importExcel()" title="Excel'den ölçü yükle" style="background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.35);color:#60a5fa;">📂 Excel'den Al</button>
-      <button class="save-btn" data-i18n="btn_jsonsave" onclick="exportJSON()" title="Tüm veriyi JSON dosyası olarak kaydet">💾 JSON Olarak Kaydet</button>
-      <button class="save-btn" data-i18n="btn_jsonopen" onclick="importJSON()" title="Daha önce kaydedilen JSON dosyasını aç">📂 JSON'dan Aç</button>
-      <button class="save-btn" data-i18n="btn_pdf" onclick="openPdfMenu()" title="Kurumsal PDF raporları" style="background:rgba(245,166,35,.14);border-color:rgba(245,166,35,.45);color:var(--orange);font-weight:700;">📄 PDF Rapor</button>
-      <button class="save-btn" id="stdFormulBtn" onclick="stdFormulPaneliAc()" title="Herkes için standart formülleri ayarla (yönetici)" style="display:none;background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.45);color:#60A5FA;font-weight:700;">⚙️ Standart Formüller</button>
-      <button class="save-btn del" data-i18n="btn_clear" onclick="clearDataModal()" title="Veri temizle (tümü veya tek tip)">🗑️ Temizle</button>
-      <span id="saveMsg" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--green);opacity:0;transition:opacity .3s;white-space:nowrap;" data-i18n="save_kaydedildi">💾 Kaydedildi!</span>
-    </div>
-  </div>
-
-  <!-- STOK KARTON ENLERİ + OPTİMİZASYON -->
-  <div class="stok-bar">
+      </div>
+      <div class="ayar-row stok-bar">
     <div class="gb-field">
       <div class="gb-lbl" data-i18n="stok_enlerim">📦 Elimdeki Karton Enleri (mm)</div>
       <div style="display:flex;gap:6px;">
@@ -1141,9 +1286,8 @@ html #orkGuide .ork-steps>li,html #orkGuide .ork-card{background:var(--o-panel2)
         <span data-i18n="stok_denensin">Denensin (oluk yönü döner!)</span>
       </label>
     </div>
-    <div style="margin-left:auto;display:flex;align-items:flex-end;">
-      <button class="opt-btn" onclick="optimizeEt()"
-              data-i18n="btn_optimize" title="Her kutu için tüm kesim yönlerini dener ve EN AZ KARTON SATIN ALDIRAN (brüt m²/adet en düşük) yönü seçer. Stok enleri girilmişse onlara göre optimize eder.">⚡ OPTİMİZE ET</button>
+  
+      </div>
     </div>
   </div>
 
@@ -1151,16 +1295,6 @@ html #orkGuide .ork-steps>li,html #orkGuide .ork-card{background:var(--o-panel2)
   <div id="optSonuc">
     <div class="opt-ozet" id="optOzet"></div>
     <div class="opt-detay" id="optDetay"></div>
-  </div>
-
-  <div class="tabs" id="tabBar">
-    <button class="tab-btn active" data-i18n="tab_ozet" onclick="switchTab('ozet',this)">📊 Genel Özet</button>
-    <!-- dynamic tabs injected by JS -->
-    <button class="tab-btn" id="tab-piyasa-btn" data-i18n="tab_piyasa" onclick="switchTab('piyasa',this)">📦 Piyasa Özet</button>
-    <button class="tab-btn" id="tab-fire-btn" data-i18n="tab_fire" onclick="switchTab('fire',this)">🔥 Fire Analizi</button>
-    <button class="tab-btn" id="tab-kalib-btn" data-i18n="tab_kalib" onclick="switchTab('kalib',this)">🎯 Fire Kalibrasyon</button>
-    <button class="tab-btn tab-add-btn" data-i18n="tab_add" onclick="addNewTab()" title="Yeni kutu tipi ekle">＋ Sekme Ekle</button>
-    <button class="tab-btn" id="tab-langmgr-btn" data-i18n="tab_langmgr" onclick="switchTab('langmgr',this)" style="display:none;">🌐 Dil Yönetimi</button>
   </div>
 
   <!-- ÖZET -->
@@ -1357,6 +1491,8 @@ html #orkGuide .ork-steps>li,html #orkGuide .ork-card{background:var(--o-panel2)
     </div>
   </div>
 
+  </main>
+  </div><!-- /app-shell -->
 </div>
 <footer data-i18n="footer_text">ORİMAK MAKİNA &nbsp;·&nbsp; FEFCO Karton Eni Hesaplama Sistemi v3.0 &nbsp;·&nbsp; Tüm hesaplamalar otomatik</footer>
 
@@ -1809,8 +1945,7 @@ function registerType(ft){
 
 function buildDynamicDOM(){
   const tabBar=document.getElementById('tabBar');
-  const piyasaBtn=document.getElementById('tab-piyasa-btn');
-  const addBtn=tabBar.querySelector('.tab-add-btn');
+  const navTypes=document.getElementById('navTypes');
   const dynSec=document.getElementById('dynamicSections');
   dynSec.innerHTML='';
 
@@ -1826,8 +1961,7 @@ function buildDynamicDOM(){
     const btn=document.createElement('button');
     btn.className='tab-btn';
     btn.id='tab-'+ft.id;
-    btn.textContent=ft.kod+(ft.ad?' – '+ft.ad.split('(')[0].trim():'');
-    btn.title=ft.ad+' (çift tıkla → adı değiştir)';
+    navBtnFill(btn,ft);
     btn.onclick=()=>switchTab(ft.id,btn);
     btn.ondblclick=(e)=>{e.stopPropagation();inlineRenameTab(ft.id,btn);};
 
@@ -1839,7 +1973,7 @@ function buildDynamicDOM(){
 
     wrap.appendChild(btn);
     wrap.appendChild(del);
-    tabBar.insertBefore(wrap,piyasaBtn);
+    navTypes.appendChild(wrap);
 
     // Section div
     const sec=document.createElement('div');
@@ -2947,7 +3081,7 @@ function updateOzet(){
       tNetTL+=h.netUrunTL; tFireM2+=h.totFireM2;
     });
     tKalipM2+=kalipM2; tBrutM2+=brutM2; tBrutTL+=brutTL; tFireTL+=fireTL; tRulo+=rulo; tSigmaz+=sig;
-    html+=`<div class="ozet-item"><div class="oi-kod">${ft.kod}</div><div class="oi-ad">${ft.ad}</div>
+    html+=`<div class="ozet-item${brutM2>0||sig?'':' oi-bos'}" onclick="switchTabById('${ft.id}')" title="Bu tipe git"><div class="oi-kod">${ft.kod}</div><div class="oi-ad">${ft.ad}</div>
     <div class="oi-m2">${fmt(brutM2,2)} m² brüt</div><div class="oi-tl">${fmt(brutTL,2)} TL</div>
     <div class="oi-rulo">Rulo: ${fmt(rulo,1)} m${sig?` · <span style="color:#f87171">${sig} sığmaz</span>`:''}</div></div>`;
   });
@@ -3142,7 +3276,59 @@ function initPiyasaResizable(){
   });
 }
 
+// Sol menüdeki kutu tipi butonu: kod rozeti + ad + dolu satır sayısı
+function navBtnFill(btn,ft){
+  const kod=String(ft.kod||'').replace(/^FEFCO\s*/i,'');
+  const ad=(ft.ad||'').split('(')[0].trim();
+  btn.innerHTML='<span class="nv-kod">'+esc(kod)+'</span><span class="nv-ad">'+esc(ad||ft.kod)+'</span><span class="nv-cnt" id="nvc_'+ft.id+'"></span>';
+  btn.title=(ft.kod||'')+' – '+(ft.ad||'')+' (çift tıkla → adı değiştir)';
+}
+function navSayilari(){
+  FEFCO_TYPES.forEach(ft=>{
+    const el=document.getElementById('nvc_'+ft.id); if(!el) return;
+    let n=0; (DATA[ft.id]||[]).forEach(r=>{ const h=hesapla(ft,r); if(h&&h.en>0) n++; });
+    el.textContent=n||''; el.classList.toggle('on',n>0);
+  });
+}
+// Sol menüyü daralt (tabloya daha çok yer) — tarayıcıda hatırlanır
+const SIDE_KEY='orimak_fefco_side_dar';
+function sideDaralt(force){
+  const sh=document.querySelector('.app-shell'); if(!sh) return;
+  const dar=typeof force==='boolean'?force:!sh.classList.contains('side-dar');
+  sh.classList.toggle('side-dar',dar);
+  const b=document.querySelector('.side-col-btn'); if(b) b.textContent=dar?'»':'«';
+  try{ localStorage.setItem(SIDE_KEY,dar?'1':'0'); }catch(e){}
+}
+// Dosya açılır menüsü
+function ddToggle(id,e){
+  if(e) e.stopPropagation();
+  const d=document.getElementById(id); const ac=!d.classList.contains('open');
+  document.querySelectorAll('.dd.open').forEach(x=>x.classList.remove('open'));
+  if(ac) d.classList.add('open');
+}
+document.addEventListener('click',e=>{ if(!e.target.closest('.dd-menu')) document.querySelectorAll('.dd.open').forEach(x=>x.classList.remove('open')); });
+document.addEventListener('click',e=>{ const it=e.target.closest('.dd-item'); if(it) setTimeout(()=>document.querySelectorAll('.dd.open').forEach(x=>x.classList.remove('open')),0); });
+// Hesap ayarları paneli (aç/kapa — tarayıcıda hatırlanır)
+const AYAR_KEY='orimak_fefco_ayar_acik';
+function ayarToggle(force){
+  const p=document.getElementById('ayarPanel'); if(!p) return;
+  const ac=typeof force==='boolean'?force:!p.classList.contains('open');
+  p.classList.toggle('open',ac);
+  const b=document.getElementById('ayarBtn'); if(b) b.classList.toggle('on',ac);
+  try{ localStorage.setItem(AYAR_KEY,ac?'1':'0'); }catch(e){}
+}
+function ayarOzet(){
+  const el=document.getElementById('ayarOzet'); if(!el) return;
+  const chip=(txt,cls)=>'<span class="ao-chip'+(cls?' '+cls:'')+'">'+txt+'</span>';
+  const stok=(typeof STOK_MODU!=='undefined'&&STOK_MODU&&STOK_ENLERI.length);
+  const i90=document.getElementById('izin90');
+  el.innerHTML=
+    chip(stok?('📦 Stok enleri: '+STOK_ENLERI.join(', ')):'📏 Piyasa enleri (100 mm katları)', stok?'hi':'')
+   +chip('Tolerans: '+(PIYASA_TOLERANS||0)+' mm', PIYASA_TOLERANS?'hi':'')
+   +chip('90°: '+(i90&&i90.checked?'denenir':'kapalı'));
+}
 function updateHeader(){
+  navSayilari(); ayarOzet();
   let m2=0,tl=0,rulo=0;
   FEFCO_TYPES.forEach(ft=>(DATA[ft.id]||[]).forEach(r=>{
     const h=hesapla(ft,r);
@@ -3165,12 +3351,18 @@ function aramaYap(){
 }
 
 let activeTabId='ozet';
+['stokRender','stokToggle','setPiyasaTolerans'].forEach(n=>{
+  const f=window[n]; if(typeof f!=='function') return;
+  window[n]=function(){ const r=f.apply(this,arguments); try{ayarOzet();}catch(e){} return r; };
+});
 function switchTab(id,btn){
   activeTabId=id;
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('sec-'+id).classList.add('active');
-  btn.classList.add('active');
+  if(btn) btn.classList.add('active');
+  // Mobilde seçilen menü öğesini görünür yap
+  if(btn&&btn.scrollIntoView&&window.innerWidth<=900) try{ btn.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'}); }catch(e){}
   updateAll();
 }
 
@@ -3531,6 +3723,9 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   // --- Formüller: KİŞİSEL > STANDART (fefco_formuller.json) — tarayıcıdaki eski formüller standardı ezemez ---
   formulKaynaklariniUygula();
+  try{ ayarToggle(localStorage.getItem(AYAR_KEY)==='1'); }catch(e){}
+  try{ if(localStorage.getItem(SIDE_KEY)==='1') sideDaralt(true); }catch(e){}
+  { const i9=document.getElementById('izin90'); if(i9) i9.addEventListener('change',ayarOzet); }
   if(yoneticiMi()){ const b=document.getElementById('stdFormulBtn'); if(b) b.style.display=''; }
   // Sunucudaki en güncel standart dosyayı arka planda çek; farklıysa tabloyu yeniden hesapla
   stdFormulleriYukle().then(ok=>{ if(ok&&formulKaynaklariniUygula()) recalcAll(); });
@@ -3921,7 +4116,6 @@ function kalibShowResults(ftId){
 function inlineRenameTab(ftId, btn){
   const ft=FEFCO_TYPES.find(f=>f.id===ftId);
   if(!ft) return;
-  const oldText=btn.textContent;
   const inp=document.createElement('input');
   inp.type='text';
   inp.value=ft.ad;
@@ -3938,13 +4132,12 @@ function inlineRenameTab(ftId, btn){
       saveToLocal();
       updateAll();
     }
-    btn.textContent=ft.kod+(ft.ad?' – '+ft.ad.split('(')[0].trim():'');
-    btn.title=ft.ad+' (çift tıkla → adı değiştir)';
+    navBtnFill(btn,ft);
   };
   inp.onblur=()=>finish(true);
   inp.onkeydown=(e)=>{
     if(e.key==='Enter'){inp.blur();}
-    else if(e.key==='Escape'){inp.onblur=null;btn.textContent=oldText;btn.title=ft.ad+' (çift tıkla → adı değiştir)';}
+    else if(e.key==='Escape'){inp.onblur=null;navBtnFill(btn,ft);}
   };
 }
 
@@ -5088,6 +5281,13 @@ const I18N_DEFAULTS = {
     p_firetl:              'Fire TL',
     p_rulom:               'Rulo m',
     p_topuzun:             'Toplam Uzunluk (m)',
+    nv_genel:              'Genel',
+    nv_tipler:             'Kutu Tipleri',
+    nv_analiz:             'Analiz',
+    btn_dosya:             'Dosya',
+    dd_kayit:              'Kayıt',
+    btn_ayarlar:           'Ayarlar',
+    ayar_baslik:           'Hesap Ayarları',
     p_toplamuzunluk:       'Toplam Uzunluk (adet × boy)',
     pm_secenek:            'Rapor seçenekleri',
     pm_toplamgizle:        'Toplam maliyeti gösterme',
@@ -5365,6 +5565,13 @@ const I18N_DEFAULTS = {
     p_firetl:              'Waste TL',
     p_rulom:               'Roll m',
     p_topuzun:             'Total Length (m)',
+    nv_genel:              'General',
+    nv_tipler:             'Box Types',
+    nv_analiz:             'Analysis',
+    btn_dosya:             'File',
+    dd_kayit:              'Save',
+    btn_ayarlar:           'Settings',
+    ayar_baslik:           'Calculation Settings',
     p_toplamuzunluk:       'Total Length (qty × length)',
     pm_secenek:            'Report options',
     pm_toplamgizle:        'Hide total cost',
