@@ -1507,57 +1507,69 @@ html #orkGuide .ork-steps>li,html #orkGuide .ork-card{background:var(--o-panel2)
 // ============================================================
 // FORMULA PARSER — dinamik değişken desteği
 //
-// K, K1, K2 = kulak payları — formülde varsa tabloda sütun olarak çıkar
-// Diğer tek büyük harf (A-Z) = kullanıcı tanımlı değişken
+// Her ölçü değişkeni (L, B, H, H1, H2, B2, L3, K1, K3 ...) formülde
+// geçtiği an tabloda kendi sütunu olarak çıkar, her satırda ayrı girilir.
+// K, K1, K2, K3.. = kulak · T.. = kalınlık · P.. = pay (varsayılanlı)
 // Hiçbir sabit/global değişken yok — her şey satır bazlı
 // ============================================================
 
+// Değişken adı: büyük harf + isteğe bağlı rakam → L, B, H, T, K, P, H1, H2, B3, L1, K3 ...
+const VAR_TOKEN_RE=/\b([A-Z][0-9]*)\b/g;
+const VAR_ORDER=['L','B','H','T','P','K'];
+
+// Değişkenleri sırala: önce L, L1, L2.. B, B1.. H, H1.. T, P, K, K1.. sonra diğerleri alfabetik
+function sortVars(list){
+  const rank=v=>{ const i=VAR_ORDER.indexOf(v[0]); return i<0?VAR_ORDER.length:i; };
+  const num=v=>v.length>1?parseInt(v.slice(1),10):-1;
+  return [...new Set(list)].sort((a,b)=>rank(a)-rank(b)||a[0].localeCompare(b[0])||num(a)-num(b));
+}
+
 function extractVars(str){
-  const raw=str.trim();
+  const expr=normaliseExpr(str||'');
   const found=new Set();
-
-  // K1, K2 (çift karakter)
-  const re2=/\bK([12])\b/g;
-  let m;
-  while((m=re2.exec(raw))!==null) found.add('K'+m[1]);
-
-  // Tek büyük harfler — K dahil artık (K1/K2 çakışmasın diye önce temizle)
-  const cleaned=raw.replace(/K[12]/g,'__');
-  const re1=/\b([A-Z])\b/g;
-  while((m=re1.exec(cleaned.toUpperCase()))!==null) found.add(m[1]);
-
-  // Sıralama: L, B, H, T, P, K, K1, K2, sonra alfabetik
-  const preferred=['L','B','H','T','P','K','K1','K2'];
-  const result=[];
-  preferred.forEach(v=>{if(found.has(v))result.push(v);});
-  [...found].filter(v=>!preferred.includes(v)).sort().forEach(v=>result.push(v));
-  return result;
+  let m; VAR_TOKEN_RE.lastIndex=0;
+  while((m=VAR_TOKEN_RE.exec(expr))!==null) found.add(m[1]);
+  return sortVars([...found]);
 }
 
 function extractAllVars(ft){
-  const all=new Set();
-  [ft.dikeyEn,ft.dikeyBoy,ft.yatayEn,ft.yatayBoy].forEach(f=>{
-    extractVars(f||'').forEach(v=>all.add(v));
-  });
-  const preferred=['L','B','H','T','P','K','K1','K2'];
-  const result=[];
-  preferred.forEach(v=>{if(all.has(v))result.push(v);});
-  [...all].filter(v=>!preferred.includes(v)).sort().forEach(v=>result.push(v));
-  return result;
+  const all=[];
+  [ft.dikeyEn,ft.dikeyBoy,ft.yatayEn,ft.yatayBoy].forEach(f=>{ all.push(...extractVars(f||'')); });
+  return sortVars(all);
 }
 
-// Varsayılan değerler
-const VAR_DEFAULTS={T:3,P:0,K:4,K1:4,K2:4};
+// Opsiyonel (ölçü olmayan) değişkenler: T, P, K ve numaralıları (K1, K2, K3, T1, P1...)
+function isOptVar(v){ return /^[TPK][0-9]*$/.test(v); }
+
+// Sütun / başlık etiketi
+function varLabel(v){
+  if(/^K[0-9]*$/.test(v)) return v+' Kulak';
+  if(/^T[0-9]*$/.test(v)) return v+' Kalınlık';
+  if(/^P[0-9]*$/.test(v)) return v+' Pay';
+  return v+' (mm)';
+}
+
+// Varsayılan değerler — K1, K2, K3... = 4 · T, T1... = 3 · P, P1... = 0 · diğerleri yok
+const _VAR_DEF_BASE={T:3,P:0,K:4};
+const VAR_DEFAULTS=new Proxy({},{
+  get(_,k){
+    if(typeof k!=='string') return undefined;
+    const m=/^([TPK])[0-9]*$/.exec(k);
+    return m?_VAR_DEF_BASE[m[1]]:undefined;
+  }
+});
 
 function normaliseExpr(str){
-  return str.trim()
+  return String(str||'').trim()
     .replace(/×/g,'*')
     .replace(/x/gi,function(m,offset,s){
       const before=s[offset-1]||'';
       const after=s[offset+1]||'';
       if(/[0-9A-Za-z)]/i.test(before)&&/[0-9A-Za-z(]/i.test(after)) return '*';
       return m;
-    });
+    })
+    // küçük harf yazılsa da çalışsın: h1 → H1
+    .replace(/\b([a-z][0-9]*)\b/g,mm=>mm.toUpperCase());
 }
 
 function parseFormula(str, vars){
@@ -2111,7 +2123,7 @@ function switchTabById(id){
 // Varsa o satırın öğrenilen gerçek işleme firesini taşıyan satırı döndürür.
 function findKalibMatch(ft,r,vars){
   if(typeof KALIB_DATA==='undefined'||!KALIB_DATA[ft.id])return null;
-  const dimVars=(vars||[]).filter(v=>!['T','P','K','K1','K2'].includes(v));
+  const dimVars=(vars||[]).filter(v=>!isOptVar(v));
   if(!dimVars.length)return null;
   return KALIB_DATA[ft.id].find(kr=>{
     if(!kr||kr._fireIsleme===undefined)return false;
@@ -2143,7 +2155,7 @@ function hesapla(ft,r){
   const cevir=yonStr.indexOf('90')>=0;
 
   let en0=0,boy0=0;
-  const hasDims=args.some((v,i)=>!['T','P','K','K1','K2'].includes(vars[i])&&v>0);
+  const hasDims=args.some((v,i)=>!isOptVar(vars[i])&&v>0);
   if(hasDims&&c){
     try{
       if(isYatay){
@@ -2270,7 +2282,8 @@ function buildCols(ft){
     else if(v==='K2') lbl=t('col_var_K2');
     else if(v==='T') lbl=t('col_var_T');
     else if(v==='P') lbl=t('col_var_P');
-    const w=(v==='K'||v==='K1'||v==='K2')?64:(v==='T'||v==='P')?58:64;
+    else if(isOptVar(v)) lbl=varLabel(v);
+    const w=/^[TP]/.test(v)&&isOptVar(v)?58:64;
     return {w, lbl, key:v};
   });
   const tail=FIXED_COLS_TAIL.map(c=>({w:c.w,lbl:t(c.tkey),key:c.key}));
@@ -2402,8 +2415,8 @@ function rowInner(ftId,i){
   const varCells=vars.map(v=>{
     const defVal=VAR_DEFAULTS[v]!==undefined?VAR_DEFAULTS[v]:0;
     const curVal=row[v]!==undefined&&row[v]!==''?row[v]:defVal;
-    const ph=v==='K'?'K mm':v==='K1'?'K1 mm':v==='K2'?'K2 mm':`${v}`;
-    const step=(v==='T'||v==='K'||v==='K1'||v==='K2')?'0.5':'1';
+    const ph=/^K[0-9]*$/.test(v)?`${v} mm`:`${v}`;
+    const step=/^[TK][0-9]*$/.test(v)?'0.5':'1';
     return `<td><input type="number" value="${curVal||''}" placeholder="${ph}" min="0" step="${step}"
       onchange="editCell('${ftId}',${i},'${v}',+this.value)"></td>`;
   }).join('');
@@ -2643,7 +2656,7 @@ function applyFormula(ftId){
 
   for(const [lbl,inp] of [['DİKEY En',de],['DİKEY Boy',db],['YATAY En',ye],['YATAY Boy',yb]]){
     if(!validateFormula(inp.value)){
-      alert(`❌ Hatalı formül: ${lbl}\n\n"${inp.value}"\n\nHerhangi büyük harf kullanabilirsiniz.\nK / K1 / K2 = kulak payları (formülde varsa tabloda sütun çıkar)\nÖrnek: 2*L+2*B+K+K+P veya 2*L+2*B+K1+K2`);
+      alert(`❌ Hatalı formül: ${lbl}\n\n"${inp.value}"\n\nBüyük harf + isteğe bağlı rakam kullanabilirsiniz: L, B, H, H1, H2, B2, L3, K1, K3 ...\nFormülde geçen her değişken tabloda ayrı sütun olur.\nÖrnek: 2*L+2*B+K+K+P · H1+H2+B1+3*T+K1`);
       inp.focus(); return;
     }
   }
@@ -3779,7 +3792,7 @@ function kalibGetFt(){
 
 function kalibGetVars(ft){
   const vars=ft._vars||extractAllVars(ft);
-  return vars.filter(v=>v!=='T'&&v!=='P'&&v!=='K'&&v!=='K1'&&v!=='K2');
+  return vars.filter(v=>!isOptVar(v));
 }
 
 function kalibGetAllVars(ft){
@@ -3862,12 +3875,7 @@ function kalibRenderTable(){
   // THEAD
   let th='<tr><th style="width:30px">#</th>';
   allVars.forEach(v=>{
-    let lbl=v+' (mm)';
-    if(v==='K')lbl='K Kulak';
-    else if(v==='K1')lbl='K1 Kulak';
-    else if(v==='K2')lbl='K2 Kulak';
-    else if(v==='T')lbl='T Kalınlık';
-    else if(v==='P')lbl='P Pay';
+    const lbl=varLabel(v);
     th+=`<th style="width:76px">${lbl}</th>`;
   });
   th+='<th style="width:90px">Karton Eni</th>';
@@ -3944,7 +3952,7 @@ function kalibCalcRow(ft,r){
     const val=r[v];
     return val!==undefined&&val!==''&&val!==null?(parseFloat(val)||0):def;
   });
-  const hasDims=args.some((v,i)=>!['T','P','K','K1','K2'].includes(vars[i])&&v>0);
+  const hasDims=args.some((v,i)=>!isOptVar(vars[i])&&v>0);
   if(!hasDims)return null;
   let en=0,boy=0;
   try{
@@ -4097,13 +4105,10 @@ function kalibShowResults(ftId){
     const allVars=kalibGetAllVars(ft);
     let pHtml='';
     allVars.forEach(v=>{
-      let lbl=v;
-      if(v==='K')lbl='K Kulak';
-      else if(v==='T')lbl='T Kalınlık';
-      else if(v==='P')lbl='P Pay';
+      const lbl=isOptVar(v)?varLabel(v):v;
       pHtml+=`<div class="formula-group">
         <label class="formula-label">${lbl} (mm)</label>
-        <input class="kalib-inp" id="kalibP_${v}" value="${VAR_DEFAULTS[v]||''}" style="width:70px;">
+        <input class="kalib-inp" id="kalibP_${v}" value="${VAR_DEFAULTS[v]!==undefined?VAR_DEFAULTS[v]:''}" style="width:70px;">
       </div>`;
     });
     document.getElementById('kalibPredInputs').innerHTML=pHtml;
@@ -4159,14 +4164,7 @@ function exportExcel(){
     FEFCO_TYPES.forEach(ft=>{
       const vars=ioVars(ft);
       // Başlık satırı
-      const header=['Kutu Adı',...vars.map(v=>{
-        if(v==='K')return 'K Kulak (mm)';
-        if(v==='K1')return 'K1 Kulak (mm)';
-        if(v==='K2')return 'K2 Kulak (mm)';
-        if(v==='T')return 'T Kalınlık (mm)';
-        if(v==='P')return 'P Pay (mm)';
-        return v+' (mm)';
-      }),'Yön','Adet','Karton Eni (mm)','Piyasa Eni (mm)','Karton Boy (mm)','Kalıp m²/Adet','Kalıp m²','Birim TL','Kalıp TL','BRÜT m² (satın alınan)','BRÜT TL (fatura)','Ürüne Giden TL','Fire %','Fire m²','Fire TL','Rulo (m)','Notlar'];
+      const header=['Kutu Adı',...vars.map(v=>isOptVar(v)?varLabel(v)+' (mm)':v+' (mm)'),'Yön','Adet','Karton Eni (mm)','Piyasa Eni (mm)','Karton Boy (mm)','Kalıp m²/Adet','Kalıp m²','Birim TL','Kalıp TL','BRÜT m² (satın alınan)','BRÜT TL (fatura)','Ürüne Giden TL','Fire %','Fire m²','Fire TL','Rulo (m)','Notlar'];
 
       const rows=[header];
       (DATA[ft.id]||[]).forEach(r=>{
@@ -4288,10 +4286,8 @@ function importExcel(){
           // Değişken sütunlarını bul (L, B, H, T, K, K1, K2, P ...)
           const varIdx={};
           vars.forEach(v=>{
-            const aliases=[v, v+' (mm)'];
+            const aliases=[v, v+' (mm)', varLabel(v), varLabel(v)+' (mm)'];
             if(v==='K')  aliases.push('K Kulak','kulak');
-            if(v==='K1') aliases.push('K1 Kulak');
-            if(v==='K2') aliases.push('K2 Kulak');
             if(v==='T')  aliases.push('T Kalınlık','kalinlik','kalınlık','et');
             if(v==='P')  aliases.push('P Pay','pay');
             varIdx[v]=colIdx(aliases);
@@ -4331,7 +4327,7 @@ function importExcel(){
 
           if(!newData.length){showSaveMsg('⚠️ Okunacak satır bulunamadı','#facc15');return;}
 
-          DATA[ft.id]=[...DATA[ft.id].filter(r=>r.ad||vars.some(v=>r[v]&&r[v]>0&&!['T','P','K','K1','K2'].includes(v))),...newData];
+          DATA[ft.id]=[...DATA[ft.id].filter(r=>r.ad||vars.some(v=>r[v]&&r[v]>0&&!isOptVar(v))),...newData];
           recalcAll();
           saveToLocal();
           showSaveMsg(`✅ ${newData.length} satır "${ft.kod}" sekemsine eklendi!`);
@@ -4475,9 +4471,9 @@ function convBuildMapGrid(){
     {key:'ad',   lbl:'Kutu Adı',  cls:'opt', hint:'opsiyonel'},
     ...vars.map(v=>({
       key:v,
-      lbl: v==='T'?'T Kalınlık':v==='K'?'K Kulak':v==='K1'?'K1 Kulak':v==='K2'?'K2 Kulak':v==='P'?'P Pay':v+' (mm)',
-      cls: ['L','B','H'].includes(v)?'dim':['T','K','K1','K2','P'].includes(v)?'opt':'dim',
-      hint: ['T','K','K1','K2','P'].includes(v)?'varsayılan kullanılır':'ölçü'
+      lbl: varLabel(v),
+      cls: isOptVar(v)?'opt':'dim',
+      hint: isOptVar(v)?'varsayılan kullanılır':'ölçü'
     })),
     {key:'adet',  lbl:'Adet',     cls:'opt', hint:'opsiyonel'},
     {key:'fiyat', lbl:'Birim TL', cls:'opt', hint:'opsiyonel'},
@@ -4502,12 +4498,14 @@ function convBuildMapGrid(){
     yon:['yön','yon','direction','kesim'],
     notlar:['not','notlar','açıklama','aciklama','notes'],
   };
+  // Numaralı değişkenler (H1, B2, L3, K3...) için başlık eşleştirmesi
+  vars.forEach(v=>{ if(!autoPatterns[v]) autoPatterns[v]=[v.toLowerCase(), varLabel(v).toLowerCase()]; });
   convHeader.forEach(col=>{
     const lc=col.label.toLowerCase().trim().replace(/\s*\(mm\)/,'');
     for(const [k,pats] of Object.entries(autoPatterns)){
       // Tek harfli kalıplar (L,B,H,T,K,P) yalnızca birebir eşleşir; daha uzun
       // kelimeler (kalınlık, thickness...) startsWith ile eşleşebilir.
-      if(pats.some(p=> p.length===1 ? lc===p : (lc===p||lc.startsWith(p)) )){
+      if(pats.some(p=> /^[a-z][0-9]*$/.test(p) ? lc===p : (lc===p||lc.startsWith(p)) )){
         if(!autoMap[k]) autoMap[k]=col.idx;
       }
     }
@@ -4593,7 +4591,7 @@ function convDoImport(){
   const map=convGetMapping();
   const newRows=convBuildRows(map);
   if(!newRows.length){showSaveMsg('⚠️ Aktarılacak satır yok','#facc15');return;}
-  DATA[ft.id]=[...DATA[ft.id].filter(r=>r.ad||extractAllVars(ft).some(v=>r[v]&&r[v]>0&&!['T','P','K','K1','K2'].includes(v))),...newRows];
+  DATA[ft.id]=[...DATA[ft.id].filter(r=>r.ad||extractAllVars(ft).some(v=>r[v]&&r[v]>0&&!isOptVar(v))),...newRows];
   recalcAll();
   saveToLocal();
   closeConverter();
@@ -5369,7 +5367,7 @@ const I18N_DEFAULTS = {
     md_sekmeduzenle:       'Sekme Düzenle',
     md_kod:                'Kod (örn: FEFCO 0500 veya ÖZEL-2)',
     md_ad:                 'Ad',
-    md_hint:               'Herhangi büyük harf · <b>K</b> / <b>K1</b> / <b>K2</b> = kulak payları · Formülde varsa tabloda sütun olarak çıkar, her satırda ayrı girilebilir',
+    md_hint:               'Büyük harf + isteğe bağlı rakam: <b>H1</b>, <b>H2</b>, <b>B2</b>, <b>L3</b>, <b>K3</b>… · <b>K..</b> = kulak payları · Formülde yazılan her ölçü tabloda sütun olarak çıkar, her satırda ayrı girilir',
     md_ozelmod:            'ÖZEL mod — Özel En / Boy sütunları da göster',
     md_iptal:              'İptal',
     md_kaydet:             'Kaydet',
@@ -5476,7 +5474,7 @@ const I18N_DEFAULTS = {
     ff_dikey_boy:   '📐 DİKEY — Boy Formülü',
     ff_yatay_en:    '🔄 YATAY — En Formülü',
     ff_yatay_boy:   '🔄 YATAY — Boy Formülü',
-    ff_help:        'Herhangi büyük harf kullanılabilir · K / K1 / K2 = kulak payları · Formülde varsa tabloda sütun olarak çıkar',
+    ff_help:        'Değişkenler: L B H T K P ve numaralıları (H1, H2, B2, L3, K1, K3…) · Formülde yazılan her ölçü tabloda ayrı sütun olur',
     btn_uygula:     '✅ UYGULA',
     price_lbl:      'BİRİM FİYAT (TL/m²)',
     price_hint:     '← manuel değiştirilmemiş satırları günceller',
@@ -5653,7 +5651,7 @@ const I18N_DEFAULTS = {
     md_sekmeduzenle:       'Edit Tab',
     md_kod:                'Code (e.g. FEFCO 0500 or CUSTOM-2)',
     md_ad:                 'Name',
-    md_hint:               'Any uppercase letter · <b>K</b> / <b>K1</b> / <b>K2</b> = flap allowances · Appears as a column if used, editable per row',
+    md_hint:               'Uppercase letter + optional digit: <b>H1</b>, <b>H2</b>, <b>B2</b>, <b>L3</b>, <b>K3</b>… · <b>K..</b> = flap allowances · Every value used becomes a column, editable per row',
     md_ozelmod:            'CUSTOM mode — also show Custom Width / Length columns',
     md_iptal:              'Cancel',
     md_kaydet:             'Save',
@@ -5760,7 +5758,7 @@ const I18N_DEFAULTS = {
     ff_dikey_boy:   '📐 VERTICAL — Length Formula',
     ff_yatay_en:    '🔄 HORIZONTAL — Width Formula',
     ff_yatay_boy:   '🔄 HORIZONTAL — Length Formula',
-    ff_help:        'Any uppercase letter can be used · K / K1 / K2 = flap allowances · Appears as a column if used in the formula',
+    ff_help:        'Variables: L B H T K P and numbered ones (H1, H2, B2, L3, K1, K3…) · Every value used in the formula becomes its own column',
     btn_uygula:     '✅ APPLY',
     price_lbl:      'UNIT PRICE (TL/m²)',
     price_hint:     '← updates rows not manually changed',
@@ -7557,7 +7555,8 @@ window.addEventListener('DOMContentLoaded', () => {
             <tr><td>H</td><td>Yükseklik (Height)</td><td>Kutunun derinliği — mm.</td></tr>
             <tr><td>T</td><td>Karton kalınlığı</td><td>Oluklu mukavvanın kalınlığı (örn. B dalga ≈ 3 mm, C dalga ≈ 4 mm, E dalga ≈ 1,5 mm).</td></tr>
             <tr><td>K</td><td>Kulak / yapıştırma payı</td><td>Kutunun birleşim yerine bırakılan şerit (genelde 30–40 mm).</td></tr>
-            <tr><td>K1 · K2</td><td>Ek kapak ölçüleri</td><td>Bazı FEFCO tiplerinde ayrı ayrı kapak payları gerekir.</td></tr>
+            <tr><td>K1 · K2 · K3…</td><td>Ek kapak ölçüleri</td><td>Bazı FEFCO tiplerinde ayrı ayrı kapak payları gerekir.</td></tr>
+            <tr><td>L1 · B2 · H1 · H2…</td><td>Ek ölçüler</td><td>Formüle numaralı ölçü yazarsanız (örn. <code>H1+H2+B1</code>) her biri tabloda kendi sütunu olarak açılır ve her satıra ayrı girilir.</td></tr>
             <tr><td>P</td><td>Pay / tolerans</td><td>Kesim toleransı için formüle eklenen sabit pay (mm).</td></tr>
             <tr><td>Kalıp</td><td>Açılmış kutu</td><td>Kutu düz açıldığında ortaya çıkan dikdörtgen: <b>Hesaplanan En × Karton Boyu</b>.</td></tr>
             <tr><td>Hesaplanan En</td><td>Gereken en</td><td>Formülün verdiği gerçek ölçü (örn. 1043 mm).</td></tr>
@@ -7717,7 +7716,7 @@ window.addEventListener('DOMContentLoaded', () => {
           <ol class="ork-steps">
             <li><b>＋ Sekme Ekle</b> düğmesine basın.</li>
             <li><b>Kod ve ad yazın</b> Örn. kod <code>FEFCO 0500</code>, ad “Özel Tepsi”.</li>
-            <li><b>Dört formülü girin</b> DİKEY En, DİKEY Boy, YATAY En, YATAY Boy. Formüllerde <code>L B H T K K1 K2 P</code> değişkenlerini,
+            <li><b>Dört formülü girin</b> DİKEY En, DİKEY Boy, YATAY En, YATAY Boy. Formüllerde <code>L B H T K P</code> değişkenlerini ve numaralı hallerini (<code>L1 L2 B1 B2 H1 H2 H3 K1 K3</code>…),
               <code>+ - * /</code> işlemlerini ve parantez kullanabilirsiniz.<br>Örnek: <code>2*L+2*B+K+K+P</code> · <code>2*H+(L+B)/2+K+K+P</code></li>
             <li><b>Özel mod (isteğe bağlı)</b> İşaretlerseniz o sekmede en ve boyu formülle değil <b>elle</b> yazarsınız — standart dışı işler için.</li>
             <li><b>Ekle</b> Yeni sekme açılır; formülde geçen her değişken için tabloda otomatik bir sütun oluşur.</li>
