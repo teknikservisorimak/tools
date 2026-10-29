@@ -1,0 +1,13 @@
+name = "ori-asistan"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+# Worker'a sadece bu sitelerden gelen istekler kabul edilir (virgülle ayırın).
+# Yerelde test için "http://localhost:8080" eklenebilir.
+ALLOWED_ORIGINS = "https://teknikservisorimak.github.io"
+GEMINI_MODEL = "gemini-3.5-flash-lite"   # daha akıllı ama biraz yavaş: "gemini-3.5-flash"
+
+# GEMINI_API_KEY burada YAZILMAZ. Şu komutla gizli olarak eklenir:
+#   npx wrangler secret put GEMINI_API_KEY
+
