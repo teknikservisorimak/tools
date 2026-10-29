@@ -304,21 +304,44 @@ body[dir="rtl"] .ori-bubble{ border-radius:20px 20px 6px 20px; }
 .ori-btn.hop .ori-happy{ opacity:1; }
 .ori-btn.hop .ori-open{ opacity:0; }
 .ori-spark{ opacity:0; transform-box:fill-box; transform-origin:center; }
+.ori-btn.intro .ori-body,.ori-btn.intro .ori-shadow{ opacity:0; }
+.ori-greet:not(.ready) .ori-bubble{ opacity:0; }
+.ori-btn svg{ transform-origin:0 58%; }
+.oi-p{ fill:#F4C783; stroke:#5C3300; stroke-width:1.5; stroke-linejoin:round; vector-effect:non-scaling-stroke; }
+.oi-sh{ fill:#000; stroke:none; }
+#oiLbl{ fill:var(--text); }
+.rv-band{ transform-origin:150px 240px; }
+.rv-armL{ transform-origin:66px 192px; }
+.rv-armR{ transform-origin:238px 196px; }
+.rv-flaps{ transform-origin:150px 70px; }
+.rv-face{ transform-origin:150px 168px; }
 @media (prefers-reduced-motion:no-preference){
-  .ori-btn{ animation:oriIn 1s cubic-bezier(.34,1.56,.64,1) .15s both; }
-  .ori-body{ animation:oriBob 2.8s ease-in-out 1.2s infinite; }
-  .ori-shadow{ animation:oriShadow 2.8s ease-in-out 1.2s infinite; }
-  .ori-wave{ animation:oriWave 9s ease-in-out .9s infinite; }
-  .ori-blink{ animation:oriBlink 4.8s 2s infinite; }
-  .ori-flapL{ transform-origin:84px 70px; animation:oriFlapL 9s ease-in-out .9s infinite; }
-  .ori-flapR{ transform-origin:216px 70px; animation:oriFlapR 9s ease-in-out .9s infinite; }
-  .ori-bubble{ animation:oriPop .6s cubic-bezier(.34,1.56,.64,1) .75s both; transform-origin:0% 100%; }
+  .ori-btn.ready .ori-body{ animation:oriBob 2.8s ease-in-out 1.4s infinite; }
+  .ori-btn.ready .ori-shadow{ animation:oriShadowIn .5s ease-out both, oriShadow 2.8s ease-in-out 1.4s infinite; }
+  .ori-btn.ready .ori-wave{ animation:oriWave 9s ease-in-out .8s infinite both; }
+  .ori-btn.ready .ori-blink{ animation:oriBlink 4.8s 2s infinite; }
+  .ori-flapL{ transform-origin:84px 70px; }
+  .ori-flapR{ transform-origin:216px 70px; }
+  .ori-btn.ready .ori-flapL{ animation:oriFlapL 9s ease-in-out .8s infinite; }
+  .ori-btn.ready .ori-flapR{ animation:oriFlapR 9s ease-in-out .8s infinite; }
+  .ori-btn.ready .rv-band{ animation:oriRvX .45s cubic-bezier(.34,1.56,.64,1) .02s both; }
+  .ori-btn.ready .rv-legs{ animation:oriRvDrop .5s cubic-bezier(.34,1.56,.64,1) .08s both; }
+  .ori-btn.ready .rv-arm{ animation:oriRvPop .5s cubic-bezier(.34,1.56,.64,1) .18s both; }
+  .ori-btn.ready .rv-flaps{ animation:oriRvFlap .5s cubic-bezier(.34,1.56,.64,1) .26s both; }
+  .ori-btn.ready .rv-face{ animation:oriRvPop .55s cubic-bezier(.34,1.56,.64,1) .32s both; }
+  .ori-btn.ready .ori-spark{ animation:oriSpark 1s ease-out .5s 1; }
+  .ori-greet.ready .ori-bubble{ animation:oriPop .6s cubic-bezier(.34,1.56,.64,1) .6s both; transform-origin:0% 100%; }
   body[dir="rtl"] .ori-bubble{ transform-origin:100% 100%; }
   .ori-btn.hop .ori-body{ animation:oriHop .9s cubic-bezier(.3,0,.3,1) 1; }
   .ori-btn.hop .ori-spark{ animation:oriSpark .9s ease-out 1; }
-  .ori-btn:hover .ori-flapL{ animation-duration:1.4s; }
-  .ori-btn:hover .ori-flapR{ animation-duration:1.4s; }
+  .ori-btn.ready:hover .ori-flapL{ animation-duration:1.4s; }
+  .ori-btn.ready:hover .ori-flapR{ animation-duration:1.4s; }
 }
+@keyframes oriShadowIn{ from{ opacity:0; transform:scaleX(.3); } to{ opacity:.28; transform:none; } }
+@keyframes oriRvX{ from{ transform:scaleX(0); } to{ transform:none; } }
+@keyframes oriRvDrop{ from{ opacity:0; transform:translateY(-46px); } to{ opacity:1; transform:none; } }
+@keyframes oriRvPop{ from{ opacity:0; transform:scale(0); } to{ opacity:1; transform:none; } }
+@keyframes oriRvFlap{ from{ transform:scaleY(0); } to{ transform:none; } }
 @keyframes oriIn{ from{ opacity:0; transform:translateY(40px) scale(.6); } to{ opacity:1; transform:none; } }
 @keyframes oriPop{ from{ opacity:0; transform:scale(.6); } to{ opacity:1; transform:none; } }
 @keyframes oriBob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7px); } }
@@ -400,7 +423,7 @@ body[dir="rtl"] .ori-bubble{ border-radius:20px 20px 6px 20px; }
   <div class="wrap">
     <div class="hero-copy">
       <div class="ori-greet" id="oriGreet">
-        <button type="button" class="ori-btn" id="oriBtn" aria-label="ORİ">
+        <button type="button" class="ori-btn intro" id="oriBtn" aria-label="ORİ">
           <svg viewBox="0 0 300 340" aria-hidden="true" focusable="false">
             <defs>
               <radialGradient id="oriB" cx="36%" cy="28%" r="85%"><stop offset="0" stop-color="#FFC266"/><stop offset=".55" stop-color="#F39200"/><stop offset="1" stop-color="#C46F00"/></radialGradient>
@@ -410,20 +433,25 @@ body[dir="rtl"] .ori-bubble{ border-radius:20px 20px 6px 20px; }
             <ellipse class="ori-shadow" cx="150" cy="328" rx="76" ry="9" fill="#000" opacity=".28"/>
             <g class="ori-spark" fill="#FFC93C"><path d="M22 70 l7 16 l16 7 l-16 7 l-7 16 l-7 -16 l-16 -7 l16 -7 Z"/><path d="M276 40 l6 13 l13 6 l-13 6 l-6 13 l-6 -13 l-13 -6 l13 -6 Z"/><path d="M282 200 l5 11 l11 5 l-11 5 l-5 11 l-5 -11 l-11 -5 l11 -5 Z"/></g>
             <g class="ori-body">
+              <g class="rv-legs">
               <g fill="url(#oriN)"><rect x="106" y="258" width="32" height="54" rx="16"/><rect x="162" y="258" width="32" height="54" rx="16"/></g>
               <ellipse cx="116" cy="314" rx="28" ry="13" fill="#1F1F1F"/><ellipse cx="184" cy="314" rx="28" ry="13" fill="#1F1F1F"/>
               <ellipse cx="108" cy="309" rx="11" ry="3.5" fill="#fff" opacity=".3"/><ellipse cx="176" cy="309" rx="11" ry="3.5" fill="#fff" opacity=".3"/>
+              </g>
+              <g class="rv-flaps">
               <g class="ori-flapL"><path d="M84 70 L148 70 L134 30 L96 38 Z" fill="#FFC266" stroke="#FFC266" stroke-width="10" stroke-linejoin="round"/></g>
               <g class="ori-flapR"><path d="M152 70 L216 70 L206 36 L166 28 Z" fill="#FFC266" stroke="#FFC266" stroke-width="10" stroke-linejoin="round"/></g>
-              <g transform="rotate(18 62 196)"><rect x="46" y="186" width="32" height="64" rx="16" fill="#F39200"/><circle cx="62" cy="254" r="17" fill="#FFF3E2"/></g>
-              <g class="ori-wave"><rect x="222" y="186" width="32" height="64" rx="16" fill="#F39200"/><circle cx="238" cy="254" r="17" fill="#FFF3E2"/></g>
+              </g>
+              <g class="rv-arm rv-armL"><g transform="rotate(18 62 196)"><rect x="46" y="186" width="32" height="64" rx="16" fill="#F39200"/><circle cx="62" cy="254" r="17" fill="#FFF3E2"/></g></g>
+              <g class="rv-arm rv-armR"><g class="ori-wave"><rect x="222" y="186" width="32" height="64" rx="16" fill="#F39200"/><circle cx="238" cy="254" r="17" fill="#FFF3E2"/></g></g>
               <rect x="58" y="62" width="184" height="218" rx="56" fill="url(#oriB)"/>
-              <g clip-path="url(#oriClip)">
+              <g class="rv-band" clip-path="url(#oriClip)">
                 <rect x="58" y="224" width="184" height="32" fill="#FFE7C2"/>
                 <line x1="58" y1="228" x2="242" y2="228" stroke="#F2C48E" stroke-width="2" stroke-dasharray="6 5"/>
                 <line x1="58" y1="252" x2="242" y2="252" stroke="#F2C48E" stroke-width="2" stroke-dasharray="6 5"/>
                 <text x="150" y="246" text-anchor="middle" font-family="'Plus Jakarta Sans',system-ui,sans-serif" font-weight="800" font-size="17" letter-spacing="2" fill="#232323">ORİMAK</text>
               </g>
+              <g class="rv-face">
               <ellipse cx="98" cy="92" rx="26" ry="11" fill="#fff" opacity=".35" transform="rotate(-24 98 92)"/>
               <ellipse cx="88" cy="186" rx="13" ry="8" fill="#FF4F6B" opacity=".32"/><ellipse cx="212" cy="186" rx="13" ry="8" fill="#FF4F6B" opacity=".32"/>
               <g class="ori-open">
@@ -443,11 +471,122 @@ body[dir="rtl"] .ori-bubble{ border-radius:20px 20px 6px 20px; }
                 <path d="M118 178 Q150 230 182 178 Q150 188 118 178 Z" fill="#6E2A00"/>
                 <path d="M134 204 Q150 194 166 204 Q150 216 134 204 Z" fill="#FF6F7E"/>
               </g>
+              </g>
+            </g>
+            <g id="oriIntro">
+              <g id="oiBlank" opacity="0">
+                <g id="oiCapL"><polygon class="oi-p" points="75,166 30,166 25,171 25,231 30,236 75,236"/></g>
+                <g id="oiCapR"><polygon class="oi-p" points="225,166 270,166 275,171 275,231 270,236 225,236"/></g>
+                <rect class="oi-p" x="75" y="166" width="150" height="70"/>
+                <g id="oiFront"><rect class="oi-p" x="75" y="236" width="150" height="50"/>
+                  <g class="oi-fl" data-h="75"><polygon class="oi-p" points="75,238 45,238 40,243 40,279 45,284 75,284"/></g>
+                  <g class="oi-fl" data-h="225"><polygon class="oi-p" points="225,238 255,238 260,243 260,279 255,284 225,284"/></g></g>
+                <g id="oiBack"><rect class="oi-p" x="75" y="116" width="150" height="50"/>
+                  <g class="oi-fl" data-h="75"><polygon class="oi-p" points="75,118 45,118 40,123 40,159 45,164 75,164"/></g>
+                  <g class="oi-fl" data-h="225"><polygon class="oi-p" points="225,118 255,118 260,123 260,159 255,164 225,164"/></g></g>
+                <g id="oiTop"><rect class="oi-p" x="75" y="46" width="150" height="70"/></g>
+                <g id="oiOver"><polygon class="oi-p" points="75,46 75,8 81,2 219,2 225,8 225,46"/></g>
+                <path id="oiCrease" fill="none" stroke="#8A4E00" stroke-width="1.6" stroke-dasharray="5 4" stroke-opacity="0" d="M75 46H225M75 116H225M75 166H225M75 236H225M75 118V164M75 166V236M75 238V284M225 118V164M225 166V236M225 238V284"/>
+                <path id="oiCut" pathLength="1" fill="none" stroke="#FFB547" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 1" stroke-dashoffset="1" d="M81 2H219L225 8V118H255L260 123V159L255 164H225V166H270L275 171V231L270 236H225V238H255L260 243V279L255 284H225V286H75V284H45L40 279V243L45 238H75V236H30L25 231V171L30 166H75V164H45L40 159V123L45 118H75V8Z"/>
+                <g id="oiKnife" opacity="0"><circle r="16" fill="#FFC93C" opacity=".22"/><circle r="9" fill="#FFC93C" opacity=".45"/><circle r="4.5" fill="#fff"/></g>
+              </g>
+              <text id="oiLbl" x="292" y="150" opacity="0" font-family="'Plus Jakarta Sans',system-ui,sans-serif" font-weight="800" font-size="20" letter-spacing="3"><tspan x="292" font-size="15" opacity=".7">FEFCO</tspan><tspan x="292" dy="34" font-size="34" letter-spacing="1">0410</tspan></text>
+              <rect id="oiMorph" fill="url(#oriB)" opacity="0" x="75" y="192" width="150" height="70" rx="2"/>
             </g>
           </svg>
         </button>
         <div class="ori-bubble" data-i18n="idx_ori_hi">Merhaba, ben <b>ORİ</b>!<br>Hoş geldiniz.</div>
       </div>
+
+      <script>
+/* ORİ açılış: FEFCO 0410 açınımı kesilir, katlanır ve ORİ'ye dönüşür */
+(function(){
+  var btn=document.getElementById('oriBtn'), greet=document.getElementById('oriGreet'), I=document.getElementById('oriIntro');
+  if(!btn||!greet) return;
+  var svg=btn.querySelector('svg'), fin=false;
+  function done(){
+    if(fin) return; fin=true;
+    btn.classList.remove('intro'); btn.classList.add('ready'); greet.classList.add('ready');
+    if(svg) svg.style.transform='';
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ if(I&&I.parentNode) I.parentNode.removeChild(I); }); });
+  }
+  var calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(!I||calm||!window.requestAnimationFrame){ done(); return; }
+  function $(id){ return document.getElementById(id); }
+  var blank=$('oiBlank'), cut=$('oiCut'), crease=$('oiCrease'), knife=$('oiKnife'), lbl=$('oiLbl'), morph=$('oiMorph'),
+      gF=$('oiFront'), gB=$('oiBack'), gT=$('oiTop'), gO=$('oiOver'), gL=$('oiCapL'), gR=$('oiCapR'),
+      flaps=I.querySelectorAll('.oi-fl'), len=0;
+  try{ len=cut.getTotalLength(); }catch(e){}
+  /* her panele gölge katmanı: katlandıkça kararır */
+  function shade(g){
+    var out=[]; [].forEach.call(g.querySelectorAll('.oi-p'),function(p){
+      var c=p.cloneNode(false); c.setAttribute('class','oi-sh'); c.setAttribute('opacity','0'); p.parentNode.insertBefore(c,p.nextSibling); out.push(c); });
+    return out;
+  }
+  var SH={F:shade(gF),B:shade(gB),T:shade(gT),O:shade(gO),L:shade(gL),R:shade(gR)};
+  function setSh(a,v){ for(var i=0;i<a.length;i++) a[i].setAttribute('opacity',v.toFixed(3)); }
+  function face(g,outer){ var ps=g.querySelectorAll('.oi-p'); for(var i=0;i<ps.length;i++) ps[i].style.fill=outer?'url(#oriB)':''; }
+  function ty(g,A,k,B){ g.setAttribute('transform','translate(0 '+A+') scale(1 '+(Math.abs(k)<1e-4?(k<0?-1e-4:1e-4):k).toFixed(4)+') translate(0 '+(-B)+')'); }
+  function tx(g,A,k){ g.setAttribute('transform','translate('+A+' 0) scale('+Math.max(1e-4,k).toFixed(4)+' 1) translate('+(-A)+' 0)'); }
+  function cl(x){ return x<0?0:x>1?1:x; }
+  function io(x){ return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2; }
+  function oB(x){ var c1=1.5,c3=c1+1; return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2); }
+  function L(a,b,t){ return a+(b-a)*t; }
+  var H=Math.PI/2, t0=0, Z=window.innerWidth<560?1.3:1.5;
+  function frame(now){
+    if(fin) return;
+    if(!t0) t0=now;
+    var T=now-t0; function seg(a,b){ return cl((T-a)/(b-a)); }
+    /* 1) açınım belirir, bıçak keser */
+    var ap=io(seg(0,380)), sc=L(.86,1,ap);
+    blank.setAttribute('opacity',ap.toFixed(3));
+    var bt='translate(0 26) translate(150 144) scale('+sc.toFixed(4)+') translate(-150 -144)';
+    var pd=io(seg(120,1250));
+    cut.setAttribute('stroke-dashoffset',(1-pd).toFixed(4));
+    cut.setAttribute('stroke-opacity',(1-seg(1250,1450)).toFixed(3));
+    if(len){ var pt=cut.getPointAtLength(len*pd); knife.setAttribute('transform','translate('+pt.x.toFixed(2)+' '+pt.y.toFixed(2)+')'); }
+    knife.setAttribute('opacity',(seg(120,220)*(1-seg(1250,1400))).toFixed(3));
+    blank.style.fillOpacity=io(seg(350,1250)).toFixed(3);
+    blank.style.strokeOpacity=seg(1250,1450).toFixed(3);
+    crease.setAttribute('stroke-opacity',(seg(650,1100)*(1-seg(1250,1450))).toFixed(3));
+    lbl.setAttribute('opacity',(seg(200,550)*(1-seg(2500,2800))*.75).toFixed(3));
+    /* 2) ön/arka paneller kalkar, iç kanatlar içe döner */
+    var th=io(seg(1400,2000))*H, c=Math.cos(th);
+    ty(gF,236,c,236); ty(gB,166,c,166);
+    for(var i=0;i<flaps.length;i++) tx(flaps[i],+flaps[i].getAttribute('data-h'),Math.cos(Math.min(H,th*1.25)));
+    setSh(SH.F,(1-c)*.42); setSh(SH.B,(1-c)*.42);
+    /* 3) uç kapakları kapanır */
+    var al=io(seg(1950,2400))*H, ca=Math.cos(al);
+    tx(gL,75,ca); tx(gR,225,ca); setSh(SH.L,(1-ca)*.42); setSh(SH.R,(1-ca)*.42);
+    /* 4) kapak + bindirme paneli kapanır */
+    var ph=io(seg(2350,3000))*H, ps=io(seg(2520,3050))*H;
+    if(ph<=0&&ps<=0){
+      ty(gT,166,c,166); ty(gO,166,c,166); setSh(SH.T,(1-c)*.42); setSh(SH.O,(1-c)*.42); face(gT,0); face(gO,0);
+    }else{
+      var kT=-Math.sin(ph), E=166+70*Math.sin(ph), kO=-Math.sin(ph+ps);
+      ty(gT,166,kT,116); ty(gO,E,kO,46);
+      setSh(SH.T,(1-Math.abs(kT))*.42); setSh(SH.O,(1-Math.abs(kO))*.42);
+      face(gT,kT<0); face(gO,kO<0);
+    }
+    /* 5) kapalı kutu ORİ'ye dönüşür */
+    var mp=seg(3050,3550), me=oB(mp), zoom=Z;
+    if(T>=3050){
+      blank.setAttribute('opacity','0');
+      morph.setAttribute('opacity','1');
+      morph.setAttribute('x',L(75,58,me).toFixed(2)); morph.setAttribute('y',L(192,62,me).toFixed(2));
+      morph.setAttribute('width',Math.max(1,L(150,184,me)).toFixed(2)); morph.setAttribute('height',Math.max(1,L(70,218,me)).toFixed(2));
+      morph.setAttribute('rx',Math.max(0,L(2,56,me)).toFixed(2));
+    }else{ blank.setAttribute('transform',bt); }
+    if(svg) svg.style.transform='scale('+L(zoom,1,io(seg(3050,3550))).toFixed(4)+')';
+    if(T>=3550){ done(); return; }
+    requestAnimationFrame(frame);
+  }
+  if(svg) svg.style.transform='scale('+Z+')';
+  btn.addEventListener('click',function(){ if(!fin) done(); });
+  requestAnimationFrame(frame);
+  setTimeout(function(){ if(!fin&&!document.hidden&&!t0) done(); },1500);
+})();
+      </script>
       <div class="kicker" data-i18n="idx_sub">Koli üretim ve tasarım platformu</div>
       <h1 data-i18n="idx_hero_h1">Dijital Araçlar</h1>
       <p data-i18n="idx_hero_p"></p>
