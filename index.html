@@ -158,6 +158,7 @@ body[dir="rtl"] .lang{ padding:0 18px 0 38px; background-position:left 14px cent
   .hero-copy > :nth-child(2){ animation-delay:.08s; }
   .hero-copy > :nth-child(3){ animation-delay:.16s; }
   .hero-copy > :nth-child(4){ animation-delay:.24s; }
+  .hero-copy > :nth-child(5){ animation-delay:.32s; }
   .stage{ opacity:0; transform:translateY(14px) scale(.985); animation:settle 1.2s var(--ease) .1s forwards; }
   .tabs{ opacity:0; animation:fade .8s ease .7s forwards; }
 }
@@ -282,6 +283,56 @@ footer{ border-top:1px solid var(--line); }
 :root[data-theme="light"] .shot .o-shot-light{ display:block; }
 .o-theme{ width:44px; height:44px; border-color:var(--line-2); color:var(--text); }
 .o-theme:hover{ border-color:var(--text); color:var(--text); }
+
+/* ───────── ORİ KARŞILAMA ───────── */
+.ori-greet{ display:flex; align-items:flex-end; gap:14px; margin-bottom:26px; }
+.ori-btn{ appearance:none; border:0; background:none; padding:0; cursor:pointer; flex:none; width:136px; border-radius:16px; -webkit-tap-highlight-color:transparent; }
+.ori-btn svg{ display:block; width:100%; height:auto; overflow:visible; }
+.ori-bubble{
+  position:relative; margin-bottom:70px; padding:14px 20px; border-radius:20px 20px 20px 6px;
+  background:var(--text); color:var(--hero); font-weight:700; font-size:19px; line-height:1.3; max-width:30ch;
+  box-shadow:0 12px 30px rgba(0,0,0,.25);
+}
+.ori-bubble b{ color:#A85F00; font-weight:800; }
+:root[data-theme="light"] .ori-bubble b{ color:#F39200; }
+body[dir="rtl"] .ori-bubble{ border-radius:20px 20px 6px 20px; }
+.ori-shadow{ transform-box:fill-box; transform-origin:center; }
+.ori-wave{ transform-origin:238px 196px; transform:rotate(-140deg); }
+.ori-blink{ transform-origin:150px 146px; }
+.ori-eyes{ transition:transform .15s ease-out; }
+.ori-happy{ opacity:0; }
+.ori-btn.hop .ori-happy{ opacity:1; }
+.ori-btn.hop .ori-open{ opacity:0; }
+.ori-spark{ opacity:0; transform-box:fill-box; transform-origin:center; }
+@media (prefers-reduced-motion:no-preference){
+  .ori-btn{ animation:oriIn 1s cubic-bezier(.34,1.56,.64,1) .15s both; }
+  .ori-body{ animation:oriBob 2.8s ease-in-out 1.2s infinite; }
+  .ori-shadow{ animation:oriShadow 2.8s ease-in-out 1.2s infinite; }
+  .ori-wave{ animation:oriWave 9s ease-in-out .9s infinite; }
+  .ori-blink{ animation:oriBlink 4.8s 2s infinite; }
+  .ori-flapL{ transform-origin:84px 70px; animation:oriFlapL 9s ease-in-out .9s infinite; }
+  .ori-flapR{ transform-origin:216px 70px; animation:oriFlapR 9s ease-in-out .9s infinite; }
+  .ori-bubble{ animation:oriPop .6s cubic-bezier(.34,1.56,.64,1) .75s both; transform-origin:0% 100%; }
+  body[dir="rtl"] .ori-bubble{ transform-origin:100% 100%; }
+  .ori-btn.hop .ori-body{ animation:oriHop .9s cubic-bezier(.3,0,.3,1) 1; }
+  .ori-btn.hop .ori-spark{ animation:oriSpark .9s ease-out 1; }
+  .ori-btn:hover .ori-flapL{ animation-duration:1.4s; }
+  .ori-btn:hover .ori-flapR{ animation-duration:1.4s; }
+}
+@keyframes oriIn{ from{ opacity:0; transform:translateY(40px) scale(.6); } to{ opacity:1; transform:none; } }
+@keyframes oriPop{ from{ opacity:0; transform:scale(.6); } to{ opacity:1; transform:none; } }
+@keyframes oriBob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7px); } }
+@keyframes oriShadow{ 0%,100%{ transform:scaleX(1); opacity:.28; } 50%{ transform:scaleX(.84); opacity:.16; } }
+@keyframes oriWave{ 0%{ transform:rotate(-14deg); } 5%{ transform:rotate(-140deg); } 10%{ transform:rotate(-165deg); } 15%{ transform:rotate(-128deg); } 20%{ transform:rotate(-165deg); } 25%{ transform:rotate(-128deg); } 30%{ transform:rotate(-160deg); } 36%,100%{ transform:rotate(-14deg); } }
+@keyframes oriFlapL{ 0%{ transform:rotate(0deg); } 8%{ transform:rotate(-14deg); } 16%{ transform:rotate(-5deg); } 24%{ transform:rotate(-14deg); } 32%,100%{ transform:rotate(0deg); } }
+@keyframes oriFlapR{ 0%{ transform:rotate(0deg); } 8%{ transform:rotate(14deg); } 16%{ transform:rotate(5deg); } 24%{ transform:rotate(14deg); } 32%,100%{ transform:rotate(0deg); } }
+@keyframes oriBlink{ 0%,90%,100%{ transform:scaleY(1); } 93%{ transform:scaleY(.08); } 96%{ transform:scaleY(1); } }
+@keyframes oriHop{ 0%,100%{ transform:translateY(0) scaleY(1); } 15%{ transform:translateY(3px) scaleY(.93); } 45%{ transform:translateY(-30px) scaleY(1.04); } 75%{ transform:translateY(0) scaleY(.97); } }
+@keyframes oriSpark{ 0%{ opacity:0; transform:scale(.3); } 40%{ opacity:1; transform:scale(1.2) rotate(30deg); } 100%{ opacity:0; transform:scale(.8) rotate(60deg); } }
+@media (max-width:480px){
+  .ori-btn{ width:92px; }
+  .ori-bubble{ font-size:16px; margin-bottom:44px; padding:11px 16px; }
+}
 @media (prefers-reduced-motion:reduce){
   *, *::before, *::after{ animation:none !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
 }
@@ -348,6 +399,55 @@ footer{ border-top:1px solid var(--line); }
 <section class="hero">
   <div class="wrap">
     <div class="hero-copy">
+      <div class="ori-greet" id="oriGreet">
+        <button type="button" class="ori-btn" id="oriBtn" aria-label="ORİ">
+          <svg viewBox="0 0 300 340" aria-hidden="true" focusable="false">
+            <defs>
+              <radialGradient id="oriB" cx="36%" cy="28%" r="85%"><stop offset="0" stop-color="#FFC266"/><stop offset=".55" stop-color="#F39200"/><stop offset="1" stop-color="#C46F00"/></radialGradient>
+              <linearGradient id="oriN" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4A4A4A"/><stop offset="1" stop-color="#1F1F1F"/></linearGradient>
+              <clipPath id="oriClip"><rect x="58" y="62" width="184" height="218" rx="56"/></clipPath>
+            </defs>
+            <ellipse class="ori-shadow" cx="150" cy="328" rx="76" ry="9" fill="#000" opacity=".28"/>
+            <g class="ori-spark" fill="#FFC93C"><path d="M22 70 l7 16 l16 7 l-16 7 l-7 16 l-7 -16 l-16 -7 l16 -7 Z"/><path d="M276 40 l6 13 l13 6 l-13 6 l-6 13 l-6 -13 l-13 -6 l13 -6 Z"/><path d="M282 200 l5 11 l11 5 l-11 5 l-5 11 l-5 -11 l-11 -5 l11 -5 Z"/></g>
+            <g class="ori-body">
+              <g fill="url(#oriN)"><rect x="106" y="258" width="32" height="54" rx="16"/><rect x="162" y="258" width="32" height="54" rx="16"/></g>
+              <ellipse cx="116" cy="314" rx="28" ry="13" fill="#1F1F1F"/><ellipse cx="184" cy="314" rx="28" ry="13" fill="#1F1F1F"/>
+              <ellipse cx="108" cy="309" rx="11" ry="3.5" fill="#fff" opacity=".3"/><ellipse cx="176" cy="309" rx="11" ry="3.5" fill="#fff" opacity=".3"/>
+              <g class="ori-flapL"><path d="M84 70 L148 70 L134 30 L96 38 Z" fill="#FFC266" stroke="#FFC266" stroke-width="10" stroke-linejoin="round"/></g>
+              <g class="ori-flapR"><path d="M152 70 L216 70 L206 36 L166 28 Z" fill="#FFC266" stroke="#FFC266" stroke-width="10" stroke-linejoin="round"/></g>
+              <g transform="rotate(18 62 196)"><rect x="46" y="186" width="32" height="64" rx="16" fill="#F39200"/><circle cx="62" cy="254" r="17" fill="#FFF3E2"/></g>
+              <g class="ori-wave"><rect x="222" y="186" width="32" height="64" rx="16" fill="#F39200"/><circle cx="238" cy="254" r="17" fill="#FFF3E2"/></g>
+              <rect x="58" y="62" width="184" height="218" rx="56" fill="url(#oriB)"/>
+              <g clip-path="url(#oriClip)">
+                <rect x="58" y="224" width="184" height="32" fill="#FFE7C2"/>
+                <line x1="58" y1="228" x2="242" y2="228" stroke="#F2C48E" stroke-width="2" stroke-dasharray="6 5"/>
+                <line x1="58" y1="252" x2="242" y2="252" stroke="#F2C48E" stroke-width="2" stroke-dasharray="6 5"/>
+                <text x="150" y="246" text-anchor="middle" font-family="'Plus Jakarta Sans',system-ui,sans-serif" font-weight="800" font-size="17" letter-spacing="2" fill="#232323">ORİMAK</text>
+              </g>
+              <ellipse cx="98" cy="92" rx="26" ry="11" fill="#fff" opacity=".35" transform="rotate(-24 98 92)"/>
+              <ellipse cx="88" cy="186" rx="13" ry="8" fill="#FF4F6B" opacity=".32"/><ellipse cx="212" cy="186" rx="13" ry="8" fill="#FF4F6B" opacity=".32"/>
+              <g class="ori-open">
+                <g class="ori-blink">
+                  <ellipse cx="116" cy="146" rx="25" ry="29" fill="#fff"/><ellipse cx="184" cy="146" rx="25" ry="29" fill="#fff"/>
+                  <g class="ori-eyes" id="oriEyes">
+                    <circle cx="118" cy="150" r="15" fill="#1F1F1F"/><circle cx="186" cy="150" r="15" fill="#1F1F1F"/>
+                    <circle cx="124" cy="143" r="5.5" fill="#fff"/><circle cx="192" cy="143" r="5.5" fill="#fff"/>
+                    <circle cx="113" cy="157" r="2.6" fill="#fff"/><circle cx="181" cy="157" r="2.6" fill="#fff"/>
+                  </g>
+                </g>
+                <path d="M128 184 Q150 214 172 184 Q150 192 128 184 Z" fill="#6E2A00"/>
+                <path d="M140 199 Q150 192 160 199 Q150 207 140 199 Z" fill="#FF6F7E"/>
+              </g>
+              <g class="ori-happy">
+                <path d="M94 154 Q116 122 138 154 M162 154 Q184 122 206 154" fill="none" stroke="#1F1F1F" stroke-width="10" stroke-linecap="round"/>
+                <path d="M118 178 Q150 230 182 178 Q150 188 118 178 Z" fill="#6E2A00"/>
+                <path d="M134 204 Q150 194 166 204 Q150 216 134 204 Z" fill="#FF6F7E"/>
+              </g>
+            </g>
+          </svg>
+        </button>
+        <div class="ori-bubble" data-i18n="idx_ori_hi">Merhaba, ben <b>ORİ</b>!<br>Hoş geldiniz.</div>
+      </div>
       <div class="kicker" data-i18n="idx_sub">Koli üretim ve tasarım platformu</div>
       <h1 data-i18n="idx_hero_h1">Dijital Araçlar</h1>
       <p data-i18n="idx_hero_p"></p>
@@ -494,6 +594,7 @@ document.documentElement.classList.add('js');
 const I18N_DEFAULTS = {
  "tr": {
   "idx_hero_h1": "Dijital Araçlar",
+  "idx_ori_hi": "Merhaba, ben <b>ORİ</b>!<br>Hoş geldiniz.",
   "idx_sub": "Koli üretim ve tasarım platformu",
   "idx_hero_p": "Koli tasarımı, kesim reçeteleri, hat kapasitesi ve yükleme planı için kullandığımız araçlar tek yerde.",
   "idx_cta": "Araçlara git",
@@ -556,6 +657,7 @@ const I18N_DEFAULTS = {
  },
  "en": {
   "idx_hero_h1": "Digital Tools",
+  "idx_ori_hi": "Hi, I'm <b>ORİ</b>!<br>Welcome.",
   "idx_c9_title": "ORİTEQ Line Calculator",
   "idx_c9_desc": "Calculate line speed, filling conveyor length and required staff for a Q-BOX + BC410 Pro packing line from box size and contents. Bottleneck analysis and animated line layout.",
   "idx_c9_f1": "Line Speed",
@@ -618,6 +720,7 @@ const I18N_DEFAULTS = {
  },
  "de": {
   "idx_hero_h1": "Digitale Werkzeuge",
+  "idx_ori_hi": "Hallo, ich bin <b>ORİ</b>!<br>Willkommen.",
   "idx_c9_title": "ORİTEQ Linienrechner",
   "idx_c9_desc": "Berechnen Sie Liniengeschwindigkeit, Länge des Befüllförderers und Personalbedarf einer Q-BOX + BC410 Pro Verpackungslinie aus Kartonmaß und Inhalt. Engpassanalyse und animiertes Linienlayout.",
   "idx_c9_f1": "Liniengeschw.",
@@ -680,6 +783,7 @@ const I18N_DEFAULTS = {
  },
  "fr": {
   "idx_hero_h1": "Outils numériques",
+  "idx_ori_hi": "Bonjour, je suis <b>ORİ</b> !<br>Bienvenue.",
   "idx_c9_title": "Calculateur de ligne ORİTEQ",
   "idx_c9_desc": "Calculez la cadence, la longueur du convoyeur de remplissage et l'effectif d'une ligne Q-BOX + BC410 Pro selon les dimensions et le contenu du carton. Analyse du goulot et implantation animée.",
   "idx_c9_f1": "Cadence",
@@ -742,6 +846,7 @@ const I18N_DEFAULTS = {
  },
  "es": {
   "idx_hero_h1": "Herramientas digitales",
+  "idx_ori_hi": "¡Hola, soy <b>ORİ</b>!<br>Bienvenidos.",
   "idx_c9_title": "Calculadora de línea ORİTEQ",
   "idx_c9_desc": "Calcule la velocidad de línea, la longitud del transportador de llenado y el personal necesario para una línea Q-BOX + BC410 Pro según medidas y contenido de la caja. Análisis de cuello de botella y línea animada.",
   "idx_c9_f1": "Velocidad",
@@ -804,6 +909,7 @@ const I18N_DEFAULTS = {
  },
  "ar": {
   "idx_hero_h1": "الأدوات الرقمية",
+  "idx_ori_hi": "مرحبًا، أنا <b>ORİ</b>!<br>أهلًا وسهلًا بكم.",
   "idx_c9_title": "حاسبة خط ORİTEQ",
   "idx_c9_desc": "احسب سرعة الخط وطول ناقل التعبئة وعدد العمال اللازمين لخط تغليف Q-BOX + BC410 Pro حسب أبعاد الصندوق ومحتواه. تحليل نقطة الاختناق ومخطط خط متحرك.",
   "idx_c9_f1": "سرعة الخط",
@@ -923,6 +1029,7 @@ const I18N_LABELS = {
  "idx_c8_f2": "Yazıcı: Özellik 2",
  "idx_c8_f3": "Yazıcı: Özellik 3",
  "idx_hero_h1": "Giriş: Başlık",
+ "idx_ori_hi": "Giriş: ORİ karşılama balonu",
  "idx_cta": "Giriş: Düğme",
  "idx_tools_h": "Araçlar: Başlık",
  "idx_tools_p": "Araçlar: Açıklama"
@@ -1060,6 +1167,31 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeLangMgr(); })
     if(Math.abs(dx)>40 && Math.abs(dx)>Math.abs(dy)) go(i+(dx<0?1:-1), dx<0?1:-1); });
   st.addEventListener('pointercancel',()=>{ sx=null; });
   arm();
+})();
+</script>
+<script>
+/* ORİ karşılama: gözler imleci izler, tıklayınca sevinçten zıplar */
+(function(){
+  const btn=document.getElementById('oriBtn'), eyes=document.getElementById('oriEyes');
+  if(!btn||!eyes) return;
+  const calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let raf=0, px=0, py=0;
+  function look(){
+    raf=0;
+    const r=btn.getBoundingClientRect(); if(!r.width) return;
+    const cx=r.left+r.width*.5, cy=r.top+r.height*.43;
+    const dx=px-cx, dy=py-cy, d=Math.hypot(dx,dy)||1, k=Math.min(1,d/220);
+    eyes.style.transform='translate('+(dx/d*8*k).toFixed(2)+'px,'+(dy/d*7*k).toFixed(2)+'px)';
+  }
+  if(!calm){
+    window.addEventListener('pointermove',e=>{ px=e.clientX; py=e.clientY; if(!raf) raf=requestAnimationFrame(look); },{passive:true});
+    document.addEventListener('pointerleave',()=>{ eyes.style.transform=''; });
+  }
+  let hopT=0;
+  btn.addEventListener('click',()=>{
+    btn.classList.remove('hop'); void btn.offsetWidth; btn.classList.add('hop');
+    clearTimeout(hopT); hopT=setTimeout(()=>btn.classList.remove('hop'),950);
+  });
 })();
 </script>
 </body>
