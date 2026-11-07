@@ -802,6 +802,15 @@ html #orkGuide .ork-steps>li,html #orkGuide .ork-card{background:var(--o-panel2)
   .header>div[style*="width:1px"]{display:none!important}#appSubtitle{display:none}}
 .o-home:hover{border-color:var(--o-acc);color:var(--o-acc-tx)}
 :root[data-theme="light"] .header{background:var(--o-head)!important;border-bottom:2px solid var(--o-head-bar)!important}
+/* başlık sıkışması ve sekme taşması düzeltmesi */
+.header>div:has(#appTitle){min-width:0;flex:1 1 auto}
+#appTitle{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header>div[style*="margin-left:auto"]{flex:none}
+#appSubtitle{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:520px}
+@media (max-width:1100px){#appSubtitle{display:none}}
+@media (max-width:900px){.header>div:has(#appTitle),.header>div[style*="width:1px"]{display:none!important}}
+.tabs{overflow-x:auto;scrollbar-width:thin}
+.tab{white-space:nowrap;flex:0 0 auto}
 </style><!--/OK:css--></head>
 <body>
 
@@ -1281,18 +1290,7 @@ html #orkGuide .ork-steps>li,html #orkGuide .ork-card{background:var(--o-panel2)
 
 <!-- ========== TXT OLUŞTURUCU (QBOX.txt) PANEL ========== -->
 <div id="panel-txtolustur" class="panel">
-  <div class="card" style="padding:0;overflow:hidden;">
-    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:14px 16px;">
-      <div>
-        <div style="font-weight:700;">📝 QBOX.txt Oluşturucu</div>
-        <div style="font-size:12px;color:var(--text3);margin-top:2px;">Şablon seç → ölçüyü yaz → listeye ekle. .cudbox / Excel'den de aktarabilirsiniz — ayrı pencerede açmak için sağdaki butonu kullanın.</div>
-      </div>
-      <button onclick="openQboxInNewTab()" style="font-family:var(--sans);font-size:12px;font-weight:600;
-        padding:6px 12px;border-radius:6px;border:1px solid var(--border);
-        background:var(--surface2);color:var(--accent);cursor:pointer;">⧉ Yeni Sekmede Aç</button>
-    </div>
-    <iframe id="qboxFrame" style="width:100%;height:82vh;border:0;display:block;background:#0d1117;"></iframe>
-  </div>
+  <iframe id="qboxFrame" title="QBOX.txt Oluşturucu" scrolling="no" style="width:100%;height:900px;border:0;display:block;background:transparent;overflow:hidden;" allowtransparency="true"></iframe>
 </div>
 
 <!-- ========== DAT OLUŞTURUCU PANEL ========== -->
@@ -1988,19 +1986,150 @@ function b64ToUtf8(b64){
   for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
   return new TextDecoder('utf-8').decode(bytes);
 }
-function getQboxHtml(){
-  return b64ToUtf8(QBOX_HTML_B64);
+// --- ORİMAK teması: alt uygulamayı ana sayfanın renkleri, yazı tipi ve logosuyla giydir ---
+const QBOX_THEME_CSS = `
+.okt{color-scheme:dark}
+.okt[data-theme=light]{color-scheme:light}
+.okt{--bg:var(--o-page);--panel:var(--o-panel);--line:var(--o-line);--ink:var(--o-ink);--muted:var(--o-muted);--faint:var(--o-dim);
+  --blue:var(--o-acc);--amber:var(--o-acc);--amber-dim:var(--o-acc2);
+  --sans:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+.okt body{background:var(--o-page);color:var(--o-ink)}
+.okt body::before{display:none}
+.okt .card,.okt .tpl-strip,.okt .tbtn,.okt .modal-card{background:var(--o-panel)!important;box-shadow:var(--o-shadow)}
+.okt .card>.head{background:var(--o-panel2);border-radius:var(--r) var(--r) 0 0}
+.okt .head h2{color:var(--o-ink)}
+.okt input,.okt select,.okt textarea,.okt .k-add,.okt .icb,.okt .btn-sm,.okt .drop,.okt .tm-list,.okt .maprow .col,
+.okt .seg-tab,.okt .ptable input.pv-code,.okt .modal-x,.okt #qc_cfg{background-color:var(--o-page)!important}
+.okt .chip,.okt .job,.okt details.legend-box,.okt .ptable th,.okt .toast,.okt .btn-ghost,.okt .btn-tpl,.okt .btn-copy{background:var(--o-panel2)!important}
+.okt .chip .cx{background:var(--o-panel3)}
+.okt .preview{background:var(--o-page);color:var(--o-muted)}
+.okt .ptable td{color:var(--o-ink)}
+.okt .tm-item:hover{background:var(--o-tint2)}
+.okt .modal{background:var(--o-scrim)}
+.okt .tplpick{background:var(--o-acc-soft)}
+.okt .tag{color:var(--o-acc-tx);border-color:var(--o-acc2);background:var(--o-acc-soft)}
+.okt .job-idx{color:var(--o-page)}
+.okt .btn-primary{background:linear-gradient(135deg,#F39200,#DB8400);color:#1F1F1F;box-shadow:0 8px 22px rgba(243,146,0,.25)}
+.okt .btn-primary:hover{box-shadow:0 10px 28px rgba(243,146,0,.4)}
+.okt .tbtn:hover{border-color:var(--o-acc)}
+.okt[data-theme=light] .s0{color:#1E7A47}.okt[data-theme=light] .s1{color:#1F5FAD}.okt[data-theme=light] .s2{color:#B26800}
+.okt[data-theme=light] .s3{color:#7B3FB8}.okt[data-theme=light] .s4{color:#B3261E}.okt[data-theme=light] .s5{color:#232323}
+/* başlık + gerçek ORİMAK logosu */
+.okt header.okhead{background:var(--o-panel);border:1px solid var(--o-line);border-radius:var(--r);padding:12px 16px;
+  box-shadow:var(--o-shadow);gap:14px;margin-bottom:14px}
+.okt .okhead .logo{gap:14px;min-width:0}
+.okt .brand-logo{height:30px;width:auto;display:block;flex:none}
+.okt .brand-logo.lg-d{display:none}
+.okt[data-theme=light] .brand-logo.lg-l{display:none}
+.okt[data-theme=light] .brand-logo.lg-d{display:block}
+.okt .brand-sep{width:1px;height:34px;background:var(--o-line);flex:none}
+.okt .okhead .brand h1{font-size:16px;letter-spacing:0;font-weight:800;line-height:1.2}
+.okt .okhead .brand .sub{font-size:12px;letter-spacing:0;text-transform:none;margin-top:2px;color:var(--o-muted)}
+.okt .okhead .tag{margin-left:auto}
+.okt .newtab{padding:8px 12px;font-size:12.5px;flex:none}
+@media(max-width:640px){.okt .okhead .tag{display:none}.okt .brand-sep{display:none}}
+/* sayfaya gömülü mod: tek kaydırma, şeffaf zemin */
+.okemb,.okemb body{overflow:hidden!important;min-height:0!important;height:auto!important;background:transparent!important}
+.okemb body{position:relative}
+.okemb .wrap{max-width:none;padding:0 0 4px}
+.okemb .modal{position:absolute!important;inset:auto!important;left:0!important;right:0!important;
+  top:var(--vt,0px)!important;height:var(--vh,100vh)!important}
+.okemb .toast{position:absolute!important;bottom:auto!important;top:calc(var(--vt,0px) + var(--vh,100vh) - 76px)!important}
+`;
+function qboxThemeVars(){
+  const cs = getComputedStyle(document.documentElement);
+  const names = ['--o-page','--o-head','--o-panel','--o-panel2','--o-panel3','--o-line','--o-line2','--o-ink','--o-muted','--o-dim',
+    '--o-acc','--o-acc2','--o-acc-tx','--o-on-acc','--o-shadow','--o-scrim','--o-tint','--o-tint2','--o-acc-soft'];
+  return names.map(n => n + ':' + cs.getPropertyValue(n).trim()).join(';');
+}
+function qboxFontCss(){
+  let css = '';
+  try{
+    for (const sh of document.styleSheets){
+      let rules; try{ rules = sh.cssRules; }catch(e){ continue; }
+      for (const r of rules){ if (r.constructor && r.constructor.name === 'CSSFontFaceRule') css += r.cssText + '\n'; }
+    }
+  }catch(e){}
+  return css;
+}
+function getQboxHtml(embed){
+  let h = b64ToUtf8(QBOX_HTML_B64);
+  const lgL = document.querySelector('.o-logo-light'), lgD = document.querySelector('.o-logo-dark');
+  const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+  const head = '<header class="okhead">'
+    + '<div class="logo">'
+    + (lgL ? '<img class="brand-logo lg-l" src="' + lgL.src + '" alt="ORİMAK">' : '')
+    + (lgD ? '<img class="brand-logo lg-d" src="' + lgD.src + '" alt="ORİMAK">' : '')
+    + '<span class="brand-sep"></span>'
+    + '<div class="brand"><h1>QBOX.txt Oluşturucu</h1><div class="sub">Şablon seç → ölçüyü yaz → listeye ekle · .cudbox / Excel\'den aktar</div></div>'
+    + '</div>'
+    + '<div class="tag">QBOX.txt · FEFCO Kesim Formatı</div>'
+    + (embed ? '<button class="tbtn newtab" type="button" onclick="try{parent.openQboxInNewTab()}catch(e){}">⧉ Yeni Sekmede Aç</button>' : '')
+    + '</header>';
+  h = h.replace(/<header>[\s\S]*?<\/header>/, head);
+  h = h.replace('</head>', '<style>' + qboxFontCss() + QBOX_THEME_CSS + '</style></head>');
+  h = h.replace('<html lang="tr">', '<html lang="tr" class="okt' + (embed ? ' okemb' : '') + '" data-theme="' + theme + '" style="' + qboxThemeVars().replace(/"/g,'&quot;') + '">');
+  return h;
+}
+function qboxDoc(){
+  const f = document.getElementById('qboxFrame');
+  try{ return f && f.contentDocument; }catch(e){ return null; }
+}
+// Görünen alanı iç sayfaya bildir (açılır pencereler ve bildirimler ekranda kalsın)
+function qboxView(){
+  const f = document.getElementById('qboxFrame'), d = qboxDoc();
+  if (!f || !d || !d.documentElement) return;
+  const r = f.getBoundingClientRect();
+  if (!r.height) return;
+  const top = Math.max(0, -r.top);
+  const bottom = Math.min(r.height, window.innerHeight - r.top);
+  d.documentElement.style.setProperty('--vt', top + 'px');
+  d.documentElement.style.setProperty('--vh', Math.max(260, bottom - top) + 'px');
+}
+// İçeriğin boyuna göre çerçeveyi uzat → sayfada tek kaydırma
+function qboxFit(){
+  const f = document.getElementById('qboxFrame'), d = qboxDoc();
+  if (!f || !d || !d.body) return;
+  const w = d.querySelector('.wrap');
+  const h = Math.ceil(w ? w.getBoundingClientRect().bottom : d.documentElement.scrollHeight) + 2;
+  if (h > 50 && Math.abs(parseFloat(f.style.height) - h) > 1) f.style.height = h + 'px';
+  qboxView();
+}
+function qboxSyncTheme(){
+  const d = qboxDoc(); if (!d || !d.documentElement) return;
+  const root = d.documentElement;
+  root.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') || 'dark');
+  qboxThemeVars().split(';').forEach(kv => { const i = kv.indexOf(':'); if (i > 0) root.style.setProperty(kv.slice(0,i), kv.slice(i+1)); });
+}
+function qboxWire(){
+  const f = document.getElementById('qboxFrame'), d = qboxDoc();
+  if (!d || !d.body) return;
+  const w = d.querySelector('.wrap');
+  if (window.ResizeObserver && w) new ResizeObserver(qboxFit).observe(w);
+  // iç sayfadaki "yukarı kaydır" çağrıları ana sayfayı kaydırsın
+  try{
+    f.contentWindow.scrollTo = function(){
+      const r = f.getBoundingClientRect();
+      if (r.top < 0) window.scrollTo({ top: window.scrollY + r.top - 12, behavior: 'smooth' });
+    };
+  }catch(e){}
+  qboxSyncTheme();
+  qboxFit();
 }
 function ensureQboxFrame(){
-  if(qboxFrameLoaded) return;
+  if(qboxFrameLoaded){ qboxSyncTheme(); setTimeout(qboxFit, 0); return; }
   const frame = document.getElementById('qboxFrame');
   if(!frame) return;
-  const blob = new Blob([getQboxHtml()], {type:'text/html'});
+  frame.addEventListener('load', qboxWire);
+  const blob = new Blob([getQboxHtml(true)], {type:'text/html'});
   frame.src = URL.createObjectURL(blob);
   qboxFrameLoaded = true;
 }
+window.addEventListener('scroll', qboxView, {passive:true});
+window.addEventListener('resize', qboxFit);
+new MutationObserver(qboxSyncTheme).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
 function openQboxInNewTab(){
-  const blob = new Blob([getQboxHtml()], {type:'text/html'});
+  const blob = new Blob([getQboxHtml(false)], {type:'text/html'});
   const url = URL.createObjectURL(blob);
   window.open(url, '_blank');
 }
