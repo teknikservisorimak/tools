@@ -363,10 +363,12 @@ tr:hover td { background: var(--surface2); }
 .dsn-filebar-st:empty { display:none; }
 #varList { display:grid; grid-template-columns:1fr 1fr; gap:4px; }
 #varList .seg-item { padding:4px 5px; gap:3px !important; }
+#varList input[type=number] { -moz-appearance:textfield; padding:4px 5px !important; }
+#varList input[type=number]::-webkit-inner-spin-button, #varList input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
 /* ===== DESIGNER PANEL ===== */
 .designer-layout {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 320px 1fr;
   gap: 16px;
   align-items: start;
 }
@@ -2965,9 +2967,8 @@ function renderVarInputs() {
     div.className = 'seg-item';
     div.style.cssText = 'display:flex;align-items:center;gap:4px;';
     div.innerHTML = `
-      <input type="text" value="${v.name}" style="width:44px;font-family:var(--mono);font-size:12px;font-weight:600;padding:4px 6px;background:var(--surface2);border:1px solid var(--accent);color:var(--accent);border-radius:4px;"
+      <input type="text" value="${v.name}" style="width:38px;font-family:var(--mono);font-size:12px;font-weight:600;padding:4px 6px;background:var(--surface2);border:1px solid var(--accent);color:var(--accent);border-radius:4px;"
         oninput="updateVarName(${i},this.value)" title="Değişken adı" placeholder="ad">
-      <span style="font-size:11px;color:var(--text3);">=</span>
       <input type="number" step="any" value="${v.value}" style="flex:1;min-width:0;width:100%;padding:4px 6px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;font-family:var(--mono);font-size:12px;"
         oninput="updateVarValue(${i},this.value)" title="Değer (mm)">
       <button onclick="removeVariable(${i})" title="Değişkeni sil" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:0 4px;line-height:1;">×</button>
