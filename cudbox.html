@@ -354,6 +354,15 @@ tr:hover td { background: var(--surface2); }
 .dq-prev { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:11px 12px;
   font-family:var(--mono); font-size:12.5px; color:var(--accent); word-break:break-all; line-height:1.6; }
 
+.dsn-filebar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+.dsn-filebar label.btn { cursor:pointer; }
+.dsn-filebar input[type=text] { width:200px; font-family:var(--mono); font-size:12px; background:var(--bg);
+  border:1px solid var(--border); border-radius:4px; color:var(--text); padding:6px 9px; }
+.dsn-filebar input[type=text]:focus { outline:none; border-color:var(--accent); }
+.dsn-filebar-st { font-size:11px; color:var(--text3); }
+.dsn-filebar-st:empty { display:none; }
+#varList { display:grid; grid-template-columns:1fr 1fr; gap:4px; }
+#varList .seg-item { padding:4px 5px; gap:3px !important; }
 /* ===== DESIGNER PANEL ===== */
 .designer-layout {
   display: grid;
@@ -1741,25 +1750,21 @@ html #orkGuide .ork-steps>li,html #orkGuide .ork-card{background:var(--o-panel2)
 
   <!-- Step 2: Dimensions + Canvas -->
   <div id="designerWorkArea" style="display:none;">
+    <div class="dsn-filebar">
+      <label class="btn btn-sm" title="Başka bir .cudbox seçin — mevcut tasarımın yerine açılır">
+        📂 Kutu Aç
+        <input type="file" accept=".cudbox" style="display:none;" onchange="dsnOpenFromSidebar(this)">
+      </label>
+      <input type="text" id="dsnFileName" placeholder="Dosya adı" value="Yeni_Tasarim" title="Kaydedilecek dosya adı">
+      <button class="btn btn-sm btn-primary" onclick="saveDesignAsCudbox()" title="Tasarımı .cudbox olarak kaydet">💾 Kaydet</button>
+      <button class="btn btn-sm btn-primary" onclick="dsnQboxOpen()" title="QBOX.txt kesim satırı">📝 QBOX.txt</button>
+      <span id="dsnOpenStatus" class="dsn-filebar-st"></span>
+      <span id="dsnQboxStatus" class="dsn-filebar-st"></span>
+    </div>
     <div class="designer-layout">
 
       <!-- Sidebar -->
       <div class="designer-sidebar">
-
-        <div class="setup-step" style="border-color:var(--accent);">
-          <h4 style="color:var(--accent);">📁 Dosya</h4>
-          <label class="btn" style="width:100%;justify-content:center;cursor:pointer;margin-bottom:6px;" title="Başka bir .cudbox seçin — mevcut tasarımın yerine açılır">
-            📂 Kutu Aç (.cudbox)
-            <input type="file" accept=".cudbox" style="display:none;" onchange="dsnOpenFromSidebar(this)">
-          </label>
-          <div id="dsnOpenStatus" style="font-size:11px;color:var(--text3);margin-bottom:8px;">Açılan kutu mevcut tasarımın yerine geçer.</div>
-          <div class="designer-name-row" style="margin-bottom:8px;">
-            <input type="text" id="dsnFileName" placeholder="Dosya adı (ör: Kutum_001)" value="Yeni_Tasarim">
-            <button class="btn btn-primary" onclick="saveDesignAsCudbox()" title="Tasarımı .cudbox olarak kaydet">💾 Kaydet</button>
-          </div>
-          <button class="btn btn-primary" style="width:100%;" onclick="dsnQboxOpen()">📝 QBOX.txt Kesim Satırı</button>
-          <div id="dsnQboxStatus" style="margin-top:6px;font-size:11px;color:var(--text3);"></div>
-        </div>
 
         <div class="setup-step">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
@@ -2960,12 +2965,11 @@ function renderVarInputs() {
     div.className = 'seg-item';
     div.style.cssText = 'display:flex;align-items:center;gap:4px;';
     div.innerHTML = `
-      <input type="text" value="${v.name}" style="width:56px;font-family:var(--mono);font-size:12px;font-weight:600;padding:4px 6px;background:var(--surface2);border:1px solid var(--accent);color:var(--accent);border-radius:4px;"
+      <input type="text" value="${v.name}" style="width:44px;font-family:var(--mono);font-size:12px;font-weight:600;padding:4px 6px;background:var(--surface2);border:1px solid var(--accent);color:var(--accent);border-radius:4px;"
         oninput="updateVarName(${i},this.value)" title="Değişken adı" placeholder="ad">
       <span style="font-size:11px;color:var(--text3);">=</span>
-      <input type="number" step="any" value="${v.value}" style="flex:1;min-width:60px;padding:4px 6px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;font-family:var(--mono);font-size:12px;"
+      <input type="number" step="any" value="${v.value}" style="flex:1;min-width:0;width:100%;padding:4px 6px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;font-family:var(--mono);font-size:12px;"
         oninput="updateVarValue(${i},this.value)" title="Değer (mm)">
-      <span style="font-size:10px;color:var(--text3);">mm</span>
       <button onclick="removeVariable(${i})" title="Değişkeni sil" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:0 4px;line-height:1;">×</button>
     `;
     container.appendChild(div);
