@@ -3388,7 +3388,7 @@ function dsnPads(canvas) {
   ctx.restore();
   return {
     L: Math.round(yF + 16 + 40),          // pill + kılavuz çizgi + zincir
-    R: Math.round(yV + 16 + 40 + 64),     // pill + zincir + toplam ölçü
+    R: Math.round(yV + 16 + 40 + 48),     // pill + zincir + toplam ölçü
     T: 2 * 26 + 30,                        // 2 satır formül
     B: 2 * 26 + 30 + 46,                   // 2 satır ölçü + toplam genişlik
     yF, yV
@@ -3990,12 +3990,19 @@ function drawDesignerCanvas() {
   arrow(dimX, oy, -Math.PI / 2); arrow(dimX, oy + drawH, Math.PI / 2);
   ctx.restore();
   dsnPill(ctx, 'Genişlik ' + round2(totalXmm) + ' mm', ox + drawW / 2, dimY, ST_T, 'center');
-  // yükseklik etiketi: yatay yazı, ekrandan taşarsa içeri çek
+  // yükseklik etiketi: ölçü çizgisi boyunca dikey; yer yoksa yatay ve içeri çekilmiş
   ctx.font = ST_T.font;
   const hTxt = 'Yükseklik ' + round2(totalYmm) + ' mm';
   const hW = ctx.measureText(hTxt).width + 16;
-  const hx = Math.min(W - 6 - hW / 2, dimX);
-  dsnPill(ctx, hTxt, hx, oy + drawH / 2, ST_T, 'center');
+  if (drawH > hW + 30) {
+    ctx.save();
+    ctx.translate(dimX, oy + drawH / 2);
+    ctx.rotate(-Math.PI / 2);
+    dsnPill(ctx, hTxt, 0, 0, ST_T, 'center');
+    ctx.restore();
+  } else {
+    dsnPill(ctx, hTxt, Math.min(W - 6 - hW / 2, dimX), oy + drawH / 2, ST_T, 'center');
+  }
 
   // ── Hover bilgi kutusu ──
   if (dsnHover) {
