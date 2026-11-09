@@ -3936,7 +3936,8 @@ function drawDesignerCanvas() {
   // Dikey etiketleri ray yöntemiyle yerleştir (asla üst üste binmez, ekrandan taşmaz)
   const ySizes = ySegs.map(() => DSN_PILL_H);
   const yWant = ySegs.map((_, i) => ({ want: (py(i) + py(i+1)) / 2 }));
-  const yPosL = dsnRail(yWant, ySizes, 4, 6, H - 6);
+  // Sınırlar: üst/alt ölçü satırlarına girmeden kutu hizasında kal
+  const yPosL = dsnRail(yWant, ySizes, 4, Math.max(6, oy - 4 - DSN_PILL_H / 2), Math.min(H - 6, oy + drawH + 4 + DSN_PILL_H / 2));
 
   // ── SOL: Y formülleri ──
   const leftChainX = ox - GAP_CH;
