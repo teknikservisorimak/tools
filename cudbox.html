@@ -1746,6 +1746,21 @@ html #orkGuide .ork-steps>li,html #orkGuide .ork-card{background:var(--o-panel2)
       <!-- Sidebar -->
       <div class="designer-sidebar">
 
+        <div class="setup-step" style="border-color:var(--accent);">
+          <h4 style="color:var(--accent);">📁 Dosya</h4>
+          <label class="btn" style="width:100%;justify-content:center;cursor:pointer;margin-bottom:6px;" title="Başka bir .cudbox seçin — mevcut tasarımın yerine açılır">
+            📂 Kutu Aç (.cudbox)
+            <input type="file" accept=".cudbox" style="display:none;" onchange="dsnOpenFromSidebar(this)">
+          </label>
+          <div id="dsnOpenStatus" style="font-size:11px;color:var(--text3);margin-bottom:8px;">Açılan kutu mevcut tasarımın yerine geçer.</div>
+          <div class="designer-name-row" style="margin-bottom:8px;">
+            <input type="text" id="dsnFileName" placeholder="Dosya adı (ör: Kutum_001)" value="Yeni_Tasarim">
+            <button class="btn btn-primary" onclick="saveDesignAsCudbox()" title="Tasarımı .cudbox olarak kaydet">💾 Kaydet</button>
+          </div>
+          <button class="btn btn-primary" style="width:100%;" onclick="dsnQboxOpen()">📝 QBOX.txt Kesim Satırı</button>
+          <div id="dsnQboxStatus" style="margin-top:6px;font-size:11px;color:var(--text3);"></div>
+        </div>
+
         <div class="setup-step">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
             <h4 style="margin-bottom:0;">🔢 Değişkenler</h4>
@@ -1780,25 +1795,6 @@ html #orkGuide .ork-steps>li,html #orkGuide .ork-card{background:var(--o-panel2)
         </div>
 
 
-
-        <div class="setup-step" style="border-color:var(--accent);">
-          <h4 style="color:var(--accent);">📝 QBOX.txt Kesim Satırı</h4>
-          <p style="font-size:12px; color:var(--text2); margin-bottom:10px;">
-            Bu tasarımı kesim listesine satır olarak ekleyin veya tek satırlık TXT indirin.
-            Ölçüler değişkenlerden (H, B, L, T) otomatik alınır.
-          </p>
-          <button class="btn btn-primary" style="width:100%;" onclick="dsnQboxOpen()">📝 TXT Seçeneklerini Aç</button>
-          <div id="dsnQboxStatus" style="margin-top:8px;font-size:11px;color:var(--text3);"></div>
-        </div>
-
-        <div class="setup-step">
-          <h4>💾 Kaydet</h4>
-          <p style="font-size:12px; color:var(--text2); margin-bottom:8px;">Tasarımı .cudbox dosyası olarak kaydedin.</p>
-          <div class="designer-name-row">
-            <input type="text" id="dsnFileName" placeholder="Dosya adı (ör: Kutum_001)" value="Yeni_Tasarim">
-            <button class="btn btn-primary" onclick="saveDesignAsCudbox()">💾 .cudbox Kaydet</button>
-          </div>
-        </div>
 
         <div class="setup-step" style="border-color:var(--border-hi);">
           <h4>↩ Yeniden Başla</h4>
@@ -3226,6 +3222,29 @@ function resetDesigner() {
   dsnState.vars = []; dsnState.meta = {};
   const canvas = document.getElementById('designerCanvas');
   canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+}
+
+// ── Tasarımcı içinden başka .cudbox aç (mevcut tasarımın yerine) ─────────────
+function dsnOpenFromSidebar(input) {
+  const file = input && input.files && input.files[0];
+  if (!file) return;
+  const st = document.getElementById('dsnOpenStatus');
+  st.style.color = 'var(--text3)';
+  st.textContent = '⏳ Okunuyor...';
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      dsnHover = null;
+      parseCudboxIntoState(e.target.result, file.name);
+      st.style.color = 'var(--green)';
+      st.textContent = '✅ Açıldı: ' + file.name;
+    } catch (err) {
+      st.style.color = 'var(--red)';
+      st.textContent = '❌ Açılamadı: ' + err.message + ' — mevcut tasarım korunuyor.';
+    }
+    input.value = ''; // aynı dosya tekrar seçilebilsin
+  };
+  reader.readAsText(file);
 }
 
 // ── Mevcut .cudbox dosyasını tasarımcıya yükle ──────────────────────────────
