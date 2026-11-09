@@ -1144,7 +1144,12 @@ html #orkGuide .ork-steps>li,html #orkGuide .ork-card{background:var(--o-panel2)
 .side-dar .side .tab-add-btn{width:26px!important;padding-left:6px!important;border-style:dashed!important;}
 .side-dar .nv-ad,.side-dar .nv-cnt,.side-dar .side .tab-dyn-del{display:none;}
 .side-dar .nv-kod{min-width:0;font-size:11px;padding:1px 4px;}
+.app-shell.side-peek{grid-template-columns:70px minmax(0,1fr);}
+.side-dar .side{width:70px;}
+.side-peek .side{width:248px;z-index:60;box-shadow:0 18px 50px rgba(0,0,0,.45);}
+@media(min-width:901px){ .side{transition:width .2s ease, box-shadow .2s ease;} }
 @media(max-width:900px){ .side-col-btn{display:none;} .app-shell.side-dar{grid-template-columns:1fr;} }
+@media(max-width:900px){ .app-shell.side-peek{grid-template-columns:1fr;} .side-dar .side,.side-peek .side{width:auto;} }
 </style><!--/OK:css--></head>
 <body>
 
@@ -3303,15 +3308,47 @@ function navSayilari(){
     el.textContent=n||''; el.classList.toggle('on',n>0);
   });
 }
-// Sol menüyü daralt (tabloya daha çok yer) — tarayıcıda hatırlanır
-const SIDE_KEY='orimak_fefco_side_dar';
+// Sol menü: varsayılan OTOMATİK — dar durur, fare gelince genişler,
+// fare çıkınca / başka yere tıklanınca kısa süre sonra kapanır. 📌 ile açık sabitlenebilir.
+const SIDE_KEY='orimak_fefco_side_mod';
+let sideOto=true, sideTmr=null;
+const sideMob=()=>window.matchMedia('(max-width:900px)').matches;
+function sideBtnGuncelle(){
+  const b=document.querySelector('.side-col-btn'); if(!b) return;
+  b.textContent=sideOto?'📌':'«';
+  b.title=sideOto?'Menüyü açık sabitle':'Otomatik daralt (fare gelince açılsın)';
+}
 function sideDaralt(force){
   const sh=document.querySelector('.app-shell'); if(!sh) return;
-  const dar=typeof force==='boolean'?force:!sh.classList.contains('side-dar');
-  sh.classList.toggle('side-dar',dar);
-  const b=document.querySelector('.side-col-btn'); if(b) b.textContent=dar?'»':'«';
-  try{ localStorage.setItem(SIDE_KEY,dar?'1':'0'); }catch(e){}
+  sideOto=typeof force==='boolean'?force:!sideOto;
+  clearTimeout(sideTmr);
+  sh.classList.remove('side-peek');
+  sh.classList.toggle('side-dar',sideOto&&!sideMob());
+  sideBtnGuncelle();
+  try{ localStorage.setItem(SIDE_KEY,sideOto?'oto':'sabit'); }catch(e){}
 }
+function sideAc(){
+  if(!sideOto||sideMob()) return;
+  const sh=document.querySelector('.app-shell'); if(!sh) return;
+  clearTimeout(sideTmr);
+  sh.classList.add('side-peek'); sh.classList.remove('side-dar');
+}
+function sideKapat(gecikme){
+  if(!sideOto||sideMob()) return;
+  const sh=document.querySelector('.app-shell'); if(!sh) return;
+  clearTimeout(sideTmr);
+  sideTmr=setTimeout(()=>{ sh.classList.remove('side-peek'); sh.classList.add('side-dar'); },gecikme||0);
+}
+(function sideOtoBagla(){
+  const kur=()=>{
+    const sd=document.getElementById('sideNav'); if(!sd||sd._oto) return; sd._oto=true;
+    sd.addEventListener('mouseenter',sideAc);
+    sd.addEventListener('mouseleave',()=>sideKapat(350));
+    document.addEventListener('pointerdown',e=>{ if(!e.target.closest('#sideNav')) sideKapat(0); });
+    window.matchMedia('(max-width:900px)').addEventListener('change',()=>sideDaralt(sideOto));
+  };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',kur); else kur();
+})();
 // Dosya açılır menüsü
 function ddToggle(id,e){
   if(e) e.stopPropagation();
@@ -3737,7 +3774,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   // --- Formüller: KİŞİSEL > STANDART (fefco_formuller.json) — tarayıcıdaki eski formüller standardı ezemez ---
   formulKaynaklariniUygula();
   try{ ayarToggle(localStorage.getItem(AYAR_KEY)==='1'); }catch(e){}
-  try{ if(localStorage.getItem(SIDE_KEY)==='1') sideDaralt(true); }catch(e){}
+  { let m='oto'; try{ m=localStorage.getItem(SIDE_KEY)||'oto'; }catch(e){} sideDaralt(m!=='sabit'); }
   { const i9=document.getElementById('izin90'); if(i9) i9.addEventListener('change',ayarOzet); }
   if(yoneticiMi()){ const b=document.getElementById('stdFormulBtn'); if(b) b.style.display=''; }
   // Sunucudaki en güncel standart dosyayı arka planda çek; farklıysa tabloyu yeniden hesapla
