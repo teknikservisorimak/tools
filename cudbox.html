@@ -429,6 +429,8 @@ tr:hover td { background: var(--surface2); }
 .ltype-btn.active-perf { background: var(--green-bg); border-color: var(--green); color: var(--green); }
 
 .canvas-wrap {
+  position: sticky;
+  top: 12px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -1822,10 +1824,10 @@ html #orkGuide .ork-steps>li,html #orkGuide .ork-card{background:var(--o-panel2)
             <button id="fsBtn" onclick="toggleDesignerFullscreen()" title="Tam ekran (ESC ile çık)" style="font-size:12px;font-weight:700;padding:3px 9px;border-radius:4px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent);cursor:pointer;">⛶ Tam Ekran</button>
             <span style="width:1px;height:18px;background:var(--border-hi);"></span>
             <span style="font-size:11px;color:var(--text3);">Mod:</span>
-            <button id="modeBtn-Cut"    onclick="setDrawMode('Cut')"    style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;border:2px solid #e5484d;background:#e5484d22;color:#e5484d;cursor:pointer;">✂ Kes</button>
-            <button id="modeBtn-Crease" onclick="setDrawMode('Crease')" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;border:2px solid #46a6de;background:#46a6de22;color:#46a6de;cursor:pointer;">〜 Kat</button>
-            <button id="modeBtn-Split"  onclick="setDrawMode('Split')"  title="Split — ayırma / yarma çizgisi" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;border:2px solid #f0a020;background:#f0a02022;color:#f0a020;cursor:pointer;">⌇ Ayır</button>
-            <button id="modeBtn-None"   onclick="setDrawMode('None')"   style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;border:2px solid #4a5260;background:#4a526022;color:#9aa0ab;cursor:pointer;">✕ Yok</button>
+            <button id="modeBtn-Cut"    onclick="setDrawMode('Cut')"    style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;border:2px solid #e5383b;background:#e5383b22;color:#e5383b;cursor:pointer;">✂ Kes</button>
+            <button id="modeBtn-Crease" onclick="setDrawMode('Crease')" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;border:2px solid #2f81f7;background:#2f81f722;color:#2f81f7;cursor:pointer;">〜 Kat</button>
+            <button id="modeBtn-Split"  onclick="setDrawMode('Split')"  title="Split — ayırma / yarma çizgisi" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;border:2px solid #f08c00;background:#f08c0022;color:#f08c00;cursor:pointer;">⌇ Ayır</button>
+            <button id="modeBtn-None"   onclick="setDrawMode('None')"   style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;border:2px solid #8b8f98;background:#8b8f9822;color:#9aa0ab;cursor:pointer;">✕ Yok</button>
           </div>
         </div>
         <canvas id="designerCanvas" height="640" style="cursor:crosshair;display:block;"></canvas>
@@ -3008,7 +3010,7 @@ function setDrawMode(mode) {
   ['Cut','Crease','Split','None'].forEach(m => {
     const btn = document.getElementById('modeBtn-' + m);
     if (!btn) return;
-    const colors = { Cut: '#e5484d', Crease: '#46a6de', Split: '#f0a020', None: '#4a5260' };
+    const colors = { Cut: '#e5383b', Crease: '#2f81f7', Split: '#f08c00', None: '#8b8f98' };
     const c = colors[m];
     if (m === mode) {
       btn.style.boxShadow = `0 0 0 2px ${c}`;
@@ -3364,20 +3366,50 @@ let dsnZoom = 1;
 let dsnPanX = 0, dsnPanY = 0;
 let dsnPanning = false, dsnPanStart = null;
 
+// ── Ölçü etiketi yardımcıları (kenar boşlukları etiket genişliğine göre) ──
+const DSN_FONT_F = '600 12px "DM Mono", monospace';
+const DSN_FONT_V = '500 12px "DM Mono", monospace';
+const DSN_PILL_H = 22;
+function dsnLbl(seg) { return ((seg.formula || seg.name || '') + '').trim() || seg.name || ''; }
+function dsnShort(t, max) { t = String(t || ''); return t.length > max ? t.slice(0, max - 1) + '…' : t; }
+function dsnMM(v) { return (Math.round(v * 100) / 100) + ' mm'; }
+function dsnCssSize(canvas) {
+  return { W: canvas._cssW || canvas.width, H: canvas._cssH || canvas.height };
+}
+function dsnPads(canvas) {
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.font = DSN_FONT_F;
+  let yF = 0;
+  dsnState.ySegs.forEach(s => { yF = Math.max(yF, ctx.measureText(dsnShort(dsnLbl(s), 24)).width); });
+  ctx.font = DSN_FONT_V;
+  let yV = 0;
+  dsnState.ySegs.forEach(s => { yV = Math.max(yV, ctx.measureText(dsnMM(s.len)).width); });
+  ctx.restore();
+  return {
+    L: Math.round(yF + 16 + 40),          // pill + kılavuz çizgi + zincir
+    R: Math.round(yV + 16 + 40 + 64),     // pill + zincir + toplam ölçü
+    T: 2 * 26 + 30,                        // 2 satır formül
+    B: 2 * 26 + 30 + 46,                   // 2 satır ölçü + toplam genişlik
+    yF, yV
+  };
+}
+
 function dsnGeom(canvas) {
   const xSegs = dsnState.xSegs, ySegs = dsnState.ySegs;
   const totalXmm = xSegs.reduce((s, seg) => s + seg.len, 0);
   const totalYmm = ySegs.reduce((s, seg) => s + seg.len, 0);
   if (totalXmm === 0 || totalYmm === 0) return null;
-  const W = canvas.width, H = canvas.height;
-  const PAD = 84;
-  const baseScale = Math.min((W - PAD * 2) / totalXmm, (H - PAD * 2) / totalYmm);
+  const { W, H } = dsnCssSize(canvas);
+  const P = dsnPads(canvas);
+  const availW = Math.max(60, W - P.L - P.R), availH = Math.max(60, H - P.T - P.B);
+  const baseScale = Math.min(availW / totalXmm, availH / totalYmm);
   const scale = baseScale * dsnZoom;
   const drawW = totalXmm * scale, drawH = totalYmm * scale;
-  const ox = (W - drawW) / 2 + dsnPanX, oy = (H - drawH) / 2 + dsnPanY;
+  const ox = P.L + (availW - drawW) / 2 + dsnPanX, oy = P.T + (availH - drawH) / 2 + dsnPanY;
   const xPos = [0]; xSegs.forEach(s => xPos.push(xPos[xPos.length-1] + s.len));
   const yPos = [0]; ySegs.forEach(s => yPos.push(yPos[yPos.length-1] + s.len));
-  return { totalXmm, totalYmm, scale, drawW, drawH, ox, oy, xPos, yPos,
+  return { totalXmm, totalYmm, scale, drawW, drawH, ox, oy, xPos, yPos, pads: P, W, H,
            px: i => ox + xPos[i] * scale, py: i => oy + yPos[i] * scale };
 }
 
@@ -3389,21 +3421,17 @@ function updateZoomLabel() {
 
 // Kaydırmayı sınırla: çizimin en az 100px'i her zaman görünür kalsın
 function clampPan(canvas) {
-  const xSegs = dsnState.xSegs, ySegs = dsnState.ySegs;
-  const totalXmm = xSegs.reduce((s, seg) => s + seg.len, 0);
-  const totalYmm = ySegs.reduce((s, seg) => s + seg.len, 0);
-  if (totalXmm === 0 || totalYmm === 0) return;
-  const W = canvas.width, H = canvas.height;
-  const PAD = 84;
-  const baseScale = Math.min((W - PAD * 2) / totalXmm, (H - PAD * 2) / totalYmm);
-  const scale = baseScale * dsnZoom;
-  const drawW = totalXmm * scale, drawH = totalYmm * scale;
+  const px0 = dsnPanX, py0 = dsnPanY;
+  dsnPanX = 0; dsnPanY = 0;
+  const g = dsnGeom(canvas);
+  dsnPanX = px0; dsnPanY = py0;
+  if (!g) return;
   const MARGIN = 100;
-  // ox = (W-drawW)/2 + panX; görünürlük: ox < W-MARGIN && ox+drawW > MARGIN
-  const minPX = MARGIN - (W - drawW) / 2 - drawW;
-  const maxPX = W - MARGIN - (W - drawW) / 2;
-  const minPY = MARGIN - (H - drawH) / 2 - drawH;
-  const maxPY = H - MARGIN - (H - drawH) / 2;
+  // panX=0 iken çizim g.ox..g.ox+drawW; en az 100px görünür kalsın
+  const minPX = MARGIN - g.ox - g.drawW;
+  const maxPX = g.W - MARGIN - g.ox;
+  const minPY = MARGIN - g.oy - g.drawH;
+  const maxPY = g.H - MARGIN - g.oy;
   dsnPanX = Math.max(minPX, Math.min(maxPX, dsnPanX));
   dsnPanY = Math.max(minPY, Math.min(maxPY, dsnPanY));
 }
@@ -3415,8 +3443,8 @@ function applyZoom(newZoom, cx, cy) {
   newZoom = Math.max(0.3, Math.min(8, newZoom));
   if (!gOld) { dsnZoom = newZoom; updateZoomLabel(); drawDesignerCanvas(); return; }
 
-  const mx = cx !== undefined ? cx : canvas.width / 2;
-  const my = cy !== undefined ? cy : canvas.height / 2;
+  const mx = cx !== undefined ? cx : dsnCssSize(canvas).W / 2;
+  const my = cy !== undefined ? cy : dsnCssSize(canvas).H / 2;
   const worldX = (mx - gOld.ox) / gOld.scale;
   const worldY = (my - gOld.oy) / gOld.scale;
 
@@ -3592,8 +3620,9 @@ function dsnMouseXY(e) {
   const rect = canvas.getBoundingClientRect();
   const cx = e.touches ? e.touches[0].clientX : e.clientX;
   const cy = e.touches ? e.touches[0].clientY : e.clientY;
-  return [(cx - rect.left) * (canvas.width / rect.width),
-          (cy - rect.top) * (canvas.height / rect.height)];
+  const cs = dsnCssSize(canvas);
+  return [(cx - rect.left) * (cs.W / rect.width),
+          (cy - rect.top) * (cs.H / rect.height)];
 }
 
 function dsnPaintAt(mx, my) {
@@ -3675,22 +3704,90 @@ function bindDesignerCanvas() {
   updateZoomLabel();
 }
 
+// ── Tasarımcı paleti: açık kraft "kalıp çıktısı" üzerinde net çizgiler ──
+const DSN_PAL = {
+  Cut:    '#e5383b',
+  Crease: '#2f81f7',
+  Split:  '#f08c00',
+  None:   '#b9a988'
+};
+const DSN_TYPE_TR = { Cut: 'Kesim', Crease: 'Kat', Split: 'Ayır', None: 'Yok' };
+
+function dsnRoundRect(ctx, x, y, w, h, r) {
+  r = Math.min(r, h / 2, w / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+// Etiket kutusu (pill). align: 'center' | 'left' | 'right' — x'in anlamı
+function dsnPill(ctx, text, x, cy, style, align) {
+  ctx.font = style.font;
+  const tw = ctx.measureText(text).width;
+  const w = tw + 16, h = DSN_PILL_H;
+  let x0 = align === 'left' ? x : align === 'right' ? x - w : x - w / 2;
+  dsnRoundRect(ctx, x0, cy - h / 2, w, h, 6);
+  ctx.fillStyle = style.bg; ctx.fill();
+  ctx.lineWidth = 1; ctx.strokeStyle = style.border; ctx.stroke();
+  ctx.fillStyle = style.fg;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(text, x0 + w / 2, cy + 0.5);
+  return { x0, x1: x0 + w, w };
+}
+
+// 1B etiket yerleşimi: çakışanları iterek sırala (ray yöntemi)
+function dsnRail(items, size, gap, lo, hi) {
+  // items: [{want}] sıralı; dönüş: her biri için pos (merkez)
+  const n = items.length;
+  const pos = items.map(it => it.want);
+  for (let i = 0; i < n; i++) {
+    const min = i === 0 ? lo + size[i] / 2 : pos[i-1] + size[i-1] / 2 + gap + size[i] / 2;
+    if (pos[i] < min) pos[i] = min;
+  }
+  for (let i = n - 1; i >= 0; i--) {
+    const max = i === n - 1 ? hi - size[i] / 2 : pos[i+1] - size[i+1] / 2 - gap - size[i] / 2;
+    if (pos[i] > max) pos[i] = max;
+  }
+  return pos;
+}
+
 function drawDesignerCanvas() {
   const canvas = document.getElementById('designerCanvas');
   const container = canvas.parentElement;
   const W = container.clientWidth || 700;
-  canvas.width = W;
 
-  // Yükseklik: tam ekranda görünür alanı doldur, normalde 640px
+  // Yükseklik: tam ekranda kalan alanın tamamı, normalde ekrana göre (560–900px)
+  let H;
   if (dsnFullscreen) {
-    const h = canvas.clientHeight || (window.innerHeight - 100);
-    if (h > 50) canvas.height = h;
-  } else if (canvas.height !== 640) {
-    canvas.height = 640;
+    const tb = container.querySelector('.canvas-toolbar');
+    const info = document.getElementById('canvasInfo');
+    H = window.innerHeight - (tb ? tb.offsetHeight : 0) - (info ? info.offsetHeight : 0);
+  } else {
+    H = Math.max(560, Math.min(900, window.innerHeight - 170));
   }
+  H = Math.max(300, Math.round(H));
+
+  const dpr = Math.min(3, window.devicePixelRatio || 1);
+  canvas._cssW = W; canvas._cssH = H;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
 
   const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, W, canvas.height);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  // ── Zemin: koyu çalışma masası + hafif nokta ızgara ──
+  ctx.fillStyle = '#101317';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(255,255,255,0.05)';
+  for (let gx = 10; gx < W; gx += 20)
+    for (let gy = 10; gy < H; gy += 20) ctx.fillRect(gx, gy, 1, 1);
 
   const xSegs = dsnState.xSegs;
   const ySegs = dsnState.ySegs;
@@ -3700,29 +3797,29 @@ function drawDesignerCanvas() {
   const g = dsnGeom(canvas);
   if (!g) return;
   const { totalXmm, totalYmm, drawW, drawH, ox, oy, px, py } = g;
+  const round2 = v => Math.round(v * 100) / 100;
 
-  // ── Palet: net ama yumuşak ──
-  const COLORS = { Cut: '#e5484d', Crease: '#46a6de', None: '#3d4454', Split: '#f0a020' };
-  const DASH   = { Cut: [], Crease: [9, 6], None: [3, 6], Split: [14, 5, 3, 5] };
-  const LW     = { Cut: 2.75, Crease: 2, None: 1, Split: 2.75 };
-
-  // ── Karton zemin (hafif kraft tonu + yumuşak gölge) ──
+  // ── Karton: açık kraft, paneller hafif farklı tonda (okunurluk) ──
   ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.35)';
-  ctx.shadowBlur = 16;
-  ctx.shadowOffsetY = 4;
-  const grad = ctx.createLinearGradient(ox, oy, ox + drawW, oy + drawH);
-  grad.addColorStop(0, 'rgba(247,168,0,0.07)');
-  grad.addColorStop(1, 'rgba(210,150,60,0.03)');
-  ctx.fillStyle = grad;
+  ctx.shadowColor = 'rgba(0,0,0,0.55)';
+  ctx.shadowBlur = 22;
+  ctx.shadowOffsetY = 6;
+  ctx.fillStyle = '#ecdfc4';
   ctx.fillRect(ox, oy, drawW, drawH);
   ctx.restore();
+  for (let xi = 0; xi < xSegs.length; xi++) {
+    for (let yi = 0; yi < ySegs.length; yi++) {
+      const shade = (xi + yi) % 2 === 0 ? '#efe4cc' : '#e6d6b6';
+      ctx.fillStyle = shade;
+      ctx.fillRect(px(xi), py(yi), px(xi+1) - px(xi), py(yi+1) - py(yi));
+    }
+  }
 
-  // ── Hover vurgusu (çizgilerin ALTINA) ──
+  // ── Hover vurgusu ──
   if (dsnHover) {
     ctx.save();
-    ctx.strokeStyle = 'rgba(247,168,0,0.35)';
-    ctx.lineWidth = 12;
+    ctx.strokeStyle = 'rgba(243,146,0,0.45)';
+    ctx.lineWidth = 14;
     ctx.lineCap = 'round';
     ctx.beginPath();
     if (dsnHover.kind === 'v') {
@@ -3736,151 +3833,196 @@ function drawDesignerCanvas() {
     ctx.restore();
   }
 
+  // ── Çizgiler ──
+  const DASH = { Cut: [], Crease: [10, 6], None: [2, 5], Split: [14, 5, 3, 5] };
+  const LW   = { Cut: 3, Crease: 2.4, None: 1.2, Split: 2.8 };
   const strokeSeg = (x1, y1, x2, y2, t) => {
-    ctx.save();
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
-    ctx.strokeStyle = COLORS[t];
+    ctx.strokeStyle = DSN_PAL[t];
     ctx.lineWidth = LW[t];
     ctx.setLineDash(DASH[t]);
-    ctx.lineCap = 'round';
+    ctx.lineCap = t === 'Cut' ? 'round' : 'butt';
     ctx.stroke();
-    ctx.restore();
   };
-
-  // Önce None (arkada soluk), sonra Crease, en üstte Cut
-  const order = ['None', 'Crease', 'Split', 'Cut'];
-  order.forEach(pass => {
+  const counts = { Cut: 0, Crease: 0, Split: 0, None: 0 };
+  ctx.save();
+  ['None', 'Crease', 'Split', 'Cut'].forEach(pass => {
     for (let ux = 0; ux < vLines.length; ux++)
       for (let yi = 0; yi < vLines[ux].length; yi++)
-        if (vLines[ux][yi] === pass) strokeSeg(px(ux), py(yi), px(ux), py(yi+1), pass);
+        if (vLines[ux][yi] === pass) { counts[pass]++; strokeSeg(px(ux), py(yi), px(ux), py(yi+1), pass); }
     for (let uy = 0; uy < hLines.length; uy++)
       for (let xi = 0; xi < hLines[uy].length; xi++)
-        if (hLines[uy][xi] === pass) strokeSeg(px(xi), py(uy), px(xi+1), py(uy), pass);
+        if (hLines[uy][xi] === pass) { counts[pass]++; strokeSeg(px(xi), py(uy), px(xi+1), py(uy), pass); }
+  });
+  ctx.restore();
+
+  // ── Kesişim noktaları ──
+  ctx.fillStyle = 'rgba(70,52,28,0.55)';
+  for (let ux = 0; ux <= xSegs.length; ux++)
+    for (let uy = 0; uy <= ySegs.length; uy++) {
+      ctx.beginPath(); ctx.arc(px(ux), py(uy), 2, 0, Math.PI * 2); ctx.fill();
+    }
+
+  // ── Etiket stilleri ──
+  const ST_F = { font: DSN_FONT_F, bg: 'rgba(243,146,0,0.12)', border: 'rgba(243,146,0,0.55)', fg: '#ffb547' };
+  const ST_V = { font: DSN_FONT_V, bg: 'rgba(45,212,191,0.10)', border: 'rgba(45,212,191,0.45)', fg: '#6ee7d2' };
+  const CHAIN = 'rgba(200,208,220,0.55)';
+  const LEADER = 'rgba(200,208,220,0.35)';
+  const GAP_CH = 12;   // çizimden zincir ölçü çizgisine mesafe
+
+  // Zincir ölçü çizgisi çiz (segment sınırlarında kısa çentikler)
+  const chainH = (y, xs) => {
+    ctx.save(); ctx.strokeStyle = CHAIN; ctx.lineWidth = 1; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(xs[0], y); ctx.lineTo(xs[xs.length-1], y);
+    xs.forEach(x => { ctx.moveTo(x - 3, y + 3); ctx.lineTo(x + 3, y - 3); ctx.moveTo(x, y - 5); ctx.lineTo(x, y + 5); });
+    ctx.stroke(); ctx.restore();
+  };
+  const chainV = (x, ys) => {
+    ctx.save(); ctx.strokeStyle = CHAIN; ctx.lineWidth = 1; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(x, ys[0]); ctx.lineTo(x, ys[ys.length-1]);
+    ys.forEach(y => { ctx.moveTo(x - 3, y + 3); ctx.lineTo(x + 3, y - 3); ctx.moveTo(x - 5, y); ctx.lineTo(x + 5, y); });
+    ctx.stroke(); ctx.restore();
+  };
+  const leader = (x1, y1, x2, y2) => {
+    ctx.save(); ctx.strokeStyle = LEADER; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.restore();
+    ctx.beginPath(); ctx.arc(x2, y2, 2.2, 0, Math.PI * 2); ctx.fillStyle = 'rgba(200,208,220,0.8)'; ctx.fill();
+  };
+
+  const xsAll = xSegs.map((_, i) => px(i)).concat([px(xSegs.length)]);
+  const ysAll = ySegs.map((_, i) => py(i)).concat([py(ySegs.length)]);
+
+  // Yatay etiketler: satırlara dağıt, sığmazsa ikinci/üçüncü satıra geç
+  const layoutRow = (texts, style) => {
+    ctx.font = style.font;
+    const rowsRight = [-1e9, -1e9, -1e9];
+    return texts.map((t, i) => {
+      const w = ctx.measureText(t).width + 16;
+      const cx = (px(i) + px(i+1)) / 2;
+      let x0 = Math.max(4, Math.min(W - 4 - w, cx - w / 2));
+      let row = rowsRight.findIndex(r => x0 >= r + 6);
+      if (row < 0) { row = rowsRight.indexOf(Math.min(...rowsRight)); x0 = rowsRight[row] + 6; }
+      rowsRight[row] = x0 + w;
+      return { t, x0, w, cx, row };
+    });
+  };
+
+  // ── ÜST: X formülleri ──
+  const topChainY = oy - GAP_CH;
+  chainH(topChainY, xsAll);
+  const xF = layoutRow(xSegs.map(s => dsnShort(dsnLbl(s), 24)), ST_F);
+  xF.forEach(l => {
+    const cy = topChainY - 16 - l.row * 26;
+    const pc = l.x0 + l.w / 2;
+    if (l.row > 0 || Math.abs(pc - l.cx) > 2) leader(pc, cy + DSN_PILL_H / 2, l.cx, topChainY);
+    dsnPill(ctx, l.t, l.x0, cy, ST_F, 'left');
   });
 
-  // ── Kesişim noktaları (küçük, sakin) ──
-  for (let ux = 0; ux <= xSegs.length; ux++) {
-    for (let uy = 0; uy <= ySegs.length; uy++) {
-      ctx.beginPath();
-      ctx.arc(px(ux), py(uy), 2.25, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(247,168,0,0.8)';
-      ctx.fill();
-    }
-  }
+  // ── ALT: X ölçüleri ──
+  const botChainY = oy + drawH + GAP_CH;
+  chainH(botChainY, xsAll);
+  const xV = layoutRow(xSegs.map(s => dsnMM(s.len)), ST_V);
+  let maxRowB = 0;
+  xV.forEach(l => {
+    maxRowB = Math.max(maxRowB, l.row);
+    const cy = botChainY + 16 + l.row * 26;
+    const pc = l.x0 + l.w / 2;
+    if (l.row > 0 || Math.abs(pc - l.cx) > 2) leader(pc, cy - DSN_PILL_H / 2, l.cx, botChainY);
+    dsnPill(ctx, l.t, l.x0, cy, ST_V, 'left');
+  });
 
-  // ── ÜSTTE: X segment FORMÜLLERİ ──
-  ctx.font = '600 11px "DM Mono", monospace';
-  ctx.textAlign = 'center';
-  // Uzun birleşim formülleri paneli taşırmasın diye kısalt (tam hâli yan paneldeki kutuda)
-  const shortLbl = (t, max) => {
-    t = String(t || '');
-    return t.length > max ? t.slice(0, max - 1) + '…' : t;
+  // Dikey etiketleri ray yöntemiyle yerleştir (asla üst üste binmez, ekrandan taşmaz)
+  const ySizes = ySegs.map(() => DSN_PILL_H);
+  const yWant = ySegs.map((_, i) => ({ want: (py(i) + py(i+1)) / 2 }));
+  const yPosL = dsnRail(yWant, ySizes, 4, 6, H - 6);
+
+  // ── SOL: Y formülleri ──
+  const leftChainX = ox - GAP_CH;
+  chainV(leftChainX, ysAll);
+  ySegs.forEach((s, i) => {
+    const want = yWant[i].want, cy = yPosL[i];
+    const right = leftChainX - 16;
+    const r = dsnPill(ctx, dsnShort(dsnLbl(s), 24), right, cy, ST_F, 'right');
+    if (Math.abs(cy - want) > 2) leader(r.x1, cy, leftChainX, want);
+    else { ctx.strokeStyle = LEADER; ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(r.x1, cy); ctx.lineTo(leftChainX, cy); ctx.stroke(); }
+  });
+
+  // ── SAĞ: Y ölçüleri ──
+  const rightChainX = ox + drawW + GAP_CH;
+  chainV(rightChainX, ysAll);
+  let maxVR = rightChainX;
+  ySegs.forEach((s, i) => {
+    const want = yWant[i].want, cy = yPosL[i];
+    const left = rightChainX + 16;
+    const r = dsnPill(ctx, dsnMM(s.len), left, cy, ST_V, 'left');
+    maxVR = Math.max(maxVR, r.x1);
+    if (Math.abs(cy - want) > 2) leader(r.x0, cy, rightChainX, want);
+    else { ctx.strokeStyle = LEADER; ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(rightChainX, cy); ctx.lineTo(r.x0, cy); ctx.stroke(); }
+  });
+
+  // ── TOPLAM ÖLÇÜLER ──
+  const dimColor = '#c9d1dc';
+  const ST_T = { font: '700 12.5px "DM Mono", monospace', bg: '#1d232c', border: 'rgba(201,209,220,0.6)', fg: '#ffffff' };
+  const arrow = (x, y, ang) => {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-8, -3.5); ctx.lineTo(-8, 3.5); ctx.closePath();
+    ctx.fillStyle = dimColor; ctx.fill(); ctx.restore();
   };
-  for (let i = 0; i < xSegs.length; i++) {
-    const cx = (px(i) + px(i+1)) / 2;
-    const label = (xSegs[i].formula || xSegs[i].name || '').trim() || xSegs[i].name;
-    ctx.fillStyle = '#e8a33d';
-    ctx.fillText(shortLbl(label, 22), cx, oy - 12);
-  }
-
-  // ── ALTTA: X segment hesaplanan ÖLÇÜLERİ ──
-  for (let i = 0; i < xSegs.length; i++) {
-    const cx = (px(i) + px(i+1)) / 2;
-    ctx.fillStyle = '#7fc8a9';
-    ctx.fillText(xSegs[i].len + ' mm', cx, oy + drawH + 20);
-  }
-
-  // ── SOLDA: Y segment FORMÜLLERİ ──
-  ctx.textAlign = 'right';
-  for (let i = 0; i < ySegs.length; i++) {
-    const cy = (py(i) + py(i+1)) / 2;
-    const label = (ySegs[i].formula || ySegs[i].name || '').trim() || ySegs[i].name;
-    ctx.fillStyle = '#e8a33d';
-    ctx.fillText(shortLbl(label, 20), ox - 12, cy + 4);
-  }
-
-  // ── SAĞDA: Y segment hesaplanan ÖLÇÜLERİ ──
-  ctx.textAlign = 'left';
-  for (let i = 0; i < ySegs.length; i++) {
-    const cy = (py(i) + py(i+1)) / 2;
-    ctx.fillStyle = '#7fc8a9';
-    ctx.fillText(ySegs[i].len + ' mm', ox + drawW + 12, cy + 4);
-  }
-
-  const round2 = v => Math.round(v * 100) / 100;
-
-  // ── TOPLAM ÖLÇÜ ÇİZGİLERİ (teknik resim tarzı) ──
-  const dimColor = '#9aa3b2';
-  const drawArrow = (x, y, angle) => {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(angle);
-    ctx.beginPath();
-    ctx.moveTo(0, 0); ctx.lineTo(-7, -3.5); ctx.lineTo(-7, 3.5); ctx.closePath();
-    ctx.fillStyle = dimColor;
-    ctx.fill();
-    ctx.restore();
-  };
-
-  // Alt: toplam genişlik
-  const dimY = oy + drawH + 42;
   ctx.save();
-  ctx.strokeStyle = dimColor;
-  ctx.lineWidth = 1;
-  ctx.setLineDash([]);
-  // uzatma çizgileri
+  ctx.strokeStyle = 'rgba(201,209,220,0.75)'; ctx.lineWidth = 1; ctx.setLineDash([]);
+  // genişlik
+  const dimY = botChainY + 16 + maxRowB * 26 + 32;
   ctx.beginPath();
-  ctx.moveTo(ox, oy + drawH + 28); ctx.lineTo(ox, dimY + 4);
-  ctx.moveTo(ox + drawW, oy + drawH + 28); ctx.lineTo(ox + drawW, dimY + 4);
-  ctx.stroke();
-  // ölçü çizgisi
-  ctx.beginPath();
+  ctx.moveTo(ox, botChainY + 6); ctx.lineTo(ox, dimY + 6);
+  ctx.moveTo(ox + drawW, botChainY + 6); ctx.lineTo(ox + drawW, dimY + 6);
   ctx.moveTo(ox, dimY); ctx.lineTo(ox + drawW, dimY);
   ctx.stroke();
-  drawArrow(ox, dimY, Math.PI);
-  drawArrow(ox + drawW, dimY, 0);
-  ctx.font = '700 12px "DM Mono", monospace';
-  ctx.textAlign = 'center';
-  const wText = '↔ ' + round2(totalXmm) + ' mm';
-  const wTw = ctx.measureText(wText).width;
-  ctx.fillStyle = 'var(--bg)';
-  ctx.fillStyle = '#111111';
-  ctx.fillRect((ox + drawW / 2) - wTw / 2 - 6, dimY - 8, wTw + 12, 16);
-  ctx.fillStyle = '#d8dde6';
-  ctx.fillText(wText, ox + drawW / 2, dimY + 4);
-  ctx.restore();
-
-  // Sağ: toplam yükseklik
-  const dimX = ox + drawW + 52;
-  ctx.save();
-  ctx.strokeStyle = dimColor;
-  ctx.lineWidth = 1;
+  arrow(ox, dimY, Math.PI); arrow(ox + drawW, dimY, 0);
+  // yükseklik
+  const dimX = maxVR + 24;
   ctx.beginPath();
-  ctx.moveTo(ox + drawW + 38, oy); ctx.lineTo(dimX + 4, oy);
-  ctx.moveTo(ox + drawW + 38, oy + drawH); ctx.lineTo(dimX + 4, oy + drawH);
-  ctx.stroke();
-  ctx.beginPath();
+  ctx.moveTo(rightChainX + 6, oy); ctx.lineTo(dimX + 6, oy);
+  ctx.moveTo(rightChainX + 6, oy + drawH); ctx.lineTo(dimX + 6, oy + drawH);
   ctx.moveTo(dimX, oy); ctx.lineTo(dimX, oy + drawH);
   ctx.stroke();
-  drawArrow(dimX, oy, -Math.PI / 2);
-  drawArrow(dimX, oy + drawH, Math.PI / 2);
-  ctx.translate(dimX, oy + drawH / 2);
-  ctx.rotate(-Math.PI / 2);
-  ctx.font = '700 12px "DM Mono", monospace';
-  ctx.textAlign = 'center';
-  const hText = '↕ ' + round2(totalYmm) + ' mm';
-  const hTw = ctx.measureText(hText).width;
-  ctx.fillStyle = '#111111';
-  ctx.fillRect(-hTw / 2 - 6, -8, hTw + 12, 16);
-  ctx.fillStyle = '#d8dde6';
-  ctx.fillText(hText, 0, 4);
+  arrow(dimX, oy, -Math.PI / 2); arrow(dimX, oy + drawH, Math.PI / 2);
   ctx.restore();
+  dsnPill(ctx, 'Genişlik ' + round2(totalXmm) + ' mm', ox + drawW / 2, dimY, ST_T, 'center');
+  // yükseklik etiketi: yatay yazı, ekrandan taşarsa içeri çek
+  ctx.font = ST_T.font;
+  const hTxt = 'Yükseklik ' + round2(totalYmm) + ' mm';
+  const hW = ctx.measureText(hTxt).width + 16;
+  const hx = Math.min(W - 6 - hW / 2, dimX);
+  dsnPill(ctx, hTxt, hx, oy + drawH / 2, ST_T, 'center');
+
+  // ── Hover bilgi kutusu ──
+  if (dsnHover) {
+    let seg, type, mx, my;
+    if (dsnHover.kind === 'v') {
+      seg = ySegs[dsnHover.b]; type = vLines[dsnHover.a][dsnHover.b];
+      mx = px(dsnHover.a); my = (py(dsnHover.b) + py(dsnHover.b + 1)) / 2;
+    } else {
+      seg = xSegs[dsnHover.b]; type = hLines[dsnHover.a][dsnHover.b];
+      mx = (px(dsnHover.b) + px(dsnHover.b + 1)) / 2; my = py(dsnHover.a);
+    }
+    const txt = `${seg.name} · ${dsnMM(seg.len)} · ${DSN_TYPE_TR[type] || type}  →  ${DSN_TYPE_TR[drawMode] || drawMode}`;
+    ctx.font = '600 12px "Plus Jakarta Sans", sans-serif';
+    const tw = ctx.measureText(txt).width + 20;
+    const bx = Math.max(6, Math.min(W - tw - 6, mx + 14));
+    const by = Math.max(6, Math.min(H - 34, my - 40));
+    dsnRoundRect(ctx, bx, by, tw, 28, 7);
+    ctx.fillStyle = 'rgba(16,19,23,0.94)'; ctx.fill();
+    ctx.strokeStyle = DSN_PAL[drawMode] || '#F39200'; ctx.lineWidth = 1.5; ctx.setLineDash([]); ctx.stroke();
+    ctx.fillStyle = '#f0f0f0'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(txt, bx + 10, by + 14.5);
+  }
+  ctx.textBaseline = 'alphabetic';
 
   // Info bar
   document.getElementById('canvasInfo').textContent =
-    `Toplam: ${round2(totalXmm)}mm × ${round2(totalYmm)}mm  |  Izgara: ${xSegs.length}×${ySegs.length}  |  Zoom: ${Math.round(dsnZoom*100)}%  |  Çizgi: ${vLines.length * vLines[0].length + hLines.length * hLines[0].length} parça`;
+    `Toplam: ${round2(totalXmm)} × ${round2(totalYmm)} mm  |  Izgara: ${xSegs.length}×${ySegs.length}  |  Zoom: ${Math.round(dsnZoom*100)}%  |  Kesim ${counts.Cut} · Kat ${counts.Crease} · Ayır ${counts.Split} · Yok ${counts.None}`;
 }
 
 function drawVertLine(ctx, x, y, h, type, COLORS, DASH, LW) {
