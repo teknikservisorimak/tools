@@ -3709,7 +3709,7 @@ const DSN_PAL = {
   Cut:    '#e5383b',
   Crease: '#2f81f7',
   Split:  '#f08c00',
-  None:   '#b9a988'
+  None:   '#1c1c1c'
 };
 const DSN_TYPE_TR = { Cut: 'Kesim', Crease: 'Kat', Split: 'Ayır', None: 'Yok' };
 
@@ -3834,8 +3834,8 @@ function drawDesignerCanvas() {
   }
 
   // ── Çizgiler ──
-  const DASH = { Cut: [], Crease: [10, 6], None: [2, 5], Split: [14, 5, 3, 5] };
-  const LW   = { Cut: 3, Crease: 2.4, None: 1.2, Split: 2.8 };
+  const DASH = { Cut: [], Crease: [10, 6], None: [], Split: [14, 5, 3, 5] };
+  const LW   = { Cut: 3, Crease: 2.4, None: 1.5, Split: 2.8 };
   const strokeSeg = (x1, y1, x2, y2, t) => {
     ctx.beginPath();
     ctx.moveTo(x1, y1);
