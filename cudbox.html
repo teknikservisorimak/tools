@@ -3101,7 +3101,17 @@ function renderSegmentInputs(axis, segs, container) {
         oninput="updateSegLen('${axis}',${i},this.value)" title="${resolved ? 'Formülden otomatik hesaplandı' : 'Ölçü (mm)'}">
       <span style="font-size:10px;color:var(--text3);">mm</span>
     `;
+    const ins = document.createElement('button');
+    ins.textContent = '+';
+    ins.title = 'Bu segmentin sağına yeni segment ekle';
+    ins.style.cssText = 'padding:1px 7px;font-size:12px;line-height:1;background:var(--accent);color:#000;border:none;border-radius:4px;cursor:pointer;';
+    ins.onclick = () => insertSegment(axis, i);
+    div.appendChild(ins);
     container.appendChild(div);
+  });
+}
+
+// Değişken değişince    container.appendChild(div);
   });
 }
 
@@ -3184,7 +3194,33 @@ function addSegment(axis) {
   drawDesignerCanvas();
 }
 
-function removeLastSegment(axis) {
+function uniqueSegName(segs, prefix) {
+  let i = segs.length, n;
+  do { n = prefix + i; i++; } while (segs.some(s => s.name === n));
+  return n;
+}
+
+// Seçilen segmentin SAĞINA yeni segment ekler; çizgi dizilerini de yerinde kaydırır
+function insertSegment(axis, idx) {
+  if (axis === 'x') {
+    const name = uniqueSegName(dsnState.xSegs, 'B');
+    dsnState.xSegs.splice(idx + 1, 0, { name, len: 100, formula: name });
+    dsnState.xCount = dsnState.xSegs.length;
+    dsnState.vLines.splice(idx + 1, 0, dsnState.ySegs.map(() => 'None'));
+    dsnState.hLines.forEach(row => row.splice(idx + 1, 0, 'None'));
+  } else {
+    const name = uniqueSegName(dsnState.ySegs, 'H');
+    dsnState.ySegs.splice(idx + 1, 0, { name, len: 100, formula: name });
+    dsnState.yCount = dsnState.ySegs.length;
+    dsnState.hLines.splice(idx + 1, 0, dsnState.xSegs.map(() => 'None'));
+    dsnState.vLines.forEach(col => col.splice(idx + 1, 0, 'None'));
+  }
+  recalcAllSegs();
+  renderAllInputs();
+  drawDesignerCanvas();
+}
+
+function removeLastSegment(axis) {function removeLastSegment(axis) {
   if (axis === 'x') {
     if (dsnState.xSegs.length <= 1) return;
     dsnState.xSegs.pop();
