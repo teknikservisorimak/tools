@@ -872,4 +872,17 @@ window.addEventListener("resize",()=>{layoutDirty=true;});
 </script>
 
 <script src="ori-asistan.js" data-endpoint="https://ori-asistan.teknikservisorimak.workers.dev" defer></script>
+<link rel="stylesheet" href="vendor/driver.css">
+<script>
+window.ORIMAK_TOUR = { steps: [
+  { sel: '#L', tr: 'Kutu ölçülerini (uzunluk, genişlik, yükseklik) buraya girin.', en: 'Enter the outer box dimensions (length, width, height) here.' },
+  { sel: '#addPart', tr: 'Kutu içindeki parçaları ekleyin: ad, adet, ağırlık ve bölüm.', en: 'Add the parts inside the box: name, quantity, weight and section.' },
+  { sel: '#loadSample', tr: 'Hazır bir örnekle hızlıca deneme yapabilirsiniz.', en: 'Try a quick run with a ready sample.' },
+  { sel: '#modeAuto', tr: 'Maks. hız: hedef hıza göre personel sayısı otomatik hesaplanır.', en: 'Max speed: the staff count is calculated automatically for the target speed.' },
+  { sel: '#modeFix', tr: 'Personel sayısını siz sabitleyin; hız buna göre hesaplanır.', en: 'Fix the staff count; the speed is calculated from it.' },
+  { sel: '#partsBody', tr: 'Hesap sonuçları ve darboğaz analizi bu bölümde yer alır.', en: 'Results and bottleneck analysis are shown in this section.' }
+] };
+</script>
+<script src="vendor/driver.iife.js"></script>
+<script src="vendor/orimak-tour.js"></script>
 </body></html>
