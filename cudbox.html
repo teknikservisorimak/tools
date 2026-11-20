@@ -3107,6 +3107,12 @@ function renderSegmentInputs(axis, segs, container) {
     ins.style.cssText = 'padding:1px 7px;font-size:12px;line-height:1;background:var(--accent);color:#000;border:none;border-radius:4px;cursor:pointer;';
     ins.onclick = () => insertSegment(axis, i);
     div.appendChild(ins);
+    const del = document.createElement('button');
+    del.textContent = '×';
+    del.title = 'Bu segmenti sil';
+    del.style.cssText = 'padding:1px 7px;font-size:12px;line-height:1;background:var(--red);color:#fff;border:none;border-radius:4px;cursor:pointer;';
+    del.onclick = () => removeSegmentAt(axis, i);
+    div.appendChild(del);
     container.appendChild(div);
   });
 }
@@ -3210,6 +3216,30 @@ function insertSegment(axis, idx) {
     dsnState.yCount = dsnState.ySegs.length;
     dsnState.hLines.splice(idx + 1, 0, dsnState.xSegs.map(() => 'None'));
     dsnState.vLines.forEach(col => col.splice(idx + 1, 0, 'None'));
+  }
+  recalcAllSegs();
+  renderAllInputs();
+  drawDesignerCanvas();
+}
+
+// Seçilen segmenti siler; komşu çizgileri de yerinde düzeltir
+function removeSegmentAt(axis, idx) {
+  if (axis === 'x') {
+    const n = dsnState.xSegs.length;
+    if (n <= 1) return;
+    const lineToRemove = idx < n - 1 ? idx + 1 : idx;
+    dsnState.xSegs.splice(idx, 1);
+    dsnState.xCount = dsnState.xSegs.length;
+    dsnState.vLines.splice(lineToRemove, 1);
+    dsnState.hLines.forEach(row => row.splice(idx, 1));
+  } else {
+    const n = dsnState.ySegs.length;
+    if (n <= 1) return;
+    const lineToRemove = idx < n - 1 ? idx + 1 : idx;
+    dsnState.ySegs.splice(idx, 1);
+    dsnState.yCount = dsnState.ySegs.length;
+    dsnState.hLines.splice(lineToRemove, 1);
+    dsnState.vLines.forEach(col => col.splice(idx, 1));
   }
   recalcAllSegs();
   renderAllInputs();
