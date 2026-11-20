@@ -2772,5 +2772,19 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 
 </script>
 <script src="ori-asistan.js" data-endpoint="https://ori-asistan.teknikservisorimak.workers.dev" defer></script>
+<link rel="stylesheet" href="vendor/driver.css">
+<script>
+window.ORIMAK_TOUR = { steps: [
+  { sel: '#cats', tr: 'Kutu tiplerini kategoriye göre seçin: Tümü veya belirli bir grup.', en: 'Pick box types by category: All, or a specific group.' },
+  { sel: '#list', tr: 'Listeden görüntülemek istediğiniz kutu tipini seçin.', en: 'Pick the box type you want to view from the list.' },
+  { sel: '#stage', tr: '3D sahnede kutuyu döndürebilir, yakınlaştırabilirsiniz.', en: 'Rotate and zoom the box in the 3D view.' },
+  { sel: '#btnPlay', tr: 'Katlama animasyonunu buradan oynatabilirsiniz.', en: 'Play the folding animation from here.' },
+  { sel: '#rowL', tr: 'Uzunluk, genişlik ve yükseklik ölçülerini buradan değiştirebilirsiniz.', en: 'Change length, width and height here.' },
+  { sel: '#btnDims', tr: 'Ölçü gösterimini açıp kapatabilirsiniz.', en: 'Show or hide the dimension labels.' },
+  { sel: '#btnSave', tr: 'Yaptığınız ayarları kaydedin; kayıtlı listede tekrar açabilirsiniz.', en: 'Save your settings; reopen them from the saved list.' }
+] };
+</script>
+<script src="vendor/driver.iife.js"></script>
+<script src="vendor/orimak-tour.js"></script>
 </body>
 </html>
