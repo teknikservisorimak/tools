@@ -1015,5 +1015,17 @@ if (saved) {
 }
 </script>
 <script src="ori-asistan.js" data-endpoint="https://ori-asistan.teknikservisorimak.workers.dev" defer></script>
+<link rel="stylesheet" href="vendor/driver.css">
+<script>
+window.ORIMAK_TOUR = { steps: [
+  { sel: '#inp-user', tr: 'Kullanıcı adınızı ve şifrenizi girerek giriş yapın.', en: 'Log in with your username and password.' },
+  { sel: '#header-machine', tr: 'Giriş yaptıktan sonra makine raporları burada görünür.', en: 'After logging in, machine reports are shown here.' },
+  { sel: '#stat-cuts', tr: 'Özet istatistikler: kesim, alan, fire ve kutu sayıları.', en: 'Summary statistics: cuts, area, waste and box counts.' },
+  { sel: '#filter-start', tr: 'Tarih, ürün ve diğer filtrelerle raporları daraltın, sonra HESAPLA veya FİLTRELE deyin.', en: 'Narrow the reports with date, product and other filters, then press CALCULATE or FILTER.' },
+  { sel: '#data-table', tr: 'Ayrıntılı kayıtlar bu tabloda listelenir.', en: 'Detailed records are listed in this table.' }
+] };
+</script>
+<script src="vendor/driver.iife.js"></script>
+<script src="vendor/orimak-tour.js"></script>
 </body>
 </html>
