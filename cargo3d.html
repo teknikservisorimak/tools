@@ -2929,5 +2929,18 @@ animate();
 </div>
 
 <script src="ori-asistan.js" data-endpoint="https://ori-asistan.teknikservisorimak.workers.dev" defer></script>
+<link rel="stylesheet" href="vendor/driver.css">
+<script>
+window.ORIMAK_TOUR = { steps: [
+  { sel: 'h1', tr: 'Cargo 3D: konteyner ya da kamyona kutuları yerleştirip yükleme planı yaparsınız.', en: 'Cargo 3D: place boxes in a container or truck to plan the load.' },
+  { sel: '#statVolume', tr: 'Hacim, kutu sayısı ve ağırlık bilgileri burada anlık görünür.', en: 'Volume, box count and weight are shown here live.' },
+  { sel: '#sectionAddBox', tr: 'Kutu ekleyin: ad, ölçü, ağırlık ve adet girip ＋ Kutu Ekle deyin.', en: 'Add boxes: enter name, size, weight and quantity, then press ＋ Add Box.' },
+  { sel: '#boxList', tr: 'Eklediğiniz kutular listelenir; düzenleyip tekrar yerleştirebilirsiniz.', en: 'Added boxes are listed here; you can edit and place them again.' },
+  { sel: '#canvas3d', tr: '3D alanda kutuları sürükleyip yerleştirebilirsiniz.', en: 'Drag and place boxes in the 3D area.' },
+  { sel: '#cogIndicator', tr: 'Ağırlık merkezi göstergesi yükün dengeli olup olmadığını gösterir.', en: 'The center-of-gravity indicator shows whether the load is balanced.' }
+] };
+</script>
+<script src="vendor/driver.iife.js"></script>
+<script src="vendor/orimak-tour.js"></script>
 </body>
 </html>
