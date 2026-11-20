@@ -548,5 +548,14 @@ function openFullscreen() {
 </script>
 
 <script src="ori-asistan.js" data-endpoint="https://ori-asistan.teknikservisorimak.workers.dev" defer></script>
+<link rel="stylesheet" href="vendor/driver.css">
+<script>
+window.ORIMAK_TOUR = { steps: [
+  { sel: 'h1', tr: 'Parametrik Kutu Kataloğu: kutu tiplerinin kataloğunu burada görüntülersiniz.', en: 'Parametric Box Catalog: view the box type catalog here.' },
+  { sel: '#pdfEmbed', tr: 'Katalog PDF olarak burada gösterilir; kaydırarak inceleyebilirsiniz.', en: 'The catalog is shown here as a PDF; scroll to browse it.' }
+] };
+</script>
+<script src="vendor/driver.iife.js"></script>
+<script src="vendor/orimak-tour.js"></script>
 </body>
 </html>
