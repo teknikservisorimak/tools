@@ -3052,5 +3052,19 @@ log(FSOK ? 'Klasöre doğrudan yazma DESTEKLENİYOR — "Kaydet" ile klasör se�
 <!-- ════════════════ /ORİMAK · KULLANIM KILAVUZU ════════════════ -->
 
 <script src="ori-asistan.js" data-endpoint="https://ori-asistan.teknikservisorimak.workers.dev" defer></script>
+<link rel="stylesheet" href="vendor/driver.css">
+<script>
+window.ORIMAK_TOUR = { steps: [
+  { sel: '#bNew', tr: 'Yeni bir etiket başlatmak için ✦ Yeni düğmesini kullanın.', en: 'Use ✦ New to start a new label.' },
+  { sel: '#bOpen', tr: 'Kayıtlı bir etiketi Aç ile yükleyin.', en: 'Open a saved label with Open.' },
+  { sel: '#bSave', tr: 'Çalışmanızı Kaydet ile saklayın; farklı kaydetmek için Farklı kaydet kullanın.', en: 'Save your work with Save; use Save As to store a copy.' },
+  { sel: '#tools', tr: 'Sol araç çubuğundan metin, şekil ve barkod gibi öğeleri ekleyebilirsiniz.', en: 'Add text, shapes and barcodes from the left toolbar.' },
+  { sel: '#center', tr: 'Etiketi bu alanda düzenleyin; öğeleri sürükleyerek yerleştirin.', en: 'Edit the label here; drag items to place them.' },
+  { sel: '#flist', tr: 'Öğelerin listesi ve sıralaması burada görünür.', en: 'The list and order of items is shown here.' },
+  { sel: '#bItf', tr: 'Yazıcıya göndermek için .itf dosyası olarak indirin.', en: 'Download as an .itf file to send to the printer.' }
+] };
+</script>
+<script src="vendor/driver.iife.js"></script>
+<script src="vendor/orimak-tour.js"></script>
 </body>
 </html>
