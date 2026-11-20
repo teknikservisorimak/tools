@@ -3111,10 +3111,6 @@ function renderSegmentInputs(axis, segs, container) {
   });
 }
 
-// Değişken değişince    container.appendChild(div);
-  });
-}
-
 // Değişken değişince segment ölçü kutularını yerinde güncelle (focus kaybetmeden)
 function refreshSegLenFields() {
   dsnState.xSegs.forEach((seg, i) => {
@@ -3220,7 +3216,7 @@ function insertSegment(axis, idx) {
   drawDesignerCanvas();
 }
 
-function removeLastSegment(axis) {function removeLastSegment(axis) {
+function removeLastSegment(axis) {
   if (axis === 'x') {
     if (dsnState.xSegs.length <= 1) return;
     dsnState.xSegs.pop();
