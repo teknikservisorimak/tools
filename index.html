@@ -1422,5 +1422,19 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeLangMgr(); })
 })();
 </script>
 <script src="ori-asistan.js" data-endpoint="https://ori-asistan.teknikservisorimak.workers.dev" defer></script>
+<link rel="stylesheet" href="vendor/driver.css">
+<script>
+window.ORIMAK_TOUR = { steps: [
+  { sel: 'h1', tr: 'ORİMAK Dijital Araçlar sayfasına hoş geldiniz. Tüm araçlar bu sayfada listelenir.', en: 'Welcome to the ORİMAK Digital Tools page. All tools are listed here.' },
+  { sel: '#langSelect', tr: 'Dili buradan değiştirebilirsiniz. Tur da seçili dilde açılır.', en: 'Change the language here. The tour opens in the selected language.' },
+  { sel: '#oriBtn', tr: 'ORİ asistanı sorularınızı yanıtlamaya yardımcı olur.', en: 'The ORİ assistant helps answer your questions.' },
+  { sel: 'a[href="cudbox"]', tr: 'CUDBOX Üretici: kutu ölçülerini tasarlayıp kesim dosyası üretirsiniz.', en: 'CUDBOX Producer: design box dimensions and create cut files.' },
+  { sel: 'a[href="fefco"]', tr: 'FEFCO Karton Eni Hesaplama: karton eni ve ölçü hesaplarını yapar.', en: 'FEFCO Board Width: calculates board width and dimensions.' },
+  { sel: 'a[href="oriteq_hat"]', tr: 'ORİTEQ Hat Hesaplayıcı: hat için gerekli hesapları yapar.', en: 'ORİTEQ Line Calculator: runs the calculations needed for a line.' },
+  { sel: 'a[href="reports"]', tr: 'Makine Rapor Takibi: makine raporlarını takip edersiniz.', en: 'Machine Report Tracking: track machine reports.' }
+] };
+</script>
+<script src="vendor/driver.iife.js"></script>
+<script src="vendor/orimak-tour.js"></script>
 </body>
 </html>
