@@ -8546,5 +8546,19 @@ document.addEventListener('DOMContentLoaded', () => {
 <!-- ════════════════ /ORİMAK · KULLANIM KILAVUZU ════════════════ -->
 
 <script src="ori-asistan.js" data-endpoint="https://ori-asistan.teknikservisorimak.workers.dev" defer></script>
+<link rel="stylesheet" href="vendor/driver.css">
+<script>
+window.ORIMAK_TOUR = { steps: [
+  { sel: '.tabs', tr: 'Üst sekmelerden Üretim, Kutu Tasarımcısı ve diğer araçlara geçebilirsiniz.', en: 'Use the top tabs to switch between Production, Box Designer and other tools.' },
+  { sel: '#langSelect', tr: 'Arayüz dilini buradan değiştirebilirsiniz. Tur da seçili dilde açılır.', en: 'Change the interface language here. The tour opens in the selected language.' },
+  { sel: '.tab[onclick*="designer"]', tr: 'Kutu Tasarımcısı: kutu ölçülerini ve kesim çizgilerini bu sekmede çizersiniz.', en: 'Box Designer: design the box dimensions and cut lines in this tab.' },
+  { sel: '#varList', tr: 'Değişkenler (B, H, L, t gibi) burada tanımlanır ve segment formüllerinde kullanılır.', en: 'Variables (like B, H, L, t) are defined here and used in segment formulas.' },
+  { sel: '#xSegList', tr: 'Yatay segmentler. Bir segmentin yanındaki + ile sağına yeni segment ekleyin, × ile silin.', en: 'Horizontal segments. Use + next to a segment to add one to its right, and × to delete it.' },
+  { sel: '#ySegList', tr: 'Dikey segmentler için de aynı kurallar geçerli.', en: 'The same rules apply to vertical segments.' },
+  { sel: '#modeBtn-Cut', tr: 'Çizim modları: Kes, Kat, Ayır, Yok. Modu seçip önizlemedeki çizgiye tıklayın.', en: 'Draw modes: Cut, Crease, Split, None. Pick a mode, then click a line in the preview.' }
+] };
+</script>
+<script src="vendor/driver.iife.js"></script>
+<script src="vendor/orimak-tour.js"></script>
 </body>
 </html>
